@@ -1,0 +1,285 @@
+/* General Styles */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    position: relative;
+}
+
+header {
+    position: absolute;
+    top: 10px;
+    left: 20px;
+}
+
+h1 {
+    margin: 0;
+    font-size: 1.5em;
+}
+
+/* Options Container */
+#options-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    position: relative;
+    margin: 30px;
+  }
+  
+  .side-options {
+    flex: 1;
+    display: flex;
+    align-items: center;
+  }
+  
+  .left {
+    justify-content: flex-end;
+  }
+  
+  .right {
+    justify-content: flex-start;
+  }
+  
+  #tonic-selector {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 130px; /* Adjust as needed */
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  
+  #tonic-display-container {
+    width: 50px; /* Adjust as needed */
+    text-align: center;
+    margin: 0 10px;
+  }
+  
+  .select-group {
+    margin: 0 100px; /* Adjust spacing as needed */
+  }
+
+#current-tonic {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+#decrease-tonic,
+#increase-tonic {
+    font-size: 16px;
+    padding: 5px 10px;
+    flex-shrink: 0; /* Prevent buttons from shrinking */
+}
+
+/* Form Elements */
+select, button {
+    padding: 5px 10px;
+    margin: 5px;
+}
+
+input[type="checkbox"] {
+    margin-right: 0;
+}
+
+/* Content Container */
+#content-container, #main-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 800px;
+}
+
+/* Wheel Container */
+#wheel-container {
+    width: 300px;
+    height: 300px;
+    margin-bottom: 20px;
+}
+
+#wheel-container svg {
+    width: 100%;
+    height: 100%;
+    transform-box: fill-box;
+}
+
+#wheel-container svg * {
+    visibility: visible !important;
+}
+
+.note circle {
+    stroke-width: 2;
+}
+
+.note text {
+    font-size: 14px;
+}
+
+wheel .note {
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.wheel .note circle {
+    transition: r 0.2s ease;
+}
+
+/* Tonic Indicators*/
+#wheel-tonic-indicator, #keyboard-tonic-indicator {
+    position: absolute;
+    pointer-events: none;
+    z-index: 10;
+}
+#wheel-tonic-indicator {
+    width: 40px;
+    height: 40px;
+    border: 3px solid red;
+    border-radius: 50%;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+}
+#keyboard-tonic-indicator {
+    width: 30px;
+    height: 10px;
+    background-color: red;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+
+/* Keyboard Container */
+#keyboard-window {
+    width: 80%; /* Adjust this value to change the visible width of the keyboard */
+    overflow: hidden;
+    position: relative;
+    height: 160px; /* Adjust based on your keyboard height */
+    margin-top: 30px;
+}
+
+#keyboard-container {
+    width: 650px;
+    height: 150px;
+    display: flex;
+    justify-content: center;
+}
+
+
+
+.keyboard {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    justify-content: center;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+/* Key Styles */
+.key {
+    position: absolute;
+    width: 40px;
+    height: 150px;
+    border: 1px solid #000;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    padding-bottom: 10px;
+    cursor: pointer;
+}
+
+.key.white {
+    background-color: #fff;
+    z-index: 1;
+}
+
+.key.black {
+    background-color: black;
+    height: 100px;
+    width: 20px;
+    z-index: 2;
+}
+
+.note-display {
+    font-size: 12px;
+    color: #000;
+    position: absolute;
+    bottom: 5px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.key.black .note-display {
+    color: #fff;
+}
+
+/* Animation Styles */
+.key {
+    transition: transform 0.1s ease, filter 0.1s ease;
+}
+
+.key.active {
+    transform: scale(0.95);
+    filter: brightness(0.8);
+}
+
+.key.colored, .note.colored {
+    transition: none;
+}
+
+.key.colored.active {
+    filter: brightness(0.8);
+}
+
+/* Toggles Panel */
+#toggles-panel {
+    position: absolute;
+    top: 150px;
+    right: 20px;
+    width: 200px;
+    padding: 10px;
+    background-color: #f8f8f8;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+#toggles-panel h3 {
+    margin-top: 0;
+}
+
+.toggle-group {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.toggle-group label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+#toggle-debug {
+    margin-top: 10px;
+    width: 100%;
+}
+
+
+ /* body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 50%;
+    width: 1px;
+    height: 100%;
+    background: red;
+    z-index: 9999;
+  }  */

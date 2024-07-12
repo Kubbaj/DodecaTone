@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DodecaTone</title>
+    <style>body {
+        font-family: Arial, sans-serif;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        text-align: center;
+    }
+    
+    h1 {
+        margin-bottom: 20px;
+    }
+    
+    #optionsContainer {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .select-group {
+        display: flex;
+        align-items: center;
+    }
+    
+    .select-group label {
+        margin-right: 5px;
+    }
+    
+    #tonicSelector {
+        display: flex;
+        align-items: center;
+    }
+    
+    #tonicSelector button {
+        font-size: 16px;
+        padding: 5px 10px;
+        margin: 0 5px;
+    }
+    
+    #currentTonic {
+        font-size: 18px;
+        font-weight: bold;
+        margin: 0 10px;
+    }
+    
+    #contentContainer {
+        position: relative;  /* This is important for absolute positioning of togglesPanel */
+        display: flex;
+        justify-content: center;  /* This centers the mainContent */
+        align-items: flex-start;
+    }
+    
+    #mainContent {
+        width: 800px;  /* Or whatever width you prefer */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    #wheelContainer {
+        width: 80%;
+        height: 300px;
+        border: 1px solid #ccc;
+        margin-bottom: 20px;
+        overflow: visible;
+    }
+    
+    #keysContainer {
+        width: 80%;
+        height: 200px;
+        border: 1px solid #ccc;
+    }
+    
+    #togglesPanel {
+        position: absolute;
+        right: 0;
+        top: 0;
+        width: 200px;
+        text-align: left;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+    }
+    
+    #togglesPanel h3 {
+        margin-top: 0;
+    }
+    
+    .toggle-group {
+        margin-bottom: 10px;
+    }
+    
+    .toggle-group label {
+        margin-right: 5px;
+    }
+    
+    #wheelContainer, #keysContainer {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }</style>
+</head>
+<body>
+    <h1>WholeCodeNEW</h1>
+
+    <div id="optionsContainer">
+        <div class="select-group">
+            <label for="layoutSelect">Layout:</label>
+            <select id="layoutSelect">
+                <option value="chromatic">Chromatic</option>
+                <option value="fifths">Fifths</option>
+                <option value="fourths">Fourths</option>
+            </select>
+        </div>
+
+        <div id="tonicSelector">
+            <button id="decreaseTonic">&lt;</button>
+            <span id="currentTonic">C</span>
+            <button id="increaseTonic">&gt;</button>
+        </div>
+
+        <div class="select-group">
+            <label for="patternSelect">Pattern:</label>
+            <select id="patternSelect">
+                <option value="major">Major Scale</option>
+                <option value="minor">Minor Scale</option>
+            </select>
+        </div>
+    </div>
+
+    <div id="contentContainer">
+        <div id="mainContent">
+            <div id="wheelContainer">
+                <!-- Wheel will be inserted here -->
+            </div>
+            <div id="keysContainer">
+                <!-- Keyboard will be inserted here -->
+            </div>
+        </div>
+        <div id="togglesPanel">
+            <h3>Settings</h3>
+            <div class="toggle-group">
+                <label for="sharpFlatToggle">Use Sharps:</label>
+                <input type="checkbox" id="sharpFlatToggle">
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        
+        // wheel.js
+class Wheel {
+    constructor(container, radius = 120) {
+        this.container = container;
+        this.radius = radius;
+        this.svg = null;
+        this.notesGroup = null;
+        this.patternGroup = null;
+        this.notes = ['C', 'G', 'D', 'A', 'E', 'B', 'F♯', 'C♯', 'G♯', 'D♯', 'A♯', 'F'];
+    }
+
+    initialize() {
+        this.svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        this.svg.setAttribute("width", 300);  // Set width to 300
+        this.svg.setAttribute("height", 300); // Set height to 300
+        this.svg.setAttribute("viewBox", `-150 -150 300 300`);
+        
+        this.notesGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        this.patternGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        
+        this.svg.appendChild(this.notesGroup);
+        this.svg.appendChild(this.patternGroup);
+        
+        this.container.appendChild(this.svg);
+        
+        this.drawWheel();
+    }
+
+    drawWheel() {
+        const angleStep = (Math.PI * 2) / 12;
+        
+        this.notes.forEach((note, index) => {
+            const angle = index * angleStep - Math.PI / 2; // Start at 12 o'clock position
+            const x = Math.cos(angle) * this.radius;
+            const y = Math.sin(angle) * this.radius;
+            
+            const noteCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            noteCircle.setAttribute("cx", x);
+            noteCircle.setAttribute("cy", y);
+            noteCircle.setAttribute("r", 20);
+            noteCircle.setAttribute("fill", "white");
+            noteCircle.setAttribute("stroke", "black");
+            
+            const noteText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            noteText.setAttribute("x", x);
+            noteText.setAttribute("y", y);
+            noteText.setAttribute("text-anchor", "middle");
+            noteText.setAttribute("dominant-baseline", "central");
+            noteText.textContent = note;
+            
+            this.notesGroup.appendChild(noteCircle);
+            this.notesGroup.appendChild(noteText);
+        });
+    }
+
+    rotateTo(note) {
+        const index = this.notes.indexOf(note);
+        if (index !== -1) {
+            const angle = (index * 30); // Removed the -90 to start at 12 o'clock
+            this.notesGroup.setAttribute("transform", `rotate(${angle})`);
+        }
+    }
+}
+
+// keyboard.js
+class Keyboard {
+    constructor(container, width = 600, height = 150) {
+        this.container = container;
+        this.width = width;
+        this.height = height;
+        this.svg = null;
+        this.keysGroup = null;
+        this.notes = ['C', 'C♯', 'D', 'D♯', 'E', 'F', 'F♯', 'G', 'G♯', 'A', 'A♯', 'B'];
+        this.fullKeyboard = this.generateFullKeyboard();
+    }
+
+    generateFullKeyboard() {
+        return [
+            ...this.notes,
+            ...this.notes,
+            'C'
+        ];
+    }
+
+    initialize() {
+        this.svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        this.svg.setAttribute("width", this.width);
+        this.svg.setAttribute("height", this.height);
+        this.svg.setAttribute("viewBox", `0 0 ${this.width} ${this.height}`);
+        
+        this.keysGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        
+        this.svg.appendChild(this.keysGroup);
+        this.container.appendChild(this.svg);
+        
+        this.drawKeyboard();
+    }
+
+    drawKeyboard() {
+        const keyWidth = this.width / 25;
+        const whiteKeys = [0, 2, 4, 5, 7, 9, 11];
+        
+        this.fullKeyboard.forEach((note, index) => {
+            const isWhiteKey = whiteKeys.includes(index % 12);
+            
+            const key = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+            key.setAttribute("x", index * keyWidth);
+            key.setAttribute("y", 0);
+            key.setAttribute("width", keyWidth);
+            key.setAttribute("height", this.height);
+            key.setAttribute("fill", isWhiteKey ? "white" : "black");
+            key.setAttribute("stroke", "black");
+            
+            const noteText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            noteText.setAttribute("x", (index + 0.5) * keyWidth);
+            noteText.setAttribute("y", this.height - 5);
+            noteText.setAttribute("text-anchor", "middle");
+            noteText.setAttribute("font-size", "10");
+            noteText.setAttribute("fill", isWhiteKey ? "black" : "white");
+            noteText.textContent = note;
+            
+            this.keysGroup.appendChild(key);
+            this.keysGroup.appendChild(noteText);
+        });
+    }
+
+    slideTo(note) {
+        const index = this.notes.indexOf(note);
+        if (index !== -1) {
+            const slideAmount = -(index * (this.width / 25));
+            this.keysGroup.setAttribute("transform", `translate(${slideAmount}, 0)`);
+        }
+    }
+}
+
+
+        const tonics = [
+            {note: 'C', sharp: 'C', flat: 'C'},
+            {note: 'C♯/D♭', sharp: 'C♯', flat: 'D♭'},
+            {note: 'D', sharp: 'D', flat: 'D'},
+            {note: 'D♯/E♭', sharp: 'D♯', flat: 'E♭'},
+            {note: 'E', sharp: 'E', flat: 'E'},
+            {note: 'F', sharp: 'F', flat: 'F'},
+            {note: 'F♯/G♭', sharp: 'F♯', flat: 'G♭'},
+            {note: 'G', sharp: 'G', flat: 'G'},
+            {note: 'G♯/A♭', sharp: 'G♯', flat: 'A♭'},
+            {note: 'A', sharp: 'A', flat: 'A'},
+            {note: 'A♯/B♭', sharp: 'A♯', flat: 'B♭'},
+            {note: 'B', sharp: 'B', flat: 'B'}
+        ];
+
+        let currentTonicIndex = 0;
+        let useSharpNotation = false;
+        let wheel, keyboard;
+
+        function initializeComponents() {
+    const wheelContainer = document.getElementById('wheelContainer');
+    const keysContainer = document.getElementById('keysContainer');
+
+    wheel = new Wheel(wheelContainer, 120);  // Adjust radius as needed
+    keyboard = new Keyboard(keysContainer, 600, 100);  // Adjust width and height as needed
+
+    wheel.initialize();
+    keyboard.initialize();
+}
+
+        function updateTonic(direction) {
+            currentTonicIndex = (currentTonicIndex + direction + 12) % 12;
+            updateTonicDisplay();
+            updateComponents();
+        }
+
+        function updateTonicDisplay() {
+            const currentTonic = tonics[currentTonicIndex];
+            const displayNote = useSharpNotation ? currentTonic.sharp : currentTonic.flat;
+            document.getElementById('currentTonic').textContent = displayNote;
+        }
+
+        function updateComponents() {
+            const currentTonic = tonics[currentTonicIndex];
+            const displayNote = useSharpNotation ? currentTonic.sharp : currentTonic.flat;
+            wheel.rotateTo(displayNote);
+            keyboard.slideTo(displayNote);
+        }
+
+        function toggleSharpFlat() {
+            useSharpNotation = !useSharpNotation;
+            updateTonicDisplay();
+            updateComponents();
+        }
+
+        document.getElementById('decreaseTonic').addEventListener('click', () => updateTonic(-1));
+        document.getElementById('increaseTonic').addEventListener('click', () => updateTonic(1));
+        document.getElementById('sharpFlatToggle').addEventListener('change', toggleSharpFlat);
+
+        // Initialize the display and components
+        initializeComponents();
+        updateTonicDisplay();
+        updateComponents();
+    </script>
+</body>
+</html>
