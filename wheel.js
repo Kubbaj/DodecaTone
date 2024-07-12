@@ -222,6 +222,8 @@ export class Wheel {
             
             // Calculate the new rotation
             const newRotation = currentRotation + rotationAngle;
+
+            console.log("new", newRotation, "current", currentRotation, "angle", rotationAngle)
     
             this.notesGroup.style.transform = `rotate(${newRotation}deg)`;
     
