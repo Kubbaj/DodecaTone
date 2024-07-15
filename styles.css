@@ -30,6 +30,7 @@ h1 {
     width: 100%;
     position: relative;
     margin: 30px;
+    order: 2;
   }
   
   .side-options {
@@ -102,6 +103,7 @@ input[type="checkbox"] {
     width: 300px;
     height: 300px;
     margin-bottom: 20px;
+    order: 3;
 }
 
 #wheel-container svg {
@@ -169,6 +171,7 @@ wheel .note {
     height: 150px;
     display: flex;
     justify-content: center;
+    order: 1;
 }
 
 

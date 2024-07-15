@@ -19,7 +19,7 @@ let animate = false;
 let currentlyPlayingNote = null;
 let currentTonicDisplay = 'C';
 let autoplayTonic = true;
-let currentOctave = 4;    
+let currentOctave = 4;
 
 
 // Initialize components
@@ -72,7 +72,7 @@ function setTonic(newTonic) {
         if (autoplayTonic) {
             const toneNote = getToneNote(newTonic, currentOctave);
             
-            const delay = animate ? 250 : 0;
+            const delay = animate ? 400 : 0;
             
             setTimeout(() => {
                 playNoteForDuration(toneNote);
@@ -108,8 +108,7 @@ function initTonicPicker() {
 function updateLayout(newLayout) {
     if (config.layouts.hasOwnProperty(newLayout)) {
         currentLayout = newLayout;
-        wheel.updateLayout(config.layouts[newLayout]);
-        // We're not updating the keyboard layout, as it should remain chromatic
+        wheel.switchLayout(newLayout);
         updateAllNoteStates();
     }
 }
@@ -155,7 +154,7 @@ function updateAllNoteStates() {
                          keyboard.keyElements.get(noteId)?.classList.contains('active');
         const state = getNoteState(config.notes[baseNoteId], isActive);
         if (noteId < 12) {
-            wheel.updateNoteState(noteId, state, useColors, animate);
+            wheel.updateNoteState(noteId, state, useColors, animate, currentOctave);
         }
         keyboard.updateKeyState(noteId, state, useColors, animate);
     });
@@ -190,6 +189,7 @@ function playNoteForDuration(toneNote, duration = 250) {
         setTimeout(() => {
             stopNote(toneNote);
         }, duration);
+        console.log("playing note", toneNote)
     } catch (error) {
         console.error(`Error playing note ${toneNote}:`, error);
     }
