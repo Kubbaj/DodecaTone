@@ -174,13 +174,13 @@ function getNoteState(note, isActive = false) {
 // In app.js
 function playNote(toneNote) {
     synth.triggerAttack(toneNote);
-    updateNoteState(toneNote, true);  // Always set to active when playing
+    updateNoteState(toneNote, true, currentOctave);  // Always set to active when playing
 }
 
 function stopNote(toneNote) {
     synth.triggerRelease(toneNote);
     console.log("stopping", toneNote)
-    updateNoteState(toneNote, false);  // Always set to inactive when stopping
+    updateNoteState(toneNote, false, currentOctave);  // Always set to inactive when stopping
 }
 
 function playNoteForDuration(toneNote, duration = 250) {
@@ -210,7 +210,7 @@ function updateNoteState(toneNote, isActive) {
     if (wheelElement) {
         const noteId = parseInt(wheelElement.dataset.noteId);
         const state = getNoteState(config.notes[noteId], isActive);
-        wheel.updateNoteState(noteId, state, useColors, animate);
+        wheel.updateNoteState(noteId, state, useColors, animate, currentOctave);
     }
 }
 

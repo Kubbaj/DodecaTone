@@ -170,13 +170,14 @@ export class Wheel {
             noteText.setAttribute('fill', useColors ? (isBlackNote ? 'black' : 'white') : (isBlackNote ? 'white' : 'black'));
             noteText.setAttribute('font-weight', useColors ? 'bold' : 'normal');
     
-            if (animate) {
-                // Use the provided octave for B and C, otherwise use the current octave
-                const noteOctave = (note === 'B' || note === 'C') ? octave : this.currentOctave;
-                const toneNote = `${note}${noteOctave}`;
-                noteElement.dataset.toneNote = toneNote;
-                this.animateNote(noteElement, state.active);
-            }
+             if (animate) {
+            // Use the provided octave for B and C, otherwise use the current octave
+            const noteOctave = (note === 'B' || note === 'C') ? octave : this.currentOctave;
+            const baseTone = isBlackNote ? note.split('/')[0].replace('♯', '#') : note;
+            const toneNote = `${baseTone}${noteOctave}`;
+            noteElement.dataset.toneNote = toneNote;
+            this.animateNote(noteElement, state.active);
+        }
         }
     }
 
