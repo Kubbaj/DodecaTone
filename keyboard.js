@@ -96,7 +96,7 @@ export class Keyboard {
         console.log(`Translating keyboard to ${newTonic}, Octave: ${octave}, offset: ${translation}px`);
     
         if (this.animate) {
-            this.container.style.transition = 'transform 0.3s ease-in-out';
+            this.container.style.transition = 'transform 0.4s ease-in-out';
         } else {
             this.container.style.transition = 'none';
         }

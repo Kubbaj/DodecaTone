@@ -199,6 +199,8 @@ export class Wheel {
             shift = (oldTonicIndex - newTonicIndex + 12) % 12;
         } else if (this.currentLayout === 'fifths') {
             shift = ((oldTonicIndex - newTonicIndex) * 7 + 12) % 12;
+        } else if (this.currentLayout === 'fourths') {
+            shift = ((oldTonicIndex - newTonicIndex) * 5 + 12) % 12;
         }
     
         const oldPositions = new Map(this.notePositions);
@@ -230,6 +232,13 @@ export class Wheel {
     
         console.log(`Switching from ${this.currentLayout} to ${newLayout}`);
         console.log(`Current tonic: ${this.currentTonic}`);
+    
+        if ((this.currentLayout === 'chromatic' && newLayout === 'fourths') ||
+            (this.currentLayout === 'fourths' && newLayout === 'chromatic')) {
+            // First switch to fifths, then to the desired layout
+            await this.switchLayout('fifths');
+            return this.switchLayout(newLayout);
+        }
     
         const oldPositions = new Map(this.notePositions);
         const newPositions = new Map();
@@ -264,6 +273,8 @@ export class Wheel {
                 return config.notes.map((_, i) => i);
             case 'fifths':
                 return config.notes.map(note => (config.notes.indexOf(note) * 7) % 12);
+            case 'fourths':
+                return config.notes.map(note => (config.notes.indexOf(note) * 5) % 12);
             default:
                 throw new Error('Invalid layout');
         }
@@ -299,10 +310,13 @@ export class Wheel {
         this.svg.appendChild(tempGroup);
     
         const isFifthsLayout = this.currentLayout === 'fifths';
+        const isFourthsLayout = this.currentLayout === 'fourths';
         let rotationAngle;
     
         if (isFifthsLayout) {
             rotationAngle = 210; // 210 degrees CCW when increasing, 210 degrees CW when decreasing
+        } else if (isFourthsLayout) {
+            rotationAngle = 150; // 30 degrees for chromatic layout
         } else {
             rotationAngle = 30; // 30 degrees for chromatic layout
         }
@@ -319,6 +333,9 @@ export class Wheel {
                 let currentAngle;
                 
                 if (isFifthsLayout) {
+                    // Rotate based on whether we're increasing or decreasing
+                    currentAngle = (oldPos * 30 + (isIncreasing ? -1 : 1) * progress * rotationAngle + 360) % 360;
+                } else if (isFourthsLayout) {
                     // Rotate based on whether we're increasing or decreasing
                     currentAngle = (oldPos * 30 + (isIncreasing ? -1 : 1) * progress * rotationAngle + 360) % 360;
                 } else {
@@ -355,6 +372,11 @@ export class Wheel {
     animateLayoutSwitch(oldPositions, newPositions) {
         if (!this.animate) return Promise.resolve();
     
+        if ((this.currentLayout === 'fifths' && this.nextLayout === 'fourths') ||
+            (this.currentLayout === 'fourths' && this.nextLayout === 'fifths')) {
+            return this.animateFifthsFourthsSwitch(oldPositions, newPositions);
+        }
+    
         // Hide real elements
         this.notesGroup.style.opacity = '0';
     
@@ -364,6 +386,53 @@ export class Wheel {
         const animations = Array.from(tempGroup.children).map((tempElement, index) => {
             const oldPos = oldPositions.get(index);
             const newPos = newPositions.get(index);
+            const oldAngle = oldPos * (Math.PI / 6) - Math.PI / 2;
+            const newAngle = newPos * (Math.PI / 6) - Math.PI / 2;
+            const oldX = Math.cos(oldAngle) * this.radius;
+            const oldY = Math.sin(oldAngle) * this.radius;
+            const newX = Math.cos(newAngle) * this.radius;
+            const newY = Math.sin(newAngle) * this.radius;
+    
+            tempElement.setAttribute("transform", `translate(${oldX}, ${oldY})`);
+    
+            return tempElement.animate([
+                { transform: `translate(${oldX}px, ${oldY}px)` },
+                { transform: `translate(${newX}px, ${newY}px)` }
+            ], {
+                duration: 500,
+                easing: 'ease-in-out',
+                fill: 'forwards'
+            }).finished;
+        });
+    
+        return Promise.all(animations).then(() => {
+            this.svg.removeChild(tempGroup);
+            // Show real elements
+            this.notesGroup.style.opacity = '1';
+        });
+    }
+
+    animateFifthsFourthsSwitch(oldPositions, newPositions) {
+        if (!this.animate) return Promise.resolve();
+    
+        // Hide real elements
+        this.notesGroup.style.opacity = '0';
+    
+        const tempGroup = this.createTemporaryElements();
+        this.svg.appendChild(tempGroup);
+    
+        const tonicIndex = config.notes.indexOf(this.currentTonic);
+        const tritoneIndex = (tonicIndex + 6) % 12;
+    
+        const animations = Array.from(tempGroup.children).map((tempElement, index) => {
+            const oldPos = oldPositions.get(index);
+            const newPos = newPositions.get(index);
+    
+            // If it's the tonic or tritone, don't move
+            if (index === tonicIndex || index === tritoneIndex) {
+                return Promise.resolve();
+            }
+    
             const oldAngle = oldPos * (Math.PI / 6) - Math.PI / 2;
             const newAngle = newPos * (Math.PI / 6) - Math.PI / 2;
             const oldX = Math.cos(oldAngle) * this.radius;
