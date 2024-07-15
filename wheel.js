@@ -10,6 +10,7 @@ export class Wheel {
         this.currentLayout = 'chromatic';
         this.container = container;
         this.animate = animate;
+        this.config = config;
         this.svg = null;
         this.notesGroup = null;
         this.patternGroup = null;
@@ -117,7 +118,7 @@ export class Wheel {
             noteElement.setAttribute("transform", `translate(${x}, ${y})`);
         }
         
-        console.log(`Updated position for note ${noteId}: ${position}`);
+        console.log(`Updated position for note ${noteId}: ${position} (${x}, ${y})`);
     }
 
     animateNote(noteElement, isActive) {
@@ -266,6 +267,8 @@ export class Wheel {
     
         this.currentLayout = newLayout;
         console.log("After switching layout, new positions:", Object.fromEntries(this.notePositions));
+
+        if (this.pattern) this.pattern.drawPatternPolygon();
     }
 
     getPositionsForLayout(layout) {

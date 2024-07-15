@@ -39,3 +39,7 @@ function combineFiles(directoryPath, outputFileName) {
 const directoryPath = './'; // Current directory
 const outputFileName = 'combined_code.txt';
 combineFiles(directoryPath, outputFileName);
+
+
+
+// type into terminal "node combine-files.js"

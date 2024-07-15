@@ -4,6 +4,7 @@ import * as config from './config.js';
 import { Wheel } from './wheel.js';
 import { Keyboard } from './keyboard.js';
 import { TonicIndicators } from './tonicIndicators.js';
+import { Pattern } from './pattern.js';
 import { debugTracker, toggleDebugDashboard } from './debugPanel.js';
 
 // Initialize Tone.js
@@ -31,6 +32,8 @@ tonicIndicators.toggleVisibility(false);
 const wheel = new Wheel(wheelContainer, animate);
 const keyboardContainer = document.getElementById('keyboard-container');
 const keyboard = new Keyboard(keyboardContainer, animate);
+const pattern = new Pattern(wheel);
+wheel.pattern = pattern;
 
 // UPDATE TONIC
 
@@ -94,6 +97,7 @@ function initTonicPicker() {
             newIndex = (currentIndex - 1 + config.notes.length) % config.notes.length;
         }
         setTonic(config.notes[newIndex]);
+        pattern.drawPatternPolygon();
     }
 
     decreaseButton.addEventListener('click', () => changeTonic('decrease'));
@@ -101,6 +105,24 @@ function initTonicPicker() {
 
     // Initialize display
     updateTonicDisplay();
+}
+
+// UPDATE PATTERN
+function updatePattern(newPatternValue) {
+    if (newPatternValue === 'none') {
+        pattern.updatePattern([]);
+        return;
+    }
+
+    const [category, patternName] = newPatternValue.split('.');
+    const patternNotes = config[category][patternName];
+
+    if (!patternNotes) {
+        console.error(`Pattern not found: ${newPatternValue}`);
+        return;
+    }
+
+    pattern.updatePattern(patternNotes);
 }
 
 // UPDATE LAYOUT
@@ -217,6 +239,7 @@ function updateNoteState(toneNote, isActive) {
 document.addEventListener('DOMContentLoaded', () => {
     wheel.initialize();
     keyboard.initialize();
+    pattern.initialize();
     initTonicPicker();
     updateTonicDisplay();
     setupDebugTracker();
@@ -231,6 +254,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('toggle-debug').addEventListener('click', toggleDebugDashboard);
     document.getElementById('toggle-indicators').addEventListener('change', toggleIndicators);
     document.getElementById('toggle-autoplay').addEventListener('change', toggleAutoplay);
+    document.getElementById('pattern-select').addEventListener('change', (e) => updatePattern(e.target.value));
 
     
     // PLAYBACK
