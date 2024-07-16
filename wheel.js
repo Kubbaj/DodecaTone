@@ -108,77 +108,68 @@ export class Wheel {
     updateNotePosition(noteId) {
         const noteElement = this.noteElements.get(noteId);
         const position = this.notePositions.get(noteId);
-        const angle = position * (Math.PI / 6) - Math.PI / 2; // 12 notes, so 2π/12 = π/6
+        const angle = position * (Math.PI / 6) - Math.PI / 2;
         const x = Math.cos(angle) * this.radius;
         const y = Math.sin(angle) * this.radius;
         
-        if (this.animate) {
-            noteElement.style.transform = `translate(${x}px, ${y}px)`;
-        } else {
-            noteElement.setAttribute("transform", `translate(${x}, ${y})`);
-        }
+        noteElement.setAttribute("transform", `translate(${x}, ${y})`);
         
         console.log(`Updated position for note ${noteId}: ${position} (${x}, ${y})`);
     }
 
-    animateNote(noteElement, isActive) {
+    animateNotePress(noteElement, isActive) {
         const noteCircle = noteElement.querySelector('circle');
         const { scale, brightness, originalRadius, duration } = this.animationParams;
     
-        // Get the original transform (which should be the translation)
-        const originalTransform = noteElement.getAttribute('data-original-transform') || noteElement.getAttribute('transform');
-    
-        // Store the original transform if we haven't already
-        if (!noteElement.hasAttribute('data-original-transform')) {
-            noteElement.setAttribute('data-original-transform', originalTransform);
-        }
-    
-        // Set transition
-        noteElement.style.transition = `filter ${duration}ms ease`;
-        noteCircle.style.transition = `r ${duration}ms ease`;
+        // Get the current transform (which should be the translation)
+        const currentTransform = noteElement.getAttribute('transform') || '';
     
         if (isActive) {
-            noteElement.setAttribute('transform', `${originalTransform} scale(${scale})`);
-            noteElement.style.filter = `brightness(${brightness})`;
-            noteCircle.setAttribute('r', originalRadius * scale);
+            noteElement.animate([
+                { transform: `${currentTransform} scale(1)`, filter: 'brightness(1)' },
+                { transform: `${currentTransform} scale(${scale})`, filter: `brightness(${brightness})` }
+            ], { duration, fill: 'forwards' });
+            noteCircle.animate([
+                { r: originalRadius },
+                { r: originalRadius * scale }
+            ], { duration, fill: 'forwards' });
         } else {
-            noteElement.setAttribute('transform', originalTransform);
-            noteElement.style.filter = 'brightness(1)';
-            noteCircle.setAttribute('r', originalRadius);
+            noteElement.animate([
+                { transform: `${currentTransform} scale(${scale})`, filter: `brightness(${brightness})` },
+                { transform: `${currentTransform} scale(1)`, filter: 'brightness(1)' }
+            ], { duration, fill: 'forwards' });
+            noteCircle.animate([
+                { r: originalRadius * scale },
+                { r: originalRadius }
+            ], { duration, fill: 'forwards' });
         }
-    
-        console.log('Note data:', {
-            noteId: noteElement.dataset.noteId,
-            toneNote: noteElement.dataset.toneNote,
-            isActive,
-            transform: noteElement.getAttribute('transform'),
-            filter: noteElement.style.filter,
-            radius: noteCircle.getAttribute('r')
-        });
     }
-
+    
     updateNoteState(noteId, state, useColors, animate, octave) {
         const noteElement = this.noteElements.get(noteId);
         if (noteElement) {
             const noteCircle = noteElement.querySelector('circle');
             const noteText = noteElement.querySelector('text');
-            const note = config.notes[noteId];
+            const note = this.config.notes[noteId];
             const isBlackNote = note.includes('/');
-            noteElement.classList.toggle('active', state.active);
+            
             noteCircle.setAttribute('fill', state.color);
             noteText.textContent = state.display;
     
             noteText.setAttribute('fill', useColors ? (isBlackNote ? 'black' : 'white') : (isBlackNote ? 'white' : 'black'));
             noteText.setAttribute('font-weight', useColors ? 'bold' : 'normal');
     
-             if (animate) {
-            // Use the provided octave for B and C, otherwise use the current octave
-            const noteOctave = (note === 'B' || note === 'C') ? octave : this.currentOctave;
+            // Preserve the current octave
+            const currentOctave = noteElement.dataset.toneNote ? noteElement.dataset.toneNote.slice(-1) : this.currentOctave;
             const baseTone = isBlackNote ? note.split('/')[0].replace('♯', '#') : note;
-            const toneNote = `${baseTone}${noteOctave}`;
+            const toneNote = `${baseTone}${currentOctave}`;
             noteElement.dataset.toneNote = toneNote;
-            this.animateNote(noteElement, state.active);
-        }
+    
+            if (animate) {
+                this.animateNotePress(noteElement, state.active);
+            }
+            
+            noteElement.classList.toggle('active', state.active);
         }
     }
 
