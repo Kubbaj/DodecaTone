@@ -285,12 +285,22 @@ export class Wheel {
     }
 
     updateNoteToneNotes() {
+        const tonicIndex = this.config.notes.indexOf(this.currentTonic);
+        
         this.noteElements.forEach((noteElement, noteId) => {
-            const note = config.notes[noteId];
+            const note = this.config.notes[noteId];
             const isBlackNote = note.includes('/');
             const baseTone = isBlackNote ? note.charAt(0) + '#' : note.charAt(0);
-            const toneNote = `${baseTone}${this.currentOctave}`;
+            
+            // Calculate the octave
+            let octave = this.currentOctave;
+            if (noteId < tonicIndex) {
+                octave++;
+            }
+    
+            const toneNote = `${baseTone}${octave}`;
             noteElement.dataset.toneNote = toneNote;
+            console.log("note:", note, "ID:", noteId, "base:", baseTone, "tone:", toneNote, "oct:", octave);
         });
     }
 
