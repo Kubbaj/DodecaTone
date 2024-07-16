@@ -43,7 +43,7 @@ export class Wheel {
         background.setAttribute("y", "-150");
         background.setAttribute("width", "300");
         background.setAttribute("height", "300");
-        background.setAttribute("fill", "#f0f0f0");
+        background.setAttribute("fill", "#444444");
         this.svg.appendChild(background);
 
         this.notesGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
@@ -322,7 +322,7 @@ export class Wheel {
             const oldPos = oldPositions.get(index);
             const newPos = newPositions.get(index);
             
-            const steps = 60; // More steps for smoother animation
+            const steps = 5; // More steps for smoother animation
             const frames = [];
     
             for (let i = 0; i <= steps; i++) {
@@ -353,7 +353,7 @@ export class Wheel {
             tempElement.setAttribute("transform", frames[0].transform);
     
             return tempElement.animate(frames, {
-                duration: 500,
+                duration: 400,
                 easing: 'ease-in-out',
                 fill: 'forwards'
             }).finished;

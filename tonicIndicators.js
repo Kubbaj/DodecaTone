@@ -4,7 +4,7 @@ export class TonicIndicators {
     constructor(wheelContainer, keyboardWindow) {
         this.wheelContainer = wheelContainer;
         this.keyboardWindow = keyboardWindow;
-        this.indicatorColor = useColors ? 'black' : 'red';
+        this.indicatorColor = useColors ? 'black' : '#E25A5A';
         
         this.wheelIndicator = this.createWheelIndicator();
         this.keyboardIndicator = this.createKeyboardIndicator();
@@ -22,7 +22,7 @@ export class TonicIndicators {
         indicator.style.position = 'absolute';
         indicator.style.width = '36px';
         indicator.style.height = '36px';
-        indicator.style.border = `4px solid ${this.indicatorColor}`;
+        indicator.style.border = `5px solid ${this.indicatorColor}`;
         indicator.style.borderRadius = '50%';
         indicator.style.pointerEvents = 'none';
         this.wheelContainer.appendChild(indicator);
@@ -35,10 +35,10 @@ export class TonicIndicators {
         indicator.style.position = 'absolute';
         indicator.style.width = '27px';
         indicator.style.height = '30px'; // Adjust based on your key height
-        indicator.style.borderTop = `4px solid ${this.indicatorColor}`;
-        indicator.style.borderLeft = `4px solid ${this.indicatorColor}`;
-        indicator.style.borderRight = `4px solid ${this.indicatorColor}`;
-        indicator.style.borderBottom = '4px solid transparent';
+        indicator.style.borderTop = `5px solid ${this.indicatorColor}`;
+        indicator.style.borderLeft = `5px solid ${this.indicatorColor}`;
+        indicator.style.borderRight = `5px solid ${this.indicatorColor}`;
+        indicator.style.borderBottom = '5px solid transparent';
         indicator.style.backgroundColor = 'transparent';
         indicator.style.pointerEvents = 'none';
         indicator.style.boxSizing = 'border-box';
@@ -64,7 +64,7 @@ export class TonicIndicators {
     }
 
     updateIndicatorColor() {
-        this.indicatorColor = useColors ? 'black' : 'red';
+        this.indicatorColor = useColors ? 'black' : '#E54444';
         this.wheelIndicator.style.borderColor = this.indicatorColor;
         this.keyboardIndicator.style.borderTopColor = this.indicatorColor;
         this.keyboardIndicator.style.borderLeftColor = this.indicatorColor;

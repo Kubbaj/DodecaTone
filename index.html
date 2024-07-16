@@ -5,6 +5,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DodecaTone</title>
     <link rel="stylesheet" href="styles.css">
+    <style>
+#content-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 800px;
+}
+
+#options-container {
+    width: 100%;
+    order: 1;
+    margin-bottom: -10px;
+    margin-top: 50px;
+}
+
+#keyboard-window {
+    width: 80%;
+    order: 2;
+    margin-bottom: 20px;
+}
+
+#wheel-container {
+    width: 300px;
+    height: 300px;
+    order: 3;
+}
+    </style>
+
 </head>
 <body>
     <header>
@@ -12,12 +41,6 @@
     </header>
 
     <div id="content-container">
-        <div id="keyboard-window">
-            <div id="keyboard-container">
-                <!-- Keyboard will be inserted here by JavaScript -->
-            </div>
-        </div>
-
         <div id="options-container">
             <div class="side-options left">
                 <div class="select-group">
@@ -91,10 +114,16 @@
             </div>
         </div>
 
+        <div id="keyboard-window">
+            <div id="keyboard-container">
+                <!-- Keyboard will be inserted here by JavaScript -->
+            </div>
+        </div>
+
         <div id="wheel-container" class="wheel">
             <!-- Wheel will be inserted here by JavaScript -->
             <div id="play-button-container">
-                <svg id="play-pattern-button" width="60" height="60" viewBox="0 0 60 60" style="display: none;">
+                <svg id="play-pattern-button" width="40" height="40" viewBox="0 0 60 60" style="display: none;">
                   <circle cx="30" cy="30" r="30" fill="#555555"/>
                   <path d="M25,20 L25,40 L40,30 Z" fill="white"/>
                 </svg>
@@ -112,16 +141,16 @@
             <input type="checkbox" id="toggle-sharps">
         </div>
         <div class="toggle-group">
-            <label for="toggle-colors">Colors:</label>
-            <input type="checkbox" id="toggle-colors">
+            <label for="toggle-animate">Animation:</label>
+            <input type="checkbox" id="toggle-animate" checked>
         </div>
         <div class="toggle-group">
-            <label for="toggle-animate">Animation:</label>
-            <input type="checkbox" id="toggle-animate">
+            <label for="toggle-colors">Colors:</label>
+            <input type="checkbox" id="toggle-colors" checked>
         </div>
         <div class="toggle-group">
             <label for="toggle-indicators">Indicators:</label>
-            <input type="checkbox" id="toggle-indicators">
+            <input type="checkbox" id="toggle-indicators" checked>
         </div>
         <div class="toggle-group">
             <label for="toggle-autoplay">Autoplay:</label>

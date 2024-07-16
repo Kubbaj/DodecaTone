@@ -27,7 +27,7 @@ let currentOctave = 4;
 const wheelContainer = document.getElementById('wheel-container');
 const keyboardWindow = document.getElementById('keyboard-window');
 const tonicIndicators = new TonicIndicators(wheelContainer, keyboardWindow, useColors);
-tonicIndicators.toggleVisibility(false);
+tonicIndicators.toggleVisibility(true);
 
 const wheel = new Wheel(wheelContainer, animate);
 const keyboardContainer = document.getElementById('keyboard-container');
@@ -245,6 +245,9 @@ document.addEventListener('DOMContentLoaded', () => {
     wheel.initialize();
     keyboard.initialize();
     pattern.initialize();
+    toggleColors();
+    toggleAnimation();
+    toggleIndicators();
     initTonicPicker();
     updateTonicDisplay();
     setupDebugTracker();
