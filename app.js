@@ -326,4 +326,4 @@ function setupDebugTracker() {
 
 
 
-export { playNote, stopNote, useColors };
+export { playNote, stopNote, useColors, playNoteForDuration };
