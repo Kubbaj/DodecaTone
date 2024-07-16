@@ -178,7 +178,7 @@ function updateAllNoteStates() {
         if (noteId < 12) {
             wheel.updateNoteState(noteId, state, useColors, animate, currentOctave);
         }
-        keyboard.updateKeyState(noteId, state, useColors, animate);
+        keyboard.updateKeyState(noteId, state, useColors, animate, currentOctave);
     });
 }
 
@@ -196,6 +196,7 @@ function getNoteState(note, isActive = false) {
 // In app.js
 function playNote(toneNote) {
     synth.triggerAttack(toneNote);
+    console.log("starting", toneNote)
     updateNoteState(toneNote, true, currentOctave);  // Always set to active when playing
 }
 
@@ -205,26 +206,19 @@ function stopNote(toneNote) {
     updateNoteState(toneNote, false, currentOctave);  // Always set to inactive when stopping
 }
 
-function playNoteForDuration(toneNote, duration = 250) {
-    try {
-        playNote(toneNote);
-        setTimeout(() => {
-            stopNote(toneNote);
-        }, duration);
-        console.log("playing note", toneNote)
-    } catch (error) {
-        console.error(`Error playing note ${toneNote}:`, error);
-    }
-}
-
 function updateNoteState(toneNote, isActive) {
+    const [noteName, octave] = toneNote.split(/(\d+)/);
+    // Show arrow for notes in octave 5 or higher
+    if (animate){
+    keyboard.showArrow(parseInt(octave) >= 5 && isActive);
+    }
     // Update keyboard
     const keyElement = document.querySelector(`.keyboard [data-tone-note="${toneNote}"]`);
     if (keyElement) {
         const noteId = parseInt(keyElement.dataset.noteId);
         const baseNoteId = noteId % 12;
         const state = getNoteState(config.notes[baseNoteId], isActive);
-        keyboard.updateKeyState(noteId, state, useColors, animate);
+        keyboard.updateKeyState(noteId, state, useColors, animate, currentOctave);
     }
 
     // Update wheel
@@ -233,6 +227,17 @@ function updateNoteState(toneNote, isActive) {
         const noteId = parseInt(wheelElement.dataset.noteId);
         const state = getNoteState(config.notes[noteId], isActive);
         wheel.updateNoteState(noteId, state, useColors, animate, currentOctave);
+    }
+}
+
+function playNoteForDuration(toneNote, duration = 250) {
+    try {
+        playNote(toneNote);
+        setTimeout(() => {
+            stopNote(toneNote);
+        }, duration);
+    } catch (error) {
+        console.error(`Error playing note ${toneNote}:`, error);
     }
 }
 

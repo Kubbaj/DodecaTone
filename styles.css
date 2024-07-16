@@ -159,30 +159,30 @@ wheel .note {
 
 /* Keyboard Container */
 #keyboard-window {
-    width: 80%; /* Adjust this value to change the visible width of the keyboard */
+    width: 80%;
     overflow: hidden;
     position: relative;
-    height: 160px; /* Adjust based on your keyboard height */
+    height: 160px;
     margin-top: 30px;
+    padding-right: 40px; /* Add padding for the arrow */
 }
 
 #keyboard-container {
-    width: 650px;
+    width: calc(650px + 40px); /* Increase width to account for arrow space */
     height: 150px;
     display: flex;
     justify-content: center;
     order: 1;
+    position: relative; /* Add this */
 }
 
-
-
 .keyboard {
-    position: relative;
-    width: 100%;
+    position: absolute; /* Change to absolute */
+    left: 0; /* Add this */
+    top: 0; /* Add this */
+    width: 650px; /* Set explicit width */
     height: 100%;
     justify-content: center;
-    overflow-x: auto;
-    overflow-y: hidden;
 }
 
 /* Key Styles */

@@ -17,6 +17,8 @@ export class Keyboard {
     initialize() {
         this.container.appendChild(this.keyboardElement);
         this.createKeys();
+        this.createArrow();
+        this.showArrow(false);
         this.translateToTonic('C')
     }
 
@@ -53,6 +55,7 @@ export class Keyboard {
 
     updateKeyState(noteId, state, useColors, animate) {
         const keyElement = this.keyElements.get(noteId);
+        
         if (keyElement) {
             const isBlackNote = config.keyboardNotes[noteId].includes('/');
             const noteDisplay = keyElement.querySelector('.note-display');
@@ -74,6 +77,41 @@ export class Keyboard {
             } else {
                 keyElement.classList.remove('active');
             }
+    
+            this.arrowElement.style.opacity = '0';
+        }
+    }
+
+    createArrow() {
+        const arrow = document.createElement('div');
+        arrow.className = 'keyboard-arrow';
+        arrow.innerHTML = '→';
+        arrow.style.cssText = `
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 24px;
+            color: #333;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+            pointer-events: none;
+        `;
+        this.window.appendChild(arrow);
+        this.arrowElement = arrow;
+    
+        // Calculate initial position based on B4 key
+        const b4Key = this.keyElements.get(23); // B4 is at index 23
+        if (b4Key) {
+            const b4Rect = b4Key.getBoundingClientRect();
+            const windowRect = this.window.getBoundingClientRect();
+            this.arrowBasePosition = b4Rect.right - windowRect.left + 30; // 10px to the right of B4
+            this.arrowElement.style.left = `${this.arrowBasePosition}px`;
+        }
+    }
+
+    showArrow(show) {
+        if (this.arrowElement) {
+            this.arrowElement.style.opacity = show ? '1' : '0';
         }
     }
 
@@ -90,7 +128,7 @@ export class Keyboard {
         }
     
         // Center the tonic key
-        const centerOffset = this.keyboardElement.clientWidth / 2;
+        const centerOffset = (this.keyboardElement.clientWidth + 40) / 2; // Add 40px for arrow space
         const translation = centerOffset - offset;
     
         console.log(`Translating keyboard to ${newTonic}, Octave: ${octave}, offset: ${translation}px`);
@@ -102,6 +140,14 @@ export class Keyboard {
         }
     
         this.container.style.transform = `translateX(${translation}px)`;
+
+        // Update arrow position
+        const currentTonicIndex = config.notes.indexOf(newTonic);
+        const keyDiff = currentTonicIndex - config.notes.indexOf('C'); // Difference from C
+        const arrowPosition = this.arrowBasePosition - (keyDiff * this.keyWidth);
+        this.arrowElement.style.left = `${arrowPosition}px`;
+
+        console.log(`Arrow updated: Base: ${this.arrowBasePosition}px, Current: ${arrowPosition}px, Tonic: ${newTonic}, Diff: ${keyDiff}`);
     }
 
 }

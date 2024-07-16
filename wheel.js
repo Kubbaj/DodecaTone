@@ -101,8 +101,6 @@ export class Wheel {
         this.notePositions.forEach((_, noteId) => {
             this.updateNotePosition(noteId);
         });
-    
-        console.log("Initial note positions:", Object.fromEntries(this.notePositions));
     }
 
     updateNotePosition(noteId) {
@@ -113,8 +111,6 @@ export class Wheel {
         const y = Math.sin(angle) * this.radius;
         
         noteElement.setAttribute("transform", `translate(${x}, ${y})`);
-        
-        console.log(`Updated position for note ${noteId}: ${position} (${x}, ${y})`);
     }
 
     animateNotePress(noteElement, isActive) {
@@ -215,9 +211,6 @@ export class Wheel {
         this.currentTonic = newTonic;
         this.currentOctave = newOctave;
         this.updateNoteToneNotes();
-    
-        console.log("After rotating tonic, new positions:", Object.fromEntries(this.notePositions));
-        console.log("New tonic:", this.currentTonic);
     }
     
     async switchLayout(newLayout) {
@@ -291,7 +284,6 @@ export class Wheel {
     
             const toneNote = `${baseTone}${octave}`;
             noteElement.dataset.toneNote = toneNote;
-            console.log("note:", note, "ID:", noteId, "base:", baseTone, "tone:", toneNote, "oct:", octave);
         });
     }
 
