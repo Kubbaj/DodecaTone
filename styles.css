@@ -65,6 +65,7 @@ h1 {
   
   .select-group {
     margin: 0 100px; /* Adjust spacing as needed */
+    width: 250px;
   }
 
 #current-tonic {

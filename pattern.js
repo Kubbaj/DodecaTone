@@ -61,7 +61,7 @@ export class Pattern {
         // Draw the pattern polygon
         const polygon = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
         polygon.setAttribute("points", points);
-        polygon.setAttribute("fill", "rgba(255, 255, 255, 0.1)");
+        polygon.setAttribute("fill", "rgba(0, 0, 0, 0.1)");
         polygon.setAttribute("stroke", "black");
         polygon.setAttribute("stroke-width", "2");
         this.patternSvg.appendChild(polygon);
