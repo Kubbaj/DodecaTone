@@ -91,7 +91,8 @@ export class Keyboard {
             top: 50%;
             transform: translateY(-50%);
             font-size: 24px;
-            color: #333;
+            font-weight: bold;
+            color: #f0f0f0;
             opacity: 0;
             transition: opacity 0.3s ease-in-out;
             pointer-events: none;

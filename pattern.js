@@ -70,7 +70,7 @@ export class Pattern {
         // Draw the pattern polygon
         const polygon = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
         polygon.setAttribute("points", points);
-        polygon.setAttribute("fill", "rgba(0, 0, 0, 0.1)");
+        polygon.setAttribute("fill", "rgba(230, 230, 230, 0.3)");
         polygon.setAttribute("stroke", "black");
         polygon.setAttribute("stroke-width", "2");
         this.patternSvg.appendChild(polygon);
@@ -86,7 +86,7 @@ createPlayButton() {
     playButton.setAttribute("cx", "150");
     playButton.setAttribute("cy", "150");
     playButton.setAttribute("r", "20");
-    playButton.setAttribute("fill", "#555555");
+    playButton.setAttribute("fill", "#f5f5f5");
     playButton.style.cursor = "pointer";
 
     const playIcon = document.createElementNS("http://www.w3.org/2000/svg", "path");
