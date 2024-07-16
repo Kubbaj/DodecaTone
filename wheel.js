@@ -64,8 +64,9 @@ export class Wheel {
             noteGroup.style.cursor = "pointer";
     
             const noteCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-            noteCircle.setAttribute("r", "20");
+            noteCircle.setAttribute("r", "25");
             noteCircle.setAttribute("stroke", "black");
+            noteCircle.setAttribute("stroke-width", "0");
             
             const noteText = document.createElementNS("http://www.w3.org/2000/svg", "text");
             noteText.setAttribute("text-anchor", "middle");

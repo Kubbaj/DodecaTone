@@ -40,6 +40,7 @@ export class Pattern {
         this.patternSvg.style.overflow = "visible";
         this.patternSvg.style.pointerEvents = "none";
         this.wheel.svg.appendChild(this.patternSvg);
+        this.wheel.svg.insertBefore(this.patternSvg, this.wheel.notesGroup);
     }
 
     drawPatternPolygon() {
@@ -51,7 +52,7 @@ export class Pattern {
         console.log('Current Tonic:', this.wheel.currentTonic);
         console.log('Wheel Radius:', this.wheel.radius);
 
-        const polygonRadius = this.wheel.radius * 0.82; // Adjust this factor as needed
+        const polygonRadius = this.wheel.radius * 0.83; // Adjust this factor as needed
 
         const points = this.currentPattern.map(noteIndex => {
             const actualNoteIndex = (noteIndex + this.wheel.config.notes.indexOf(this.wheel.currentTonic)) % 12;
@@ -71,8 +72,8 @@ export class Pattern {
         const polygon = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
         polygon.setAttribute("points", points);
         polygon.setAttribute("fill", "rgba(230, 230, 230, 0.3)");
-        polygon.setAttribute("stroke", "black");
-        polygon.setAttribute("stroke-width", "2");
+        polygon.setAttribute("stroke", "white");
+        polygon.setAttribute("stroke-width", "4");
         this.patternSvg.appendChild(polygon);
 
         console.log('Pattern SVG after drawing:', this.patternSvg.outerHTML);

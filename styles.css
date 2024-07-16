@@ -132,9 +132,10 @@ input[type="checkbox"] {
     position: absolute;
     width: 40px;
     height: 150px;
-    border: 1px solid #000;
+    border: 2px solid #000;
     box-sizing: border-box;
     display: flex;
+    border-radius: 5px;
     justify-content: center;
     align-items: flex-end;
     padding-bottom: 10px;
@@ -144,6 +145,7 @@ input[type="checkbox"] {
 .key.white {
     background-color: #fff;
     z-index: 1;
+    border-right: 1px;
 }
 
 .key.black {

@@ -9,7 +9,7 @@ export class TonicIndicators {
         this.wheelIndicator = this.createWheelIndicator();
         this.keyboardIndicator = this.createKeyboardIndicator();
 
-        this.wheelYOffset = 316.5;
+        this.wheelYOffset = 312;
         this.keyboardYOffset = 0;
 
         this.positionIndicators();
@@ -20,8 +20,8 @@ export class TonicIndicators {
         const indicator = document.getElementById('wheel-tonic-indicator') || document.createElement('div');
         indicator.id = 'wheel-tonic-indicator';
         indicator.style.position = 'absolute';
-        indicator.style.width = '36px';
-        indicator.style.height = '36px';
+        indicator.style.width = '46px';
+        indicator.style.height = '46px';
         indicator.style.border = `5px solid ${this.indicatorColor}`;
         indicator.style.borderRadius = '50%';
         indicator.style.pointerEvents = 'none';
@@ -39,6 +39,7 @@ export class TonicIndicators {
         indicator.style.borderLeft = `5px solid ${this.indicatorColor}`;
         indicator.style.borderRight = `5px solid ${this.indicatorColor}`;
         indicator.style.borderBottom = '5px solid transparent';
+        indicator.style.borderRadius = '5px'
         indicator.style.backgroundColor = 'transparent';
         indicator.style.pointerEvents = 'none';
         indicator.style.boxSizing = 'border-box';
@@ -58,7 +59,7 @@ export class TonicIndicators {
     }
     
     positionKeyboardIndicator() {
-        this.keyboardIndicator.style.left = 'calc(50% - 1px)';
+        this.keyboardIndicator.style.left = '50%';
         this.keyboardIndicator.style.transform = 'translateX(-50%)';
         this.keyboardIndicator.style.top = `${this.keyboardYOffset}px`;
     }
