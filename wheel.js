@@ -21,8 +21,8 @@ export class Wheel {
 
         this.animationParams = {
             scale: 0.95,
-            brightness: 0.8,
-            originalRadius: 20,
+            brightness: 1.5,
+            originalRadius: 25,
             duration: 200 // milliseconds
         };
     }
@@ -66,7 +66,7 @@ export class Wheel {
             const noteCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
             noteCircle.setAttribute("r", "25");
             noteCircle.setAttribute("stroke", "black");
-            noteCircle.setAttribute("stroke-width", "0");
+            noteCircle.setAttribute("stroke-width", "2");
             
             const noteText = document.createElementNS("http://www.w3.org/2000/svg", "text");
             noteText.setAttribute("text-anchor", "middle");

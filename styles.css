@@ -145,7 +145,6 @@ input[type="checkbox"] {
 .key.white {
     background-color: #fff;
     z-index: 1;
-    border-right: 1px;
 }
 
 .key.black {
@@ -175,7 +174,7 @@ input[type="checkbox"] {
 
 .key.active {
     transform: scale(0.95);
-    filter: brightness(0.8);
+    filter: brightness(1.5);
 }
 
 .key.colored, .note.colored {
@@ -183,7 +182,7 @@ input[type="checkbox"] {
 }
 
 .key.colored.active {
-    filter: brightness(0.8);
+    filter: brightness(1.5);
 }
 
 /* Wheel Container */
