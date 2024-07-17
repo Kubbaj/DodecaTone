@@ -50,7 +50,6 @@ export class Pattern {
 
         console.log('Current Pattern:', this.currentPattern);
         console.log('Current Tonic:', this.wheel.currentTonic);
-        console.log('Wheel Radius:', this.wheel.radius);
 
         const polygonRadius = this.wheel.radius * 0.83; // Adjust this factor as needed
 
@@ -62,11 +61,8 @@ export class Pattern {
             const angle = (notePosition * 30) * (Math.PI / 180) - Math.PI / 2;
             const x = Math.cos(angle) * polygonRadius;
             const y = Math.sin(angle) * polygonRadius;
-            console.log(`Calculated point: (${x}, ${y})`);
             return `${x},${y}`;
         }).join(' ');
-
-        console.log('Polygon Points:', points);
 
         // Draw the pattern polygon
         const polygon = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
@@ -75,8 +71,6 @@ export class Pattern {
         polygon.setAttribute("stroke", "white");
         polygon.setAttribute("stroke-width", "4");
         this.patternSvg.appendChild(polygon);
-
-        console.log('Pattern SVG after drawing:', this.patternSvg.outerHTML);
     }
 
 

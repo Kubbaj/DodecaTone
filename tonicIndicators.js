@@ -20,9 +20,9 @@ export class TonicIndicators {
         const indicator = document.getElementById('wheel-tonic-indicator') || document.createElement('div');
         indicator.id = 'wheel-tonic-indicator';
         indicator.style.position = 'absolute';
-        indicator.style.width = '44px';
-        indicator.style.height = '44px';
-        indicator.style.border = `6px solid ${this.indicatorColor}`;
+        indicator.style.width = '42px';
+        indicator.style.height = '42px';
+        indicator.style.border = `7px solid ${this.indicatorColor}`;
         indicator.style.borderRadius = '50%';
         indicator.style.pointerEvents = 'none';
         this.wheelContainer.appendChild(indicator);

@@ -132,8 +132,6 @@ export class Keyboard {
         const centerOffset = (this.keyboardElement.clientWidth + 40) / 2; // Add 40px for arrow space
         const translation = centerOffset - offset;
     
-        console.log(`Translating keyboard to ${newTonic}, Octave: ${octave}, offset: ${translation}px`);
-    
         if (this.animate) {
             this.container.style.transition = 'transform 0.5s ease-in-out';
         } else {
@@ -148,7 +146,6 @@ export class Keyboard {
         const arrowPosition = this.arrowBasePosition - (keyDiff * this.keyWidth);
         this.arrowElement.style.left = `${arrowPosition}px`;
 
-        console.log(`Arrow updated: Base: ${this.arrowBasePosition}px, Current: ${arrowPosition}px, Tonic: ${newTonic}, Diff: ${keyDiff}`);
     }
 
 }

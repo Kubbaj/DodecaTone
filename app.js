@@ -74,7 +74,7 @@ function setTonic(newTonic) {
         if (autoplayTonic) {
             const toneNote = getToneNote(newTonic, currentOctave);
             
-            const delay = animate ? 400 : 0;
+            const delay = animate ? 450 : 0;
             
             setTimeout(() => {
                 playNoteForDuration(toneNote);
@@ -149,21 +149,18 @@ function toggleIndicators() {
 
 function toggleColors() {
     useColors = !useColors;
-    console.log("Toggled colors. New value:", useColors);
     updateAllNoteStates();
     tonicIndicators.updateIndicatorColor();
 }
 
 function toggleAnimation() {
     animate = !animate;
-    console.log("Toggled animation. New value:", animate);
     wheel.animate = animate;
     keyboard.animate = animate;
 }
 
 function toggleAutoplay() {
     autoplayTonic = !autoplayTonic;
-    console.log("Toggled autoplay. New value:", autoplayTonic);
 }
 
 
