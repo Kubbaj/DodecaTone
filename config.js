@@ -95,42 +95,6 @@ const noteColors = {
   'B': '#5AE29E'
 };
 
-// Intervals
-const intervals = {
-  unison: 0,
-  minor2nd: 1,
-  major2nd: 2,
-  minor3rd: 3,
-  major3rd: 4,
-  perfect4th: 5,
-  tritone: 6,
-  perfect5th: 7,
-  minor6th: 8,
-  major6th: 9,
-  minor7th: 10,
-  major7th: 11,
-  octave: 12
-};
-
-// Key signatures
-const keySignatures = {
-  'C': [],
-  'G': ['F♯'],
-  'D': ['F♯', 'C♯'],
-  'A': ['F♯', 'C♯', 'G♯'],
-  'E': ['F♯', 'C♯', 'G♯', 'D♯'],
-  'B': ['F♯', 'C♯', 'G♯', 'D♯', 'A♯'],
-  'F♯': ['F♯', 'C♯', 'G♯', 'D♯', 'A♯', 'E♯'],
-  'C♯': ['F♯', 'C♯', 'G♯', 'D♯', 'A♯', 'E♯', 'B♯'],
-  'F': ['B♭'],
-  'B♭': ['B♭', 'E♭'],
-  'E♭': ['B♭', 'E♭', 'A♭'],
-  'A♭': ['B♭', 'E♭', 'A♭', 'D♭'],
-  'D♭': ['B♭', 'E♭', 'A♭', 'D♭', 'G♭'],
-  'G♭': ['B♭', 'E♭', 'A♭', 'D♭', 'G♭', 'C♭'],
-  'C♭': ['B♭', 'E♭', 'A♭', 'D♭', 'G♭', 'C♭', 'F♭']
-};
-
 // Animation settings
 const animationSettings = {
   duration: 500, // milliseconds
@@ -147,8 +111,6 @@ export {
   modes,
   regulars, 
   noteColors, 
-  getNoteDisplay, 
-  intervals, 
-  keySignatures, 
+  getNoteDisplay,
   animationSettings
 };

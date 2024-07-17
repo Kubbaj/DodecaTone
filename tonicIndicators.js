@@ -33,8 +33,8 @@ export class TonicIndicators {
         const indicator = document.getElementById('keyboard-tonic-indicator') || document.createElement('div');
         indicator.id = 'keyboard-tonic-indicator';
         indicator.style.position = 'absolute';
-        indicator.style.width = '30px';
-        indicator.style.height = '30px'; // Adjust based on your key height
+        indicator.style.width = '31px';
+        indicator.style.height = '50px'; // Adjust based on your key height
         indicator.style.borderTop = `7px solid ${this.indicatorColor}`;
         indicator.style.borderLeft = `7px solid ${this.indicatorColor}`;
         indicator.style.borderRight = `7px solid ${this.indicatorColor}`;

@@ -8,6 +8,7 @@ export class Wheel {
     constructor(container, animate) {
         this.currentTonic = 'C'
         this.currentLayout = 'chromatic';
+        this.currentOctave = 4;
         this.container = container;
         this.animate = animate;
         this.config = config;
@@ -17,7 +18,6 @@ export class Wheel {
         this.radius = 120;
         this.noteElements = new Map(); // Store note elements with their ids
         this.notePositions = new Map(); // Map note IDs to their current positions
-        this.currentOctave = 4;
 
         this.animationParams = {
             scale: 0.95,
@@ -31,7 +31,9 @@ export class Wheel {
         this.createSVG();
         this.createNotes();
     }
-    
+
+
+// CREATIONS (SVG, Notes, Temp)
     createSVG() {
         this.svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
         this.svg.setAttribute("width", 300);
@@ -57,7 +59,8 @@ export class Wheel {
 
     createNotes() {
         const fragment = document.createDocumentFragment();
-    
+        
+        // CREATE SVGS
         config.notes.forEach((note, noteId) => {
             const noteGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
             noteGroup.dataset.noteId = noteId;
@@ -74,8 +77,10 @@ export class Wheel {
             
             noteGroup.append(noteCircle, noteText);
     
-            this.notePositions.set(noteId, noteId); // Initially, position matches noteId
-            this.noteElements.set(noteId, noteGroup);  // Add this line here
+
+            // SET INITIAL PROPERTIES
+            this.notePositions.set(noteId, noteId);
+            this.noteElements.set(noteId, noteGroup);
     
             // Calculate toneNote
             const isBlackNote = note.includes('/');
@@ -98,12 +103,23 @@ export class Wheel {
     
         this.notesGroup.appendChild(fragment);
     
-        // Move this loop outside of the forEach
         this.notePositions.forEach((_, noteId) => {
             this.updateNotePosition(noteId);
         });
     }
 
+    createTemporaryElements() {
+        const tempGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        this.noteElements.forEach((noteElement, noteId) => {
+            const tempElement = noteElement.cloneNode(true);
+            tempElement.id = `temp-${noteId}`;
+            tempGroup.appendChild(tempElement);
+        });
+        return tempGroup;
+    }
+
+
+// UPDATES (Position, State, ToneNotes, Tonic, Layout)
     updateNotePosition(noteId) {
         const noteElement = this.noteElements.get(noteId);
         const position = this.notePositions.get(noteId);
@@ -112,34 +128,6 @@ export class Wheel {
         const y = Math.sin(angle) * this.radius;
         
         noteElement.setAttribute("transform", `translate(${x}, ${y})`);
-    }
-
-    animateNotePress(noteElement, isActive) {
-        const noteCircle = noteElement.querySelector('circle');
-        const { scale, brightness, originalRadius, duration } = this.animationParams;
-    
-        // Get the current transform (which should be the translation)
-        const currentTransform = noteElement.getAttribute('transform') || '';
-    
-        if (isActive) {
-            noteElement.animate([
-                { transform: `${currentTransform} scale(1)`, filter: 'brightness(1)' },
-                { transform: `${currentTransform} scale(${scale})`, filter: `brightness(${brightness})` }
-            ], { duration, fill: 'forwards' });
-            noteCircle.animate([
-                { r: originalRadius },
-                { r: originalRadius * scale }
-            ], { duration, fill: 'forwards' });
-        } else {
-            noteElement.animate([
-                { transform: `${currentTransform} scale(${scale})`, filter: `brightness(${brightness})` },
-                { transform: `${currentTransform} scale(1)`, filter: 'brightness(1)' }
-            ], { duration, fill: 'forwards' });
-            noteCircle.animate([
-                { r: originalRadius * scale },
-                { r: originalRadius }
-            ], { duration, fill: 'forwards' });
-        }
     }
     
     updateNoteState(noteId, state, useColors, animate, octave) {
@@ -170,13 +158,23 @@ export class Wheel {
         }
     }
 
-    getCurrentRotation() {
-        const transform = this.notesGroup.style.transform;
-        if (transform) {
-            const match = transform.match(/rotate\(([-\d.]+)deg\)/);
-            return match ? parseFloat(match[1]) : 0;
-        }
-        return 0;
+    updateToneNotes() {
+        const tonicIndex = this.config.notes.indexOf(this.currentTonic);
+        
+        this.noteElements.forEach((noteElement, noteId) => {
+            const note = this.config.notes[noteId];
+            const isBlackNote = note.includes('/');
+            const baseTone = isBlackNote ? note.charAt(0) + '#' : note.charAt(0);
+            
+            // Calculate the octave
+            let octave = this.currentOctave;
+            if (noteId < tonicIndex) {
+                octave++;
+            }
+    
+            const toneNote = `${baseTone}${octave}`;
+            noteElement.dataset.toneNote = toneNote;
+        });
     }
 
     async rotateTonic(newTonic, newOctave) {
@@ -211,7 +209,7 @@ export class Wheel {
     
         this.currentTonic = newTonic;
         this.currentOctave = newOctave;
-        this.updateNoteToneNotes();
+        this.updateToneNotes();
     }
     
     async switchLayout(newLayout) {
@@ -232,12 +230,12 @@ export class Wheel {
     
         const tonicIndex = config.notes.indexOf(this.currentTonic);
         const tonicOldPosition = this.notePositions.get(tonicIndex);
-        const tonicNewPosition = this.getPositionsForLayout(newLayout)[tonicIndex];
+        const tonicNewPosition = config.layouts[newLayout][tonicIndex];
     
         const shift = (tonicOldPosition - tonicNewPosition + 12) % 12;
     
-        config.notes.forEach((note, i) => {
-            const layoutPosition = this.getPositionsForLayout(newLayout)[i];
+        config.notes.forEach((_, i) => {
+            const layoutPosition = config.layouts[newLayout][i];
             const newPosition = (layoutPosition + shift) % 12;
             newPositions.set(i, newPosition);
         });
@@ -256,46 +254,33 @@ export class Wheel {
         if (this.pattern) this.pattern.drawPatternPolygon();
     }
 
-    getPositionsForLayout(layout) {
-        switch (layout) {
-            case 'chromatic':
-                return config.notes.map((_, i) => i);
-            case 'fifths':
-                return config.notes.map(note => (config.notes.indexOf(note) * 7) % 12);
-            case 'fourths':
-                return config.notes.map(note => (config.notes.indexOf(note) * 5) % 12);
-            default:
-                throw new Error('Invalid layout');
-        }
-    }
-
-    updateNoteToneNotes() {
-        const tonicIndex = this.config.notes.indexOf(this.currentTonic);
-        
-        this.noteElements.forEach((noteElement, noteId) => {
-            const note = this.config.notes[noteId];
-            const isBlackNote = note.includes('/');
-            const baseTone = isBlackNote ? note.charAt(0) + '#' : note.charAt(0);
-            
-            // Calculate the octave
-            let octave = this.currentOctave;
-            if (noteId < tonicIndex) {
-                octave++;
-            }
+// ANIMATIONS (Press, Tonic, Layout, Fourths)
+    animateNotePress(noteElement, isActive) {
+        const noteCircle = noteElement.querySelector('circle');
+        const { scale, brightness, originalRadius, duration } = this.animationParams;
     
-            const toneNote = `${baseTone}${octave}`;
-            noteElement.dataset.toneNote = toneNote;
-        });
-    }
-
-    createTemporaryElements() {
-        const tempGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
-        this.noteElements.forEach((noteElement, noteId) => {
-            const tempElement = noteElement.cloneNode(true);
-            tempElement.id = `temp-${noteId}`;
-            tempGroup.appendChild(tempElement);
-        });
-        return tempGroup;
+        // Get the current transform (which should be the translation)
+        const currentTransform = noteElement.getAttribute('transform') || '';
+    
+        if (isActive) {
+            noteElement.animate([
+                { transform: `${currentTransform} scale(1)`, filter: 'brightness(1)' },
+                { transform: `${currentTransform} scale(${scale})`, filter: `brightness(${brightness})` }
+            ], { duration, fill: 'forwards' });
+            noteCircle.animate([
+                { r: originalRadius },
+                { r: originalRadius * scale }
+            ], { duration, fill: 'forwards' });
+        } else {
+            noteElement.animate([
+                { transform: `${currentTransform} scale(${scale})`, filter: `brightness(${brightness})` },
+                { transform: `${currentTransform} scale(1)`, filter: 'brightness(1)' }
+            ], { duration, fill: 'forwards' });
+            noteCircle.animate([
+                { r: originalRadius * scale },
+                { r: originalRadius }
+            ], { duration, fill: 'forwards' });
+        }
     }
 
     animateTonicChange(oldPositions, newPositions, isIncreasing) {
@@ -312,18 +297,18 @@ export class Wheel {
         let rotationAngle;
     
         if (isFifthsLayout) {
-            rotationAngle = 210; // 210 degrees CCW when increasing, 210 degrees CW when decreasing
+            rotationAngle = 210;
         } else if (isFourthsLayout) {
-            rotationAngle = 150; // 30 degrees for chromatic layout
+            rotationAngle = 150;
         } else {
-            rotationAngle = 30; // 30 degrees for chromatic layout
+            rotationAngle = 30;
         }
     
         const animations = Array.from(tempGroup.children).map((tempElement, index) => {
             const oldPos = oldPositions.get(index);
             const newPos = newPositions.get(index);
             
-            const steps = 5; // More steps for smoother animation
+            const steps = 60; // More steps for smoother animation
             const frames = [];
     
             for (let i = 0; i <= steps; i++) {
@@ -331,13 +316,10 @@ export class Wheel {
                 let currentAngle;
                 
                 if (isFifthsLayout) {
-                    // Rotate based on whether we're increasing or decreasing
                     currentAngle = (oldPos * 30 + (isIncreasing ? -1 : 1) * progress * rotationAngle + 360) % 360;
                 } else if (isFourthsLayout) {
-                    // Rotate based on whether we're increasing or decreasing
                     currentAngle = (oldPos * 30 + (isIncreasing ? -1 : 1) * progress * rotationAngle + 360) % 360;
                 } else {
-                    // Use shortest path for chromatic layout
                     let direction = newPos - oldPos;
                     if (Math.abs(direction) > 6) {
                         direction = direction > 0 ? direction - 12 : direction + 12;
