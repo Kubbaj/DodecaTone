@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const { isDate } = require('util/types');
 
 // Function to recursively get all files in a directory
 function getAllFiles(dirPath, arrayOfFiles) {
@@ -37,7 +38,10 @@ function combineFiles(directoryPath, outputFileName) {
 
 // Usage
 const directoryPath = './'; // Current directory
-const outputFileName = 'combined_code.txt';
+const currentDate = new Date();
+const formattedDate = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(currentDate.getDate()).padStart(2, '0')}`;
+const formattedTime = `${String(currentDate.getHours()).padStart(2, '0')}-${String(currentDate.getMinutes()).padStart(2, '0')}-${String(currentDate.getSeconds()).padStart(2, '0')}`;
+const outputFileName = `combined_code_${formattedDate}_${formattedTime}.txt`;
 combineFiles(directoryPath, outputFileName);
 
 

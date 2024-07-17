@@ -1,0 +1,2008 @@
+
+
+// File: app.js
+
+// app.js
+
+import * as config from './config.js';
+import { Wheel } from './wheel.js';
+import { Keyboard } from './keyboard.js';
+import { TonicIndicators } from './tonicIndicators.js';
+import { Pattern } from './pattern.js';
+import { debugTracker, toggleDebugDashboard } from './debugPanel.js';
+
+// Initialize Tone.js
+const synth = new Tone.PolySynth(Tone.Synth).toDestination();
+
+// Global state
+let currentLayout = 'chromatic';
+let currentPattern = 'none';
+let currentTonic = 'C';
+let useSharps = false;
+let useColors = false;
+let animate = false;
+let currentlyPlayingNote = null;
+let currentTonicDisplay = 'C';
+let autoplayTonic = true;
+let currentOctave = 4;
+
+
+// Initialize components
+const wheelContainer = document.getElementById('wheel-container');
+const keyboardWindow = document.getElementById('keyboard-window');
+const tonicIndicators = new TonicIndicators(wheelContainer, keyboardWindow, useColors);
+tonicIndicators.toggleVisibility(true);
+
+const wheel = new Wheel(wheelContainer, animate);
+const keyboardContainer = document.getElementById('keyboard-container');
+const keyboard = new Keyboard(keyboardContainer, animate);
+const pattern = new Pattern(wheel);
+wheel.pattern = pattern;
+
+// UPDATE TONIC
+
+function updateTonicDisplay() {
+    const currentTonicDisplay = document.getElementById('current-tonic');
+    if (currentTonicDisplay) {
+        currentTonicDisplay.textContent = config.getNoteDisplay(currentTonic, useSharps);
+    }
+}
+
+function getToneNote(note, octave) {
+    const isBlackNote = note.includes('/');
+    const baseTone = isBlackNote ? note.charAt(0) + '#' : note.charAt(0);
+    return `${baseTone}${octave}`;
+}
+
+function setTonic(newTonic) {
+    if (config.notes.includes(newTonic)) {
+        const oldIndex = config.notes.indexOf(currentTonic);
+        const newIndex = config.notes.indexOf(newTonic);
+        
+        if (currentTonic === 'C' && newTonic === 'B' && currentOctave === 4) {
+            currentOctave = 3;
+        } else if (currentTonic === 'B' && newTonic === 'C' && currentOctave === 3) {
+            currentOctave = 4;
+        } else if (currentTonic === 'C' && newTonic === 'B' && currentOctave === 3) {
+            currentOctave = 4;
+        } else if (currentTonic === 'B' && newTonic === 'C' && currentOctave === 4) {
+            currentOctave = 3;
+        }
+
+        currentTonic = newTonic;
+        console.log(`Tonic changed to: ${currentTonic}, Octave: ${currentOctave}`);
+        updateTonicDisplay();
+        wheel.rotateTonic(newTonic, currentOctave);
+        keyboard.translateToTonic(newTonic, currentOctave);
+        updateAllNoteStates();
+
+        if (autoplayTonic) {
+            const toneNote = getToneNote(newTonic, currentOctave);
+            
+            const delay = animate ? 400 : 0;
+            
+            setTimeout(() => {
+                playNoteForDuration(toneNote);
+            }, delay);
+        }
+    }
+}
+
+function initTonicPicker() {
+    const decreaseButton = document.getElementById('decrease-tonic');
+    const increaseButton = document.getElementById('increase-tonic');
+
+    function changeTonic(direction) {
+        const currentIndex = config.notes.indexOf(currentTonic);
+        let newIndex;
+        if (direction === 'increase') {
+            newIndex = (currentIndex + 1) % config.notes.length;
+        } else {
+            newIndex = (currentIndex - 1 + config.notes.length) % config.notes.length;
+        }
+        setTonic(config.notes[newIndex]);
+        pattern.drawPatternPolygon();
+    }
+
+    decreaseButton.addEventListener('click', () => changeTonic('decrease'));
+    increaseButton.addEventListener('click', () => changeTonic('increase'));
+
+    // Initialize display
+    updateTonicDisplay();
+}
+
+// UPDATE PATTERN
+function updatePattern(newPatternValue) {
+    if (newPatternValue === 'none') {
+        pattern.updatePattern([]);
+        return;
+    }
+
+    const [category, patternName] = newPatternValue.split('.');
+    const patternNotes = config[category][patternName];
+
+    if (!patternNotes) {
+        console.error(`Pattern not found: ${newPatternValue}`);
+        return;
+    }
+
+    pattern.updatePattern(patternNotes);
+}
+
+// UPDATE LAYOUT
+
+function updateLayout(newLayout) {
+    if (config.layouts.hasOwnProperty(newLayout)) {
+        currentLayout = newLayout;
+        wheel.switchLayout(newLayout);
+        updateAllNoteStates();
+    }
+}
+
+// TOGGLES
+
+function toggleSharps() {
+    useSharps = !useSharps;
+    console.log("Toggled sharps. New value:", useSharps);
+    updateTonicDisplay(); // Add this line
+    updateAllNoteStates();
+}
+
+function toggleIndicators() {
+    tonicIndicators.toggleVisibility();
+}
+
+function toggleColors() {
+    useColors = !useColors;
+    console.log("Toggled colors. New value:", useColors);
+    updateAllNoteStates();
+    tonicIndicators.updateIndicatorColor();
+}
+
+function toggleAnimation() {
+    animate = !animate;
+    console.log("Toggled animation. New value:", animate);
+    wheel.animate = animate;
+    keyboard.animate = animate;
+}
+
+function toggleAutoplay() {
+    autoplayTonic = !autoplayTonic;
+    console.log("Toggled autoplay. New value:", autoplayTonic);
+}
+
+
+
+function updateAllNoteStates() {
+    config.keyboardNotes.forEach((note, noteId) => {
+        const baseNoteId = noteId % 12;
+        const isActive = wheel.noteElements.get(baseNoteId)?.classList.contains('active') || 
+                         keyboard.keyElements.get(noteId)?.classList.contains('active');
+        const state = getNoteState(config.notes[baseNoteId], isActive);
+        if (noteId < 12) {
+            wheel.updateNoteState(noteId, state, useColors, animate, currentOctave);
+        }
+        keyboard.updateKeyState(noteId, state, useColors, animate, currentOctave);
+    });
+}
+
+function getNoteState(note, isActive = false) {
+    const baseNote = note || config.notes[config.notes.indexOf(note) % 12];
+    return {
+        display: config.getNoteDisplay(baseNote, useSharps),
+        color: useColors ? config.noteColors[baseNote] : (baseNote.includes('/') ? 'black' : 'white'),
+        active: isActive
+    };
+}
+
+// PLAYBACK
+
+// In app.js
+function playNote(toneNote) {
+    synth.triggerAttack(toneNote);
+    console.log("starting", toneNote)
+    updateNoteState(toneNote, true, currentOctave);  // Always set to active when playing
+}
+
+function stopNote(toneNote) {
+    synth.triggerRelease(toneNote);
+    console.log("stopping", toneNote)
+    updateNoteState(toneNote, false, currentOctave);  // Always set to inactive when stopping
+}
+
+function updateNoteState(toneNote, isActive) {
+    const [noteName, octave] = toneNote.split(/(\d+)/);
+    // Show arrow for notes in octave 5 or higher
+    if (animate){
+    keyboard.showArrow(parseInt(octave) >= 5 && isActive);
+    }
+    // Update keyboard
+    const keyElement = document.querySelector(`.keyboard [data-tone-note="${toneNote}"]`);
+    if (keyElement) {
+        const noteId = parseInt(keyElement.dataset.noteId);
+        const baseNoteId = noteId % 12;
+        const state = getNoteState(config.notes[baseNoteId], isActive);
+        keyboard.updateKeyState(noteId, state, useColors, animate, currentOctave);
+    }
+
+    // Update wheel
+    const wheelElement = document.querySelector(`.wheel [data-tone-note="${toneNote}"]`);
+    if (wheelElement) {
+        const noteId = parseInt(wheelElement.dataset.noteId);
+        const state = getNoteState(config.notes[noteId], isActive);
+        wheel.updateNoteState(noteId, state, useColors, animate, currentOctave);
+    }
+}
+
+function playNoteForDuration(toneNote, duration = 250) {
+    try {
+        playNote(toneNote);
+        setTimeout(() => {
+            stopNote(toneNote);
+        }, duration);
+    } catch (error) {
+        console.error(`Error playing note ${toneNote}:`, error);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    wheel.initialize();
+    keyboard.initialize();
+    pattern.initialize();
+    toggleColors();
+    toggleAnimation();
+    toggleIndicators();
+    initTonicPicker();
+    updateTonicDisplay();
+    setupDebugTracker();
+
+    // updateLayout(currentLayout);
+
+    // Event listeners
+    document.getElementById('layout-select').addEventListener('change', (e) => updateLayout(e.target.value));
+    document.getElementById('toggle-animate').addEventListener('change', toggleAnimation);
+    document.getElementById('toggle-sharps').addEventListener('change', toggleSharps);
+    document.getElementById('toggle-colors').addEventListener('change', toggleColors);
+    document.getElementById('toggle-debug').addEventListener('click', toggleDebugDashboard);
+    document.getElementById('toggle-indicators').addEventListener('change', toggleIndicators);
+    document.getElementById('toggle-autoplay').addEventListener('change', toggleAutoplay);
+    document.getElementById('pattern-select').addEventListener('change', (e) => updatePattern(e.target.value));
+
+    
+    // PLAYBACK
+
+    // For the wheel
+wheel.container.addEventListener('mousedown', (e) => {
+    const noteElement = e.target.closest('[data-tone-note]');
+    if (noteElement) {
+        const toneNote = noteElement.getAttribute('data-tone-note');
+        currentlyPlayingNote = toneNote;
+        playNote(toneNote);
+    }
+});
+
+wheel.container.addEventListener('mouseup', () => {
+    if (currentlyPlayingNote) {
+        stopNote(currentlyPlayingNote);
+        currentlyPlayingNote = null;
+    }
+});
+
+wheel.container.addEventListener('mouseleave', () => {
+    if (currentlyPlayingNote) {
+        stopNote(currentlyPlayingNote);
+        currentlyPlayingNote = null;
+    }
+});
+
+// For the keyboard
+keyboard.keyboardElement.addEventListener('mousedown', (e) => {
+    const keyElement = e.target.closest('[data-tone-note]');
+    if (keyElement) {
+        const toneNote = keyElement.getAttribute('data-tone-note');
+        currentlyPlayingNote = toneNote;
+        playNote(toneNote);
+    }
+});
+
+keyboard.keyboardElement.addEventListener('mouseup', () => {
+    if (currentlyPlayingNote) {
+        stopNote(currentlyPlayingNote);
+        currentlyPlayingNote = null;
+    }
+});
+
+keyboard.keyboardElement.addEventListener('mouseleave', () => {
+    if (currentlyPlayingNote) {
+        stopNote(currentlyPlayingNote);
+        currentlyPlayingNote = null;
+    }
+});
+
+});
+// DEBUG STUFF
+
+function setupDebugTracker() {
+    debugTracker.track('useSharps', () => useSharps);
+    debugTracker.track('useColors', () => useColors);
+    debugTracker.track('animate', () => animate);
+    debugTracker.track('wheelNoteElements', () => wheel.noteElements.size);
+    debugTracker.track('wheelNotePositions', () => wheel.notePositions.size);
+    debugTracker.track('keyboardKeyElements', () => keyboard.keyElements.size);
+}
+
+
+
+export { playNote, stopNote, useColors, playNoteForDuration };
+
+// File: combine-files.js
+
+const fs = require('fs');
+const path = require('path');
+const { isDate } = require('util/types');
+
+// Function to recursively get all files in a directory
+function getAllFiles(dirPath, arrayOfFiles) {
+    const files = fs.readdirSync(dirPath);
+
+    arrayOfFiles = arrayOfFiles || [];
+
+    files.forEach(function(file) {
+        if (fs.statSync(dirPath + "/" + file).isDirectory()) {
+            arrayOfFiles = getAllFiles(dirPath + "/" + file, arrayOfFiles);
+        } else {
+            arrayOfFiles.push(path.join(dirPath, "/", file));
+        }
+    });
+
+    return arrayOfFiles;
+}
+
+// Function to combine all files
+function combineFiles(directoryPath, outputFileName) {
+    const allFiles = getAllFiles(directoryPath);
+    let combinedContent = '';
+
+    allFiles.forEach(file => {
+        const extname = path.extname(file);
+        if (['.html', '.css', '.js'].includes(extname)) {
+            const content = fs.readFileSync(file, 'utf8');
+            combinedContent += `\n\n// File: ${file}\n\n${content}`;
+        }
+    });
+
+    fs.writeFileSync(outputFileName, combinedContent);
+    console.log(`Combined file created: ${outputFileName}`);
+}
+
+// Usage
+const directoryPath = './'; // Current directory
+const currentDate = new Date();
+const formattedDate = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(currentDate.getDate()).padStart(2, '0')}`;
+const formattedTime = `${String(currentDate.getHours()).padStart(2, '0')}-${String(currentDate.getMinutes()).padStart(2, '0')}-${String(currentDate.getSeconds()).padStart(2, '0')}`;
+const outputFileName = `combined_code_${formattedDate}_${formattedTime}.txt`;
+combineFiles(directoryPath, outputFileName);
+
+
+
+// type into terminal "node combine-files.js"
+
+// File: config.js
+
+// config.js
+
+// Basic note array
+const notes = ['C', 'C♯/D♭', 'D', 'D♯/E♭', 'E', 'F', 'F♯/G♭', 'G', 'G♯/A♭', 'A', 'A♯/B♭', 'B'];
+
+const extendedNotes = [
+  'C3', 'C♯3/D♭3', 'D3', 'D♯3/E♭3', 'E3', 'F3', 'F♯3/G♭3', 'G3', 'G♯3/A♭3', 'A3', 'A♯3/B♭3', 'B3',
+  'C4', 'C♯4/D♭4', 'D4', 'D♯4/E♭4', 'E4', 'F4', 'F♯4/G♭4', 'G4', 'G♯4/A♭4', 'A4', 'A♯4/B♭4', 'B4'
+];
+
+const keyboardNotes = [
+  ...notes,
+  ...notes.map(note => note)
+];
+
+const layouts = {
+  chromatic: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+  fifths: [0, 7, 2, 9, 4, 11, 6, 1, 8, 3, 10, 5],
+  fourths: [0, 5, 10, 3, 8, 1, 6, 11, 4, 9, 2, 7]
+};
+
+// Function to get note display based on sharp/flat preference
+const getNoteDisplay = (note, useSharps) => {
+  if (note.includes('/')) {
+    return useSharps ? note.slice(0, 2) : note.slice(-2);
+  }
+  return note;
+};
+
+// Scales
+const scales = {
+  none: [],
+  chromatic: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+  major: [0, 2, 4, 5, 7, 9, 11],
+  minor: [0, 2, 3, 5, 7, 8, 10],
+  harmonicMinor: [0, 2, 3, 5, 7, 8, 11],
+  melodicMinor: [0, 2, 3, 5, 7, 9, 11],
+  pentatonicMajor: [0, 2, 4, 7, 9],
+  pentatonicMinor: [0, 3, 5, 7, 10],
+  blues: [0, 3, 5, 6, 7, 10],
+  wholeTone: [0, 2, 4, 6, 8, 10],
+  diminished: [0, 2, 3, 5, 6, 8, 9, 11],
+  augmented: [0, 3, 4, 7, 8, 11]
+};
+
+// Chords
+const chords = {
+  major: [0, 4, 7],
+  minor: [0, 3, 7],
+  diminished: [0, 3, 6],
+  augmented: [0, 4, 8],
+  sus2: [0, 2, 7],
+  sus4: [0, 5, 7],
+  major7: [0, 4, 7, 11],
+  minor7: [0, 3, 7, 10],
+  dominant7: [0, 4, 7, 10],
+  diminished7: [0, 3, 6, 9],
+  halfDiminished7: [0, 3, 6, 10]
+};
+
+// Modes
+const modes = {
+  ionian: scales.major,
+  dorian: [0, 2, 3, 5, 7, 9, 10],
+  phrygian: [0, 1, 3, 5, 7, 8, 10],
+  lydian: [0, 2, 4, 6, 7, 9, 11],
+  mixolydian: [0, 2, 4, 5, 7, 9, 10],
+  aeolian: scales.minor,
+  locrian: [0, 1, 3, 5, 6, 8, 10]
+};
+
+// Regulars
+const regulars = {
+  one: scales.chromatic,
+  two: scales.wholeTone,
+  three: chords.diminished7,
+  four: chords.augmented,
+  five: layouts.fourths,
+  six: [0,6]
+}
+
+// Note colors (ordered chromatically)
+const noteColors = {
+  'C': '#E25A5A',
+  'C♯/D♭': '#5AA1E2',
+  'D': '#E2E25A',
+  'D♯/E♭': '#9E5AE2',
+  'E': '#5AE25A',
+  'F': '#E25AA1',
+  'F♯/G♭': '#5AE2E2',
+  'G': '#E29E5A',
+  'G♯/A♭': '#5A5AE2',
+  'A': '#A1E25A',
+  'A♯/B♭': '#E25AE2',
+  'B': '#5AE29E'
+};
+
+// Intervals
+const intervals = {
+  unison: 0,
+  minor2nd: 1,
+  major2nd: 2,
+  minor3rd: 3,
+  major3rd: 4,
+  perfect4th: 5,
+  tritone: 6,
+  perfect5th: 7,
+  minor6th: 8,
+  major6th: 9,
+  minor7th: 10,
+  major7th: 11,
+  octave: 12
+};
+
+// Key signatures
+const keySignatures = {
+  'C': [],
+  'G': ['F♯'],
+  'D': ['F♯', 'C♯'],
+  'A': ['F♯', 'C♯', 'G♯'],
+  'E': ['F♯', 'C♯', 'G♯', 'D♯'],
+  'B': ['F♯', 'C♯', 'G♯', 'D♯', 'A♯'],
+  'F♯': ['F♯', 'C♯', 'G♯', 'D♯', 'A♯', 'E♯'],
+  'C♯': ['F♯', 'C♯', 'G♯', 'D♯', 'A♯', 'E♯', 'B♯'],
+  'F': ['B♭'],
+  'B♭': ['B♭', 'E♭'],
+  'E♭': ['B♭', 'E♭', 'A♭'],
+  'A♭': ['B♭', 'E♭', 'A♭', 'D♭'],
+  'D♭': ['B♭', 'E♭', 'A♭', 'D♭', 'G♭'],
+  'G♭': ['B♭', 'E♭', 'A♭', 'D♭', 'G♭', 'C♭'],
+  'C♭': ['B♭', 'E♭', 'A♭', 'D♭', 'G♭', 'C♭', 'F♭']
+};
+
+// Animation settings
+const animationSettings = {
+  duration: 500, // milliseconds
+  easing: 'ease-in-out'
+};
+
+export { 
+  notes, 
+  keyboardNotes,
+  extendedNotes,
+  layouts, 
+  scales, 
+  chords, 
+  modes,
+  regulars, 
+  noteColors, 
+  getNoteDisplay, 
+  intervals, 
+  keySignatures, 
+  animationSettings
+};
+
+// File: debugPanel.js
+
+// debugPanel.js
+
+class DebugTracker {
+    constructor() {
+        this.trackedVars = {};
+    }
+
+    track(name, getter) {
+        Object.defineProperty(this.trackedVars, name, {
+            get: getter,
+            enumerable: true
+        });
+    }
+
+    getAll() {
+        const result = {};
+        for (const [key, value] of Object.entries(this.trackedVars)) {
+            result[key] = value;
+        }
+        return result;
+    }
+}
+
+const debugTracker = new DebugTracker();
+
+let debugMode = false;
+let updateInterval = null;
+
+function toggleDebugDashboard() {
+    debugMode = !debugMode;
+    const dashboard = document.getElementById('debug-dashboard') || createDebugDashboard();
+    
+    if (debugMode) {
+        dashboard.style.display = 'block';
+        updateInterval = setInterval(updateDebugDashboard, 250); // Update 4 times per second
+    } else {
+        dashboard.style.display = 'none';
+        if (updateInterval) {
+            clearInterval(updateInterval);
+            updateInterval = null;
+        }
+    }
+    
+    if (debugMode) {
+        updateDebugDashboard();
+    }
+}
+
+function createDebugDashboard() {
+    const dashboard = document.createElement('div');
+    dashboard.id = 'debug-dashboard';
+    dashboard.style.cssText = `
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 10px;
+        border-radius: 5px;
+        font-family: monospace;
+        z-index: 9999;
+        display: none;
+        pointer-events: none;
+        user-select: none;
+        max-width: 300px;
+        overflow-y: auto;
+        max-height: 90vh;
+    `;
+    document.body.appendChild(dashboard);
+    return dashboard;
+}
+
+function updateDebugDashboard() {
+    const dashboard = document.getElementById('debug-dashboard');
+    if (!dashboard) return;
+    
+    const state = debugTracker.getAll();
+    
+    dashboard.innerHTML = `
+        <h3>Debug Dashboard</h3>
+        <pre>
+${Object.entries(state).map(([key, value]) => `${key}: ${JSON.stringify(value)}`).join('\n')}
+
+        </pre>
+    `;
+}
+
+export { debugTracker, toggleDebugDashboard };
+
+// File: index.html
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DodecaTone</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+#content-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 800px;
+}
+
+#options-container {
+    width: 100%;
+    order: 1;
+    margin-bottom: -10px;
+    margin-top: 50px;
+}
+
+#keyboard-window {
+    width: 80%;
+    order: 2;
+    margin-bottom: 20px;
+}
+
+#wheel-container {
+    width: 300px;
+    height: 300px;
+    order: 3;
+}
+    </style>
+
+</head>
+<body>
+    <header>
+        <h1><u>DodecaTone (4.x)</u></h1>
+    </header>
+
+    <div id="content-container">
+        <div id="options-container">
+            <div class="side-options left">
+                <div class="select-group">
+                    <label for="layout-select">Layout:</label>
+                    <select id="layout-select">
+                        <option value="chromatic">Chromatic</option>
+                        <option value="fifths">Fifths</option>
+                        <option value="fourths">Fourths</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div id="tonic-selector">
+                <button id="decrease-tonic">&lt;</button>
+                <div id="tonic-display-container">
+                    <span id="current-tonic">C</span>
+                </div>
+                <button id="increase-tonic">&gt;</button>
+            </div>
+            
+            <div class="side-options right">
+                <div class="select-group">
+                    <label for="pattern-select">Pattern:</label>
+                    <select id="pattern-select">
+                        <option value="none">None</option>
+                        <optgroup label="Scales">
+                            <option value="scales.chromatic">Chromatic</option>
+                            <option value="scales.major">Major Scale</option>
+                            <option value="scales.minor">Natural Minor Scale</option>
+                            <option value="scales.harmonicMinor">Harmonic Minor</option>
+                            <option value="scales.melodicMinor">Melodic Minor</option>
+                            <option value="scales.pentatonicMajor">Major Pentatonic</option>
+                            <option value="scales.pentatonicMinor">Minor Pentatonic</option>
+                            <option value="scales.blues">Blues</option>
+                            <option value="scales.wholeTone">Whole Tone</option>
+                            <option value="scales.diminished">Diminished Scale</option>
+                            <option value="scales.augmented">Augmented Scale</option>
+                        </optgroup>
+                        <optgroup label="Chords">
+                            <option value="chords.major">Major Triad</option>
+                            <option value="chords.minor">Minor Triad</option>
+                            <option value="chords.diminished">Diminished Triad</option>
+                            <option value="chords.augmented">Augmented Triad</option>
+                            <option value="chords.sus2">Sus2</option>
+                            <option value="chords.sus4">Sus4</option>
+                            <option value="chords.major7">Major 7th</option>
+                            <option value="chords.minor7">Minor 7th</option>
+                            <option value="chords.dominant7">Dominant 7th</option>
+                            <option value="chords.diminished7">Diminished 7th</option>
+                            <option value="chords.halfDiminished7">Half-Diminished 7th</option>
+                        </optgroup>
+                        <optgroup label="Modes">
+                            <option value="modes.ionian">Ionian</option>
+                            <option value="modes.dorian">Dorian</option>
+                            <option value="modes.phrygian">Phrygian</option>
+                            <option value="modes.lydian">Lydian</option>
+                            <option value="modes.mixolydian">Mixolydian</option>
+                            <option value="modes.aeolian">Aeolian</option>
+                            <option value="modes.locrian">Locrian</option>
+                        </optgroup>
+                        <optgroup label="Regulars">
+                            <option value="regulars.one">Regular 1</option>
+                            <option value="regulars.two">Regular 2</option>
+                            <option value="regulars.three">Regular 3</option>
+                            <option value="regulars.four">Regular 4</option>
+                            <option value="regulars.five">Regular 5</option>
+                            <option value="regulars.six">Regular 6</option>
+                        </optgroup>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div id="keyboard-window">
+            <div id="keyboard-container">
+                <!-- Keyboard will be inserted here by JavaScript -->
+            </div>
+        </div>
+
+        <div id="wheel-container" class="wheel">
+            <!-- Wheel will be inserted here by JavaScript -->
+            <div id="play-button-container">
+                <svg id="play-pattern-button" width="40" height="40" viewBox="0 0 60 60" style="display: none;">
+                  <circle cx="30" cy="30" r="30" fill="#555555"/>
+                  <path d="M25,20 L25,40 L40,30 Z" fill="white"/>
+                </svg>
+              </div>
+        </div>
+    </div>
+
+    <div id="wheel-tonic-indicator"></div>
+    <div id="keyboard-tonic-indicator"></div>
+
+    <div id="toggles-panel">
+        <h3>Settings:</h3>
+        <div class="toggle-group">
+            <label for="toggle-sharps">Sharps:</label>
+            <input type="checkbox" id="toggle-sharps">
+        </div>
+        <div class="toggle-group">
+            <label for="toggle-animate">Animation:</label>
+            <input type="checkbox" id="toggle-animate" checked>
+        </div>
+        <div class="toggle-group">
+            <label for="toggle-colors">Colors:</label>
+            <input type="checkbox" id="toggle-colors" checked>
+        </div>
+        <div class="toggle-group">
+            <label for="toggle-indicators">Indicators:</label>
+            <input type="checkbox" id="toggle-indicators" checked>
+        </div>
+        <div class="toggle-group">
+            <label for="toggle-autoplay">Autoplay:</label>
+            <input type="checkbox" id="toggle-autoplay" checked>
+        </div>
+        <button id="toggle-debug">Toggle Debug Dashboard</button>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <script type="module" src="app.js"></script>
+</body>
+</html>
+
+// File: keyboard.js
+
+// keyboard.js
+
+import * as config from './config.js';
+
+export class Keyboard {
+    constructor(container, animate) {
+        this.container = container;
+        this.window = container.parentElement; // This is the new keyboard-window element
+        this.animate = animate;
+        this.keyboardElement = document.createElement('div');
+        this.keyboardElement.className = 'keyboard';
+        this.keyElements = new Map();
+        this.keyWidth = 25; // Base width for black keys
+        this.keyWidths = { C: 1.5, D: 2, E: 1.5, F: 1.5, G: 2, A: 2, B: 1.5 };
+    }
+
+    initialize() {
+        this.container.appendChild(this.keyboardElement);
+        this.createKeys();
+        this.createArrow();
+        this.showArrow(false);
+        this.translateToTonic('C')
+    }
+
+    createKeys() {
+        let position = 0;
+        
+        config.keyboardNotes.forEach((note, index) => {
+            const keyElement = document.createElement('div');
+            const isBlackNote = note.includes('/');
+            
+            keyElement.className = `key ${isBlackNote ? 'black' : 'white'}`;
+            keyElement.dataset.noteId = index;
+
+            // Calculate toneNote
+            const baseTone = isBlackNote ? note.charAt(0) + '#' : note.charAt(0);
+            keyElement.dataset.toneNote = `${baseTone}${index < 12 ? 3 : 4}`;
+
+            // Set the width and position of the key
+            const width = this.keyWidth * (isBlackNote ? 1 : this.keyWidths[note.charAt(0)]);
+            keyElement.style.width = `${width}px`;
+            keyElement.style.left = `${position + (isBlackNote ? -this.keyWidth / 2 : 0)}px`;
+            
+            if (!isBlackNote) position += width;
+
+            const noteDisplay = document.createElement('span');
+            noteDisplay.className = 'note-display';
+            noteDisplay.textContent = config.getNoteDisplay(note, false);
+
+            keyElement.appendChild(noteDisplay);
+            this.keyElements.set(index, keyElement);
+            this.keyboardElement.appendChild(keyElement);
+        });
+    }
+
+    updateKeyState(noteId, state, useColors, animate) {
+        const keyElement = this.keyElements.get(noteId);
+        
+        if (keyElement) {
+            const isBlackNote = config.keyboardNotes[noteId].includes('/');
+            const noteDisplay = keyElement.querySelector('.note-display');
+            keyElement.classList.toggle('active', state.active);
+            noteDisplay.textContent = state.display;
+    
+            if (useColors) {
+                keyElement.style.backgroundColor = state.color;
+                noteDisplay.style.color = isBlackNote ? 'black' : 'white';
+                noteDisplay.style.fontWeight = 'bold';
+            } else {
+                keyElement.style.backgroundColor = isBlackNote ? 'black' : 'white';
+                noteDisplay.style.color = isBlackNote ? 'white' : 'black';
+                noteDisplay.style.fontWeight = 'normal';
+            }
+    
+            if (animate) {
+                keyElement.classList.toggle('active', state.active);
+            } else {
+                keyElement.classList.remove('active');
+            }
+    
+            this.arrowElement.style.opacity = '0';
+        }
+    }
+
+    createArrow() {
+        const arrow = document.createElement('div');
+        arrow.className = 'keyboard-arrow';
+        arrow.innerHTML = '→';
+        arrow.style.cssText = `
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 24px;
+            font-weight: bold;
+            color: #f0f0f0;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+            pointer-events: none;
+        `;
+        this.window.appendChild(arrow);
+        this.arrowElement = arrow;
+    
+        // Calculate initial position based on B4 key
+        const b4Key = this.keyElements.get(23); // B4 is at index 23
+        if (b4Key) {
+            const b4Rect = b4Key.getBoundingClientRect();
+            const windowRect = this.window.getBoundingClientRect();
+            this.arrowBasePosition = b4Rect.right - windowRect.left + 30; // 10px to the right of B4
+            this.arrowElement.style.left = `${this.arrowBasePosition}px`;
+        }
+    }
+
+    showArrow(show) {
+        if (this.arrowElement) {
+            this.arrowElement.style.opacity = show ? '1' : '0';
+        }
+    }
+
+    translateToTonic(newTonic, octave) {
+        const keyWidth = this.keyWidth;
+        const noteIndex = config.keyboardNotes.indexOf(newTonic);
+        
+        // Calculate offset: start at 11.5 keyWidths (for C4), then add 1 keyWidth per semitone
+        let offset = (noteIndex + 12.75) * keyWidth;
+    
+        // Adjust for octave
+        if (octave === 3) {
+            offset -= 12 * keyWidth; // Move one octave to the left
+        }
+    
+        // Center the tonic key
+        const centerOffset = (this.keyboardElement.clientWidth + 40) / 2; // Add 40px for arrow space
+        const translation = centerOffset - offset;
+    
+        console.log(`Translating keyboard to ${newTonic}, Octave: ${octave}, offset: ${translation}px`);
+    
+        if (this.animate) {
+            this.container.style.transition = 'transform 0.5s ease-in-out';
+        } else {
+            this.container.style.transition = 'none';
+        }
+    
+        this.container.style.transform = `translateX(${translation}px)`;
+
+        // Update arrow position
+        const currentTonicIndex = config.notes.indexOf(newTonic);
+        const keyDiff = currentTonicIndex - config.notes.indexOf('C'); // Difference from C
+        const arrowPosition = this.arrowBasePosition - (keyDiff * this.keyWidth);
+        this.arrowElement.style.left = `${arrowPosition}px`;
+
+        console.log(`Arrow updated: Base: ${this.arrowBasePosition}px, Current: ${arrowPosition}px, Tonic: ${newTonic}, Diff: ${keyDiff}`);
+    }
+
+}
+
+
+// File: pattern.js
+
+// pattern.js
+import { playNoteForDuration } from './app.js';
+
+export class Pattern {
+    constructor(wheel) {
+        this.wheel = wheel;
+        this.currentPattern = [];
+        this.playButton = document.getElementById('play-pattern-button');
+    }
+
+    initialize() {
+        this.createPatternSvg();
+        this.playButton.addEventListener('click', () => this.playPattern());
+    }
+
+    updatePattern(patternNotes) {
+        this.currentPattern = patternNotes;
+        this.drawPatternPolygon();
+        if (this.currentPattern.length > 0) {
+            this.playButton.style.display = "block";
+            console.log("play button visible");
+        } else {
+            this.playButton.style.display = "none";
+            console.log("play button INvisible");
+        }
+    }
+
+    createPatternSvg() {
+        if (!this.wheel.svg) {
+            console.error("Wheel SVG not yet created");
+            return;
+        }
+        this.patternSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        this.patternSvg.setAttribute("width", "300");
+        this.patternSvg.setAttribute("height", "300");
+        this.patternSvg.setAttribute("viewBox", "0 0 300 300");
+        this.patternSvg.style.position = "absolute";
+        this.patternSvg.style.top = "0";
+        this.patternSvg.style.left = "0";
+        this.patternSvg.style.overflow = "visible";
+        this.patternSvg.style.pointerEvents = "none";
+        this.wheel.svg.appendChild(this.patternSvg);
+        this.wheel.svg.insertBefore(this.patternSvg, this.wheel.notesGroup);
+    }
+
+    drawPatternPolygon() {
+        this.patternSvg.innerHTML = ''; // Clear previous content
+
+        if (!this.currentPattern || this.currentPattern.length === 0) return;
+
+        console.log('Current Pattern:', this.currentPattern);
+        console.log('Current Tonic:', this.wheel.currentTonic);
+        console.log('Wheel Radius:', this.wheel.radius);
+
+        const polygonRadius = this.wheel.radius * 0.83; // Adjust this factor as needed
+
+        const points = this.currentPattern.map(noteIndex => {
+            const actualNoteIndex = (noteIndex + this.wheel.config.notes.indexOf(this.wheel.currentTonic)) % 12;
+            const notePosition = this.wheel.notePositions.get(actualNoteIndex);
+            console.log(`Note ${actualNoteIndex}: Position ${notePosition}`);
+
+            const angle = (notePosition * 30) * (Math.PI / 180) - Math.PI / 2;
+            const x = Math.cos(angle) * polygonRadius;
+            const y = Math.sin(angle) * polygonRadius;
+            console.log(`Calculated point: (${x}, ${y})`);
+            return `${x},${y}`;
+        }).join(' ');
+
+        console.log('Polygon Points:', points);
+
+        // Draw the pattern polygon
+        const polygon = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+        polygon.setAttribute("points", points);
+        polygon.setAttribute("fill", "rgba(230, 230, 230, 0.3)");
+        polygon.setAttribute("stroke", "white");
+        polygon.setAttribute("stroke-width", "4");
+        this.patternSvg.appendChild(polygon);
+
+        console.log('Pattern SVG after drawing:', this.patternSvg.outerHTML);
+    }
+
+
+// In pattern.js
+
+createPlayButton() {
+    const playButton = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    playButton.setAttribute("cx", "150");
+    playButton.setAttribute("cy", "150");
+    playButton.setAttribute("r", "20");
+    playButton.setAttribute("fill", "#f5f5f5");
+    playButton.style.cursor = "pointer";
+
+    const playIcon = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    playIcon.setAttribute("d", "M145,140 L145,160 L160,150 Z");
+    playIcon.setAttribute("fill", "white");
+
+    const buttonGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    buttonGroup.appendChild(playButton);
+    buttonGroup.appendChild(playIcon);
+    buttonGroup.style.display = "none";
+
+    buttonGroup.addEventListener("click", () => this.playPattern());
+
+    this.patternSvg.appendChild(buttonGroup);
+    this.playButtonGroup = buttonGroup;
+    console.log("play button created")
+}
+
+playPattern() {
+    const toneNotes = this.calculateToneNotes();
+    this.playToneNotes(toneNotes);
+}
+
+calculateToneNotes() {
+    const tonic = this.wheel.currentTonic;
+    const startingOctave = this.wheel.currentOctave;
+    const tonicIndex = this.wheel.config.notes.indexOf(tonic);
+
+    console.log(`Starting calculation for tonic: ${tonic}, octave: ${startingOctave}`);
+
+    let currentOctave = startingOctave;
+    let previousNoteIndex = tonicIndex;
+
+    const toneNotes = this.currentPattern.map((intervalFromTonic, patternIndex) => {
+        const noteIndex = (tonicIndex + intervalFromTonic) % 12;
+        const note = this.wheel.config.notes[noteIndex];
+        const isBlackNote = note.includes('/');
+        const baseTone = isBlackNote ? note.charAt(0) + '#' : note.charAt(0);
+
+        // Increment octave if we've wrapped around
+        if (noteIndex < previousNoteIndex && patternIndex > 0) {
+            currentOctave++;
+        }
+        previousNoteIndex = noteIndex;
+
+        const toneNote = `${baseTone}${currentOctave}`;
+        console.log(`Pattern index: ${patternIndex}, Note: ${note}, Tone note: ${toneNote}`);
+        return toneNote;
+    });
+
+    // Add the tonic an octave higher than the starting octave
+    const finalOctave = startingOctave + 1;
+    const isTonicBlackNote = tonic.includes('/');
+    const tonicBaseTone = isTonicBlackNote ? tonic.charAt(0) + '#' : tonic.charAt(0);
+    const finalToneNote = `${tonicBaseTone}${finalOctave}`;
+    toneNotes.push(finalToneNote);
+
+    console.log(`Final tone notes: ${toneNotes.join(', ')}`);
+    return toneNotes;
+}
+
+playToneNotes(toneNotes) {
+    let index = 0;
+    const playNextNote = () => {
+        if (index < toneNotes.length) {
+            playNoteForDuration(toneNotes[index], 350);
+            
+            // Animate the note on the wheel
+            if (index === toneNotes.length - 1) {
+                // For the last note, animate the tonic note element
+                const tonicIndex = this.wheel.config.notes.indexOf(this.wheel.currentTonic);
+                const tonicElement = this.wheel.noteElements.get(tonicIndex);
+                if (tonicElement) {
+                    this.wheel.animateNotePress(tonicElement, true);
+                    setTimeout(() => {
+                        this.wheel.animateNotePress(tonicElement, false);
+                    }, 350);
+                }
+            }
+            
+            setTimeout(() => {
+                index++;
+                playNextNote();
+            }, 450); // Wait a bit longer than the note duration
+        }
+    };
+    playNextNote();
+}
+
+}
+
+// File: styles.css
+
+/* General Styles */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #444444;
+    color: #f0f0f0;
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    position: relative;
+}
+
+header {
+    position: absolute;
+    top: 10px;
+    left: 20px;
+}
+
+h1 {
+    margin: 0;
+    font-size: 1.5em;
+}
+
+/* Options Container */
+#options-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    position: relative;
+    order: 1;
+  }
+  
+  .side-options {
+    flex: 1;
+    display: flex;
+    align-items: center;
+  }
+  
+  .left {
+    justify-content: flex-end;
+  }
+  
+  .right {
+    justify-content: flex-start;
+  }
+  
+  #tonic-selector {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 130px; /* Adjust as needed */
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  
+  #tonic-display-container {
+    width: 50px; /* Adjust as needed */
+    text-align: center;
+    margin: 0 10px;
+  }
+  
+  .select-group {
+    margin: 0 100px; /* Adjust spacing as needed */
+    width: 250px;
+  }
+
+#current-tonic {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+#decrease-tonic,
+#increase-tonic {
+    font-size: 16px;
+    padding: 5px 10px;
+    flex-shrink: 0; /* Prevent buttons from shrinking */
+}
+
+/* Form Elements */
+select, button {
+    padding: 5px 10px;
+    margin: 5px;
+}
+
+input[type="checkbox"] {
+    margin-right: 0;
+}
+
+/* Content Container */
+#content-container, #main-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 800px;
+}
+
+/* Keyboard Container */
+#keyboard-window {
+    width: 80%;
+    overflow: hidden;
+    position: relative;
+    height: 160px;
+    margin-top: 30px;
+    padding-right: 40px; /* Add padding for the arrow */
+}
+
+#keyboard-container {
+    width: calc(650px + 40px); /* Increase width to account for arrow space */
+    height: 150px;
+    display: flex;
+    justify-content: center;
+    order: 2;
+    position: relative; /* Add this */
+}
+
+.keyboard {
+    position: absolute; /* Change to absolute */
+    left: 0; /* Add this */
+    top: 0; /* Add this */
+    width: 650px; /* Set explicit width */
+    height: 100%;
+    justify-content: center;
+}
+
+/* Key Styles */
+.key {
+    position: absolute;
+    width: 40px;
+    height: 150px;
+    border: 2px solid #000;
+    box-sizing: border-box;
+    display: flex;
+    border-radius: 5px;
+    justify-content: center;
+    align-items: flex-end;
+    padding-bottom: 10px;
+    cursor: pointer;
+}
+
+.key.white {
+    background-color: #fff;
+    z-index: 1;
+}
+
+.key.black {
+    background-color: black;
+    height: 100px;
+    width: 20px;
+    z-index: 2;
+}
+
+.note-display {
+    font-size: 12px;
+    color: #000;
+    position: absolute;
+    bottom: 5px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.key.black .note-display {
+    color: #fff;
+}
+
+/* Animation Styles */
+.key {
+    transition: transform 0.1s ease, filter 0.1s ease;
+}
+
+.key.active {
+    transform: scale(0.95);
+    filter: brightness(1.5);
+}
+
+.key.colored, .note.colored {
+    transition: none;
+}
+
+.key.colored.active {
+    filter: brightness(1.5);
+}
+
+/* Wheel Container */
+#wheel-container {
+    width: 300px;
+    height: 300px;
+    margin-bottom: 20px;
+    order: 3;
+}
+
+#wheel-container svg {
+    width: 100%;
+    height: 100%;
+    transform-box: fill-box;
+}
+
+#play-button-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, 170%);
+    z-index: 10;
+  }
+  
+  #play-pattern-button {
+    cursor: pointer;
+    transition: transform 0.1s ease-in-out;
+    opacity: 70%;
+  }
+  
+  #play-pattern-button:hover {
+    transform: scale(1.1);
+  }
+
+#wheel-container svg * {
+    visibility: visible !important;
+}
+
+.note circle {
+    stroke-width: 2;
+}
+
+.note text {
+    font-size: 14px;
+}
+
+wheel .note {
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.wheel .note circle {
+    transition: r 0.2s ease;
+}
+
+/* Tonic Indicators*/
+#wheel-tonic-indicator, #keyboard-tonic-indicator {
+    position: absolute;
+    pointer-events: none;
+    z-index: 10;
+}
+#wheel-tonic-indicator {
+    width: 40px;
+    height: 40px;
+    border: solid '#E25A5A';
+    border-radius: 50%;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+}
+#keyboard-tonic-indicator {
+    width: 30px;
+    height: 10px;
+    background-color: '#E25A5A';
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+
+
+
+/* Toggles Panel */
+#toggles-panel {
+    position: absolute;
+    top: 150px;
+    right: 20px;
+    width: 200px;
+    padding: 10px;
+    background-color: #555555;
+    color: #f0f0f0;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+#toggles-panel h3 {
+    margin-top: 0;
+}
+
+.toggle-group {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.toggle-group label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+#toggle-debug {
+    margin-top: 10px;
+    width: 100%;
+}
+
+
+ /* body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 50%;
+    width: 1px;
+    height: 100%;
+    background: red;
+    z-index: 9999;
+  }  */
+
+// File: tonicIndicators.js
+
+import { useColors } from './app.js';
+
+export class TonicIndicators {
+    constructor(wheelContainer, keyboardWindow) {
+        this.wheelContainer = wheelContainer;
+        this.keyboardWindow = keyboardWindow;
+        this.indicatorColor = useColors ? 'white' : '#E25A5A';
+        
+        this.wheelIndicator = this.createWheelIndicator();
+        this.keyboardIndicator = this.createKeyboardIndicator();
+
+        this.wheelYOffset = 311;
+        this.keyboardYOffset = 0;
+
+        this.positionIndicators();
+        this.visible = false;
+    }
+
+    createWheelIndicator() {
+        const indicator = document.getElementById('wheel-tonic-indicator') || document.createElement('div');
+        indicator.id = 'wheel-tonic-indicator';
+        indicator.style.position = 'absolute';
+        indicator.style.width = '44px';
+        indicator.style.height = '44px';
+        indicator.style.border = `6px solid ${this.indicatorColor}`;
+        indicator.style.borderRadius = '50%';
+        indicator.style.pointerEvents = 'none';
+        this.wheelContainer.appendChild(indicator);
+        return indicator;
+    }
+
+    createKeyboardIndicator() {
+        const indicator = document.getElementById('keyboard-tonic-indicator') || document.createElement('div');
+        indicator.id = 'keyboard-tonic-indicator';
+        indicator.style.position = 'absolute';
+        indicator.style.width = '30px';
+        indicator.style.height = '30px'; // Adjust based on your key height
+        indicator.style.borderTop = `7px solid ${this.indicatorColor}`;
+        indicator.style.borderLeft = `7px solid ${this.indicatorColor}`;
+        indicator.style.borderRight = `7px solid ${this.indicatorColor}`;
+        indicator.style.borderBottom = '7px solid transparent';
+        indicator.style.borderRadius = '5px'
+        indicator.style.backgroundColor = 'transparent';
+        indicator.style.pointerEvents = 'none';
+        indicator.style.boxSizing = 'border-box';
+        this.keyboardWindow.appendChild(indicator);
+        return indicator;
+    }
+
+    positionIndicators() {
+        this.positionWheelIndicator();
+        this.positionKeyboardIndicator();
+    }
+
+    positionWheelIndicator() {
+        this.wheelIndicator.style.left = '50%';
+        this.wheelIndicator.style.transform = 'translateX(-50%)';
+        this.wheelIndicator.style.top = `${this.wheelYOffset}px`;
+    }
+    
+    positionKeyboardIndicator() {
+        this.keyboardIndicator.style.left = 'calc(50% - 0.5px)';
+        this.keyboardIndicator.style.transform = 'translateX(-50%)';
+        this.keyboardIndicator.style.top = `${this.keyboardYOffset}px`;
+    }
+
+    updateIndicatorColor() {
+        this.indicatorColor = useColors ? 'white' : '#E54444';
+        this.wheelIndicator.style.borderColor = this.indicatorColor;
+        this.keyboardIndicator.style.borderTopColor = this.indicatorColor;
+        this.keyboardIndicator.style.borderLeftColor = this.indicatorColor;
+        this.keyboardIndicator.style.borderRightColor = this.indicatorColor;
+    }
+
+    toggleVisibility() {
+        this.visible = !this.visible;
+        const display = this.visible ? 'none' : 'block';
+        this.wheelIndicator.style.display = display;
+        this.keyboardIndicator.style.display = display;
+        if (this.visible) {
+            this.updateIndicatorColor();
+        }
+    }
+}
+
+// File: wheel.js
+
+// wheel.js
+
+// wheel.js
+
+import * as config from './config.js';
+
+export class Wheel {
+    constructor(container, animate) {
+        this.currentTonic = 'C'
+        this.currentLayout = 'chromatic';
+        this.container = container;
+        this.animate = animate;
+        this.config = config;
+        this.svg = null;
+        this.notesGroup = null;
+        this.patternGroup = null;
+        this.radius = 120;
+        this.noteElements = new Map(); // Store note elements with their ids
+        this.notePositions = new Map(); // Map note IDs to their current positions
+        this.currentOctave = 4;
+
+        this.animationParams = {
+            scale: 0.95,
+            brightness: 1.5,
+            originalRadius: 25,
+            duration: 200 // milliseconds
+        };
+    }
+
+    initialize() {
+        this.createSVG();
+        this.createNotes();
+    }
+    
+    createSVG() {
+        this.svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        this.svg.setAttribute("width", 300);
+        this.svg.setAttribute("height", 300);
+        this.svg.setAttribute("viewBox", "-150 -150 300 300");
+        
+        const background = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        background.setAttribute("x", "-150");
+        background.setAttribute("y", "-150");
+        background.setAttribute("width", "300");
+        background.setAttribute("height", "300");
+        background.setAttribute("fill", "#444444");
+        this.svg.appendChild(background);
+
+        this.notesGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        this.patternGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        
+        this.svg.appendChild(this.notesGroup);
+        this.svg.appendChild(this.patternGroup);
+        
+        this.container.appendChild(this.svg);
+    }
+
+    createNotes() {
+        const fragment = document.createDocumentFragment();
+    
+        config.notes.forEach((note, noteId) => {
+            const noteGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+            noteGroup.dataset.noteId = noteId;
+            noteGroup.style.cursor = "pointer";
+    
+            const noteCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            noteCircle.setAttribute("r", "25");
+            noteCircle.setAttribute("stroke", "black");
+            noteCircle.setAttribute("stroke-width", "2");
+            
+            const noteText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            noteText.setAttribute("text-anchor", "middle");
+            noteText.setAttribute("dominant-baseline", "central");
+            
+            noteGroup.append(noteCircle, noteText);
+    
+            this.notePositions.set(noteId, noteId); // Initially, position matches noteId
+            this.noteElements.set(noteId, noteGroup);  // Add this line here
+    
+            // Calculate toneNote
+            const isBlackNote = note.includes('/');
+            const baseTone = isBlackNote ? note.charAt(0) + '#' : note.charAt(0);
+            const toneNote = `${baseTone}${this.currentOctave}`;
+            noteGroup.dataset.toneNote = toneNote;
+    
+            fragment.appendChild(noteGroup);
+    
+            // Set initial state
+            const initialState = {
+                display: config.getNoteDisplay(note, false),
+                color: isBlackNote ? 'black' : 'white',
+                active: false,
+                inPattern: false
+            };
+            
+            this.updateNoteState(noteId, initialState, false, false);
+        });
+    
+        this.notesGroup.appendChild(fragment);
+    
+        // Move this loop outside of the forEach
+        this.notePositions.forEach((_, noteId) => {
+            this.updateNotePosition(noteId);
+        });
+    }
+
+    updateNotePosition(noteId) {
+        const noteElement = this.noteElements.get(noteId);
+        const position = this.notePositions.get(noteId);
+        const angle = position * (Math.PI / 6) - Math.PI / 2;
+        const x = Math.cos(angle) * this.radius;
+        const y = Math.sin(angle) * this.radius;
+        
+        noteElement.setAttribute("transform", `translate(${x}, ${y})`);
+    }
+
+    animateNotePress(noteElement, isActive) {
+        const noteCircle = noteElement.querySelector('circle');
+        const { scale, brightness, originalRadius, duration } = this.animationParams;
+    
+        // Get the current transform (which should be the translation)
+        const currentTransform = noteElement.getAttribute('transform') || '';
+    
+        if (isActive) {
+            noteElement.animate([
+                { transform: `${currentTransform} scale(1)`, filter: 'brightness(1)' },
+                { transform: `${currentTransform} scale(${scale})`, filter: `brightness(${brightness})` }
+            ], { duration, fill: 'forwards' });
+            noteCircle.animate([
+                { r: originalRadius },
+                { r: originalRadius * scale }
+            ], { duration, fill: 'forwards' });
+        } else {
+            noteElement.animate([
+                { transform: `${currentTransform} scale(${scale})`, filter: `brightness(${brightness})` },
+                { transform: `${currentTransform} scale(1)`, filter: 'brightness(1)' }
+            ], { duration, fill: 'forwards' });
+            noteCircle.animate([
+                { r: originalRadius * scale },
+                { r: originalRadius }
+            ], { duration, fill: 'forwards' });
+        }
+    }
+    
+    updateNoteState(noteId, state, useColors, animate, octave) {
+        const noteElement = this.noteElements.get(noteId);
+        if (noteElement) {
+            const noteCircle = noteElement.querySelector('circle');
+            const noteText = noteElement.querySelector('text');
+            const note = this.config.notes[noteId];
+            const isBlackNote = note.includes('/');
+            
+            noteCircle.setAttribute('fill', state.color);
+            noteText.textContent = state.display;
+    
+            noteText.setAttribute('fill', useColors ? (isBlackNote ? 'black' : 'white') : (isBlackNote ? 'white' : 'black'));
+            noteText.setAttribute('font-weight', useColors ? 'bold' : 'normal');
+    
+            // Preserve the current octave
+            const currentOctave = noteElement.dataset.toneNote ? noteElement.dataset.toneNote.slice(-1) : this.currentOctave;
+            const baseTone = isBlackNote ? note.split('/')[0].replace('♯', '#') : note;
+            const toneNote = `${baseTone}${currentOctave}`;
+            noteElement.dataset.toneNote = toneNote;
+    
+            if (animate) {
+                this.animateNotePress(noteElement, state.active);
+            }
+            
+            noteElement.classList.toggle('active', state.active);
+        }
+    }
+
+    getCurrentRotation() {
+        const transform = this.notesGroup.style.transform;
+        if (transform) {
+            const match = transform.match(/rotate\(([-\d.]+)deg\)/);
+            return match ? parseFloat(match[1]) : 0;
+        }
+        return 0;
+    }
+
+    async rotateTonic(newTonic, newOctave) {
+        const oldTonicIndex = config.notes.indexOf(this.currentTonic);
+        const newTonicIndex = config.notes.indexOf(newTonic);
+        let shift;
+        const isIncreasing = (newTonicIndex - oldTonicIndex + 12) % 12 <= 6;
+    
+        if (this.currentLayout === 'chromatic') {
+            shift = (oldTonicIndex - newTonicIndex + 12) % 12;
+        } else if (this.currentLayout === 'fifths') {
+            shift = ((oldTonicIndex - newTonicIndex) * 7 + 12) % 12;
+        } else if (this.currentLayout === 'fourths') {
+            shift = ((oldTonicIndex - newTonicIndex) * 5 + 12) % 12;
+        }
+    
+        const oldPositions = new Map(this.notePositions);
+        const newPositions = new Map();
+    
+        this.notePositions.forEach((position, noteId) => {
+            const newPosition = (position + shift + 12) % 12;
+            newPositions.set(noteId, newPosition);
+        });
+    
+        await this.animateTonicChange(oldPositions, newPositions, isIncreasing);
+    
+        // Update the actual positions
+        this.notePositions = newPositions;
+        this.notePositions.forEach((position, noteId) => {
+            this.updateNotePosition(noteId);
+        });
+    
+        this.currentTonic = newTonic;
+        this.currentOctave = newOctave;
+        this.updateNoteToneNotes();
+    }
+    
+    async switchLayout(newLayout) {
+        if (newLayout === this.currentLayout) return;
+    
+        console.log(`Switching from ${this.currentLayout} to ${newLayout}`);
+        console.log(`Current tonic: ${this.currentTonic}`);
+    
+        if ((this.currentLayout === 'chromatic' && newLayout === 'fourths') ||
+            (this.currentLayout === 'fourths' && newLayout === 'chromatic')) {
+            // First switch to fifths, then to the desired layout
+            await this.switchLayout('fifths');
+            return this.switchLayout(newLayout);
+        }
+    
+        const oldPositions = new Map(this.notePositions);
+        const newPositions = new Map();
+    
+        const tonicIndex = config.notes.indexOf(this.currentTonic);
+        const tonicOldPosition = this.notePositions.get(tonicIndex);
+        const tonicNewPosition = this.getPositionsForLayout(newLayout)[tonicIndex];
+    
+        const shift = (tonicOldPosition - tonicNewPosition + 12) % 12;
+    
+        config.notes.forEach((note, i) => {
+            const layoutPosition = this.getPositionsForLayout(newLayout)[i];
+            const newPosition = (layoutPosition + shift) % 12;
+            newPositions.set(i, newPosition);
+        });
+    
+        await this.animateLayoutSwitch(oldPositions, newPositions);
+    
+        // Update the actual positions
+        this.notePositions = newPositions;
+        this.notePositions.forEach((position, noteId) => {
+            this.updateNotePosition(noteId);
+        });
+    
+        this.currentLayout = newLayout;
+        console.log("After switching layout, new positions:", Object.fromEntries(this.notePositions));
+
+        if (this.pattern) this.pattern.drawPatternPolygon();
+    }
+
+    getPositionsForLayout(layout) {
+        switch (layout) {
+            case 'chromatic':
+                return config.notes.map((_, i) => i);
+            case 'fifths':
+                return config.notes.map(note => (config.notes.indexOf(note) * 7) % 12);
+            case 'fourths':
+                return config.notes.map(note => (config.notes.indexOf(note) * 5) % 12);
+            default:
+                throw new Error('Invalid layout');
+        }
+    }
+
+    updateNoteToneNotes() {
+        const tonicIndex = this.config.notes.indexOf(this.currentTonic);
+        
+        this.noteElements.forEach((noteElement, noteId) => {
+            const note = this.config.notes[noteId];
+            const isBlackNote = note.includes('/');
+            const baseTone = isBlackNote ? note.charAt(0) + '#' : note.charAt(0);
+            
+            // Calculate the octave
+            let octave = this.currentOctave;
+            if (noteId < tonicIndex) {
+                octave++;
+            }
+    
+            const toneNote = `${baseTone}${octave}`;
+            noteElement.dataset.toneNote = toneNote;
+        });
+    }
+
+    createTemporaryElements() {
+        const tempGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        this.noteElements.forEach((noteElement, noteId) => {
+            const tempElement = noteElement.cloneNode(true);
+            tempElement.id = `temp-${noteId}`;
+            tempGroup.appendChild(tempElement);
+        });
+        return tempGroup;
+    }
+
+    animateTonicChange(oldPositions, newPositions, isIncreasing) {
+        if (!this.animate) return Promise.resolve();
+    
+        // Hide real elements
+        this.notesGroup.style.opacity = '0';
+    
+        const tempGroup = this.createTemporaryElements();
+        this.svg.appendChild(tempGroup);
+    
+        const isFifthsLayout = this.currentLayout === 'fifths';
+        const isFourthsLayout = this.currentLayout === 'fourths';
+        let rotationAngle;
+    
+        if (isFifthsLayout) {
+            rotationAngle = 210; // 210 degrees CCW when increasing, 210 degrees CW when decreasing
+        } else if (isFourthsLayout) {
+            rotationAngle = 150; // 30 degrees for chromatic layout
+        } else {
+            rotationAngle = 30; // 30 degrees for chromatic layout
+        }
+    
+        const animations = Array.from(tempGroup.children).map((tempElement, index) => {
+            const oldPos = oldPositions.get(index);
+            const newPos = newPositions.get(index);
+            
+            const steps = 5; // More steps for smoother animation
+            const frames = [];
+    
+            for (let i = 0; i <= steps; i++) {
+                const progress = i / steps;
+                let currentAngle;
+                
+                if (isFifthsLayout) {
+                    // Rotate based on whether we're increasing or decreasing
+                    currentAngle = (oldPos * 30 + (isIncreasing ? -1 : 1) * progress * rotationAngle + 360) % 360;
+                } else if (isFourthsLayout) {
+                    // Rotate based on whether we're increasing or decreasing
+                    currentAngle = (oldPos * 30 + (isIncreasing ? -1 : 1) * progress * rotationAngle + 360) % 360;
+                } else {
+                    // Use shortest path for chromatic layout
+                    let direction = newPos - oldPos;
+                    if (Math.abs(direction) > 6) {
+                        direction = direction > 0 ? direction - 12 : direction + 12;
+                    }
+                    currentAngle = ((oldPos + direction * progress) * 30 + 360) % 360;
+                }
+    
+                const radians = (currentAngle - 90) * (Math.PI / 180);
+                const x = Math.cos(radians) * this.radius;
+                const y = Math.sin(radians) * this.radius;
+                frames.push({ transform: `translate(${x}px, ${y}px)` });
+            }
+    
+            tempElement.setAttribute("transform", frames[0].transform);
+    
+            return tempElement.animate(frames, {
+                duration: 400,
+                easing: 'ease-in-out',
+                fill: 'forwards'
+            }).finished;
+        });
+    
+        return Promise.all(animations).then(() => {
+            this.svg.removeChild(tempGroup);
+            // Show real elements
+            this.notesGroup.style.opacity = '1';
+        });
+    }
+    
+    animateLayoutSwitch(oldPositions, newPositions) {
+        if (!this.animate) return Promise.resolve();
+    
+        if ((this.currentLayout === 'fifths' && this.nextLayout === 'fourths') ||
+            (this.currentLayout === 'fourths' && this.nextLayout === 'fifths')) {
+            return this.animateFifthsFourthsSwitch(oldPositions, newPositions);
+        }
+    
+        // Hide real elements
+        this.notesGroup.style.opacity = '0';
+    
+        const tempGroup = this.createTemporaryElements();
+        this.svg.appendChild(tempGroup);
+    
+        const animations = Array.from(tempGroup.children).map((tempElement, index) => {
+            const oldPos = oldPositions.get(index);
+            const newPos = newPositions.get(index);
+            const oldAngle = oldPos * (Math.PI / 6) - Math.PI / 2;
+            const newAngle = newPos * (Math.PI / 6) - Math.PI / 2;
+            const oldX = Math.cos(oldAngle) * this.radius;
+            const oldY = Math.sin(oldAngle) * this.radius;
+            const newX = Math.cos(newAngle) * this.radius;
+            const newY = Math.sin(newAngle) * this.radius;
+    
+            tempElement.setAttribute("transform", `translate(${oldX}, ${oldY})`);
+    
+            return tempElement.animate([
+                { transform: `translate(${oldX}px, ${oldY}px)` },
+                { transform: `translate(${newX}px, ${newY}px)` }
+            ], {
+                duration: 500,
+                easing: 'ease-in-out',
+                fill: 'forwards'
+            }).finished;
+        });
+    
+        return Promise.all(animations).then(() => {
+            this.svg.removeChild(tempGroup);
+            // Show real elements
+            this.notesGroup.style.opacity = '1';
+        });
+    }
+
+    animateFifthsFourthsSwitch(oldPositions, newPositions) {
+        if (!this.animate) return Promise.resolve();
+    
+        // Hide real elements
+        this.notesGroup.style.opacity = '0';
+    
+        const tempGroup = this.createTemporaryElements();
+        this.svg.appendChild(tempGroup);
+    
+        const tonicIndex = config.notes.indexOf(this.currentTonic);
+        const tritoneIndex = (tonicIndex + 6) % 12;
+    
+        const animations = Array.from(tempGroup.children).map((tempElement, index) => {
+            const oldPos = oldPositions.get(index);
+            const newPos = newPositions.get(index);
+    
+            // If it's the tonic or tritone, don't move
+            if (index === tonicIndex || index === tritoneIndex) {
+                return Promise.resolve();
+            }
+    
+            const oldAngle = oldPos * (Math.PI / 6) - Math.PI / 2;
+            const newAngle = newPos * (Math.PI / 6) - Math.PI / 2;
+            const oldX = Math.cos(oldAngle) * this.radius;
+            const oldY = Math.sin(oldAngle) * this.radius;
+            const newX = Math.cos(newAngle) * this.radius;
+            const newY = Math.sin(newAngle) * this.radius;
+    
+            tempElement.setAttribute("transform", `translate(${oldX}, ${oldY})`);
+    
+            return tempElement.animate([
+                { transform: `translate(${oldX}px, ${oldY}px)` },
+                { transform: `translate(${newX}px, ${newY}px)` }
+            ], {
+                duration: 500,
+                easing: 'ease-in-out',
+                fill: 'forwards'
+            }).finished;
+        });
+    
+        return Promise.all(animations).then(() => {
+            this.svg.removeChild(tempGroup);
+            // Show real elements
+            this.notesGroup.style.opacity = '1';
+        });
+    }
+}

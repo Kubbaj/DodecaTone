@@ -5,7 +5,6 @@ import { Wheel } from './wheel.js';
 import { Keyboard } from './keyboard.js';
 import { TonicIndicators } from './tonicIndicators.js';
 import { Pattern } from './pattern.js';
-import { debugTracker, toggleDebugDashboard } from './debugPanel.js';
 
 // Initialize Tone.js
 const synth = new Tone.PolySynth(Tone.Synth).toDestination();
@@ -250,7 +249,6 @@ document.addEventListener('DOMContentLoaded', () => {
     toggleIndicators();
     initTonicPicker();
     updateTonicDisplay();
-    setupDebugTracker();
 
     // updateLayout(currentLayout);
 
@@ -259,7 +257,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('toggle-animate').addEventListener('change', toggleAnimation);
     document.getElementById('toggle-sharps').addEventListener('change', toggleSharps);
     document.getElementById('toggle-colors').addEventListener('change', toggleColors);
-    document.getElementById('toggle-debug').addEventListener('click', toggleDebugDashboard);
     document.getElementById('toggle-indicators').addEventListener('change', toggleIndicators);
     document.getElementById('toggle-autoplay').addEventListener('change', toggleAutoplay);
     document.getElementById('pattern-select').addEventListener('change', (e) => updatePattern(e.target.value));
@@ -316,17 +313,5 @@ keyboard.keyboardElement.addEventListener('mouseleave', () => {
 });
 
 });
-// DEBUG STUFF
-
-function setupDebugTracker() {
-    debugTracker.track('useSharps', () => useSharps);
-    debugTracker.track('useColors', () => useColors);
-    debugTracker.track('animate', () => animate);
-    debugTracker.track('wheelNoteElements', () => wheel.noteElements.size);
-    debugTracker.track('wheelNotePositions', () => wheel.notePositions.size);
-    debugTracker.track('keyboardKeyElements', () => keyboard.keyElements.size);
-}
-
-
 
 export { playNote, stopNote, useColors, playNoteForDuration };
