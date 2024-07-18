@@ -15,17 +15,18 @@ There's a few major ones left to add though, which might prove troublesome...
 
 
 And then some finishing aesthetic touches:
- 1. Reverse the note-play animation to brighten instead of dimming
- 2. Dim unincluded notes when a pattern is selected
+ 1. Reverse the note-play animation to brighten instead of dimming [CHECK]
+ 2. Dim unincluded notes when a pattern is selected [WHY IS THIS SO HARD??]
  3. Round UI corners and harmonize dark-mode theme
  4. Pick a nicer font to use globally
  5. Change checkboxes to switches and skin appropriately
- 6. Possibly make the wheel elements bigger, and tweak border width on both wheel and keys
- 7. Deal with double-border issue on keys
+ 6. Possibly make the wheel elements bigger, and tweak border width on both wheel and keys [CHECK]
+ 7. Deal with double-border issue on keys [IGNORED LOL]
  8. Add gradient on edges of keyboard-window
  9. Pick softer "black" and "white"
  10. Possibly change the layout picker to a carousel like the tonic one?
  11. Move options labels to center above their pickers, give them their own spaces/more prominence
+ 12. Improve tonic indicators. Add to element groups, maybe highlight note?
 
 
 And then there's a whole list of QoL updates I could make, but that I might wait until I have a developer on board for...

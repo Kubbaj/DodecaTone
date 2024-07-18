@@ -1,7 +1,5 @@
 // wheel.js
 
-// wheel.js
-
 import * as config from './config.js';
 
 export class Wheel {
@@ -20,7 +18,7 @@ export class Wheel {
         this.notePositions = new Map(); // Map note IDs to their current positions
 
         this.animationParams = {
-            scale: 0.95,
+            scale: 1.15,
             brightness: 1.5,
             originalRadius: 25,
             duration: 200 // milliseconds
@@ -106,16 +104,6 @@ export class Wheel {
         this.notePositions.forEach((_, noteId) => {
             this.updateNotePosition(noteId);
         });
-    }
-
-    createTemporaryElements() {
-        const tempGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
-        this.noteElements.forEach((noteElement, noteId) => {
-            const tempElement = noteElement.cloneNode(true);
-            tempElement.id = `temp-${noteId}`;
-            tempGroup.appendChild(tempElement);
-        });
-        return tempGroup;
     }
 
 
@@ -281,6 +269,16 @@ export class Wheel {
                 { r: originalRadius }
             ], { duration, fill: 'forwards' });
         }
+    }
+
+    createTemporaryElements() {
+        const tempGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        this.noteElements.forEach((noteElement, noteId) => {
+            const tempElement = noteElement.cloneNode(true);
+            tempElement.id = `temp-${noteId}`;
+            tempGroup.appendChild(tempElement);
+        });
+        return tempGroup;
     }
 
     animateTonicChange(oldPositions, newPositions, isIncreasing) {

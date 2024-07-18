@@ -40,7 +40,8 @@ const scales = {
   blues: [0, 3, 5, 6, 7, 10],
   wholeTone: [0, 2, 4, 6, 8, 10],
   diminished: [0, 2, 3, 5, 6, 8, 9, 11],
-  augmented: [0, 3, 4, 7, 8, 11]
+  augmented: [0, 3, 4, 7, 8, 11],
+  sixthDim: [0, 2, 4, 5, 7, 8, 9, 11]
 };
 
 // Chords
@@ -55,7 +56,10 @@ const chords = {
   minor7: [0, 3, 7, 10],
   dominant7: [0, 4, 7, 10],
   diminished7: [0, 3, 6, 9],
-  halfDiminished7: [0, 3, 6, 10]
+  halfDiminished7: [0, 3, 6, 10],
+  minor13: [0, 3, 7, 10, 14, 17, 21],
+  major13sh11: [0, 4, 7, 11, 14, 18, 21],
+  dom13: [0, 4, 7, 10, 14, 17, 21]
 };
 
 // Modes
