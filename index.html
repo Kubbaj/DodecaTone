@@ -66,6 +66,15 @@
                     <label for="pattern-select">Pattern:</label>
                     <select id="pattern-select">
                         <option value="none">None</option>
+                        <optgroup label="Regulars">
+                            <option value="regulars.one">1:Chromatic</option>
+                            <option value="regulars.two">2:Whole Tone</option>
+                            <option value="regulars.three">3:Diminished</option>
+                            <option value="regulars.four">4:Augmented</option>
+                            <option value="regulars.five">5:Fourths</option>
+                            <option value="regulars.six">6:Tritone</option>
+                            <option value="regulars.thirdsFull">4,3:Thirds</option>
+                        </optgroup>
                         <optgroup label="Scales">
                             <option value="scales.chromatic">Chromatic</option>
                             <option value="scales.major">Major Scale</option>
@@ -76,9 +85,30 @@
                             <option value="scales.pentatonicMinor">Minor Pentatonic</option>
                             <option value="scales.blues">Blues</option>
                             <option value="scales.wholeTone">Whole Tone</option>
-                            <option value="scales.diminished">Diminished Scale</option>
+                            <option value="scales.dimWH">Dim:Whole/Half</option>
+                            <option value="scales.dimHW">Dim:Half/Whole</option>
                             <option value="scales.augmented">Augmented Scale</option>
                             <option value="scales.sixthDim">6th Dim (Bebop)</option>
+                            <option value="scales.dorianBebop">Dorian (Bebop)</option>
+                            <option value="scales.melodicBebop">Melodic (Bebop)</option>
+                            <option value="scales.harmonicBebop">Harmonic (Bebop)</option>
+                            <option value="scales.dominantBebop">Dominant (Bebop)</option>
+                            <option value="scales.altered">Altered Scale</option>
+                        </optgroup>
+                        <optgroup label="Exotic Scales">
+                            <option value="exoticScales.harmonicMajor">Harmonic Major</option>
+                            <option value="exoticScales.doubleHarmonic">Double Harmonic</option>
+                            <option value="exoticScales.prometheus">Prometheus</option>
+                            <option value="exoticScales.egyptian">Egyptian</option>
+                            <option value="exoticScales.hirajoshi">Hirajoshi</option>
+                            <option value="exoticScales.neapolitanMinor">Neapolitan Minor</option>
+                            <option value="exoticScales.neapolitanMajor">Neapolitan Major</option>
+                            <option value="exoticScales.arabian">Arabian</option>
+                            <option value="exoticScales.balinese">Balinese</option>
+                            <option value="exoticScales.charhargan">Charhargan</option>
+                            <option value="exoticScales.kurdish">Kurdish</option>
+                            <option value="exoticScales.spanish">Spanish/Gypsy</option>
+                            <option value="exoticScales.hungarian">Hungarian</option>
                         </optgroup>
                         <optgroup label="Chords">
                             <option value="chords.major">Major Triad</option>
@@ -92,10 +122,16 @@
                             <option value="chords.dominant7">Dominant 7th</option>
                             <option value="chords.diminished7">Diminished 7th</option>
                             <option value="chords.halfDiminished7">Half-Diminished 7th</option>
-                            <option value="chords.minor13">Minor 13</option>
-                            <option value="chords.major13sh11">Major 13 (#11)</option>
-                            <option value="chords.dom13">Dominant 13</option>
                         </optgroup>
+                        <outgroup label="ExtChords">
+                            <option value="extChords.minor13">Minor 13</option>
+                            <option value="extChords.major13sh11">Major 13 (#11)</option>
+                            <option value="extChords.dom13">Dominant 13</option>
+                            <option value="extChords.dom13fl9">Dom13(b9)</option>
+                            <option value="extChords.dom13fl9sh11">Dom13(b9#11)</option>
+                            <option value="extChords.altsh9fl13">Alt(#9b13)</option>
+                            <option value="extChords.alt">Alt</option>
+                        </outgroup>
                         <optgroup label="Modes">
                             <option value="modes.ionian">Ionian</option>
                             <option value="modes.dorian">Dorian</option>
@@ -104,14 +140,6 @@
                             <option value="modes.mixolydian">Mixolydian</option>
                             <option value="modes.aeolian">Aeolian</option>
                             <option value="modes.locrian">Locrian</option>
-                        </optgroup>
-                        <optgroup label="Regulars">
-                            <option value="regulars.one">Regular 1</option>
-                            <option value="regulars.two">Regular 2</option>
-                            <option value="regulars.three">Regular 3</option>
-                            <option value="regulars.four">Regular 4</option>
-                            <option value="regulars.five">Regular 5</option>
-                            <option value="regulars.six">Regular 6</option>
                         </optgroup>
                     </select>
                 </div>

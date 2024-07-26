@@ -15,8 +15,8 @@ const keyboardNotes = [
 
 const layouts = {
   chromatic: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
-  fifths: [0, 7, 2, 9, 4, 11, 6, 1, 8, 3, 10, 5],
-  fourths: [0, 5, 10, 3, 8, 1, 6, 11, 4, 9, 2, 7]
+  fifths:    [0, 7, 2, 9, 4, 11, 6, 1, 8, 3, 10, 5],
+  fourths:   [0, 5, 10, 3, 8, 1, 6, 11, 4, 9, 2, 7]
 };
 
 // Function to get note display based on sharp/flat preference
@@ -39,9 +39,31 @@ const scales = {
   pentatonicMinor: [0, 3, 5, 7, 10],
   blues: [0, 3, 5, 6, 7, 10],
   wholeTone: [0, 2, 4, 6, 8, 10],
-  diminished: [0, 2, 3, 5, 6, 8, 9, 11],
+  dimWH: [0, 2, 3, 5, 6, 8, 9, 11],
+  dimHW: [0, 1, 3, 4, 6, 7, 9, 10],
   augmented: [0, 3, 4, 7, 8, 11],
-  sixthDim: [0, 2, 4, 5, 7, 8, 9, 11]
+  sixthDim: [0, 2, 4, 5, 7, 8, 9, 11],
+  dorianBebop: [0, 2, 3, 4, 5, 7, 9, 10],
+  melodicBebop: [0, 2, 3, 5, 7, 8, 9, 11],
+  harmonicBebop: [0, 2, 3, 5, 7, 8, 10, 11],
+  dominantBebop: [0, 2, 4, 5, 7, 9, 10, 11],
+  altered: [0, 1, 3, 4, 6, 8, 10]
+};
+
+export const exoticScales ={
+  harmonicMajor: [0, 2, 4, 5, 7, 8, 11],
+  doubleHarmonic: [0, 1, 4, 5, 7, 8, 11],
+  prometheus: [0, 2, 4, 6, 9],
+  egyptian: [0, 2, 5, 7, 10],
+  hirajoshi: [0, 2, 3, 7, 8],
+  neapolitanMinor: [0, 1, 3, 5, 7, 8, 11],
+  neapolitanMajor: [0, 1, 4, 5, 7, 9, 11],
+  arabian: [0, 2, 4, 5, 6, 8, 10],
+  balinese: [0, 1, 3, 7, 8],
+  charhargan: [0, 1, 4, 5, 6, 8, 10],
+  kurdish: [0, 2, 3, 7, 8, 10],
+  spanish: [0, 1, 4, 5, 7, 8, 10],
+  hungarian: [0, 2, 3, 6, 7, 8, 11]
 };
 
 // Chords
@@ -56,10 +78,14 @@ const chords = {
   minor7: [0, 3, 7, 10],
   dominant7: [0, 4, 7, 10],
   diminished7: [0, 3, 6, 9],
-  halfDiminished7: [0, 3, 6, 10],
+  halfDiminished7: [0, 3, 6, 10]
+};
+
+export const extChords ={
   minor13: [0, 3, 7, 10, 14, 17, 21],
   major13sh11: [0, 4, 7, 11, 14, 18, 21],
-  dom13: [0, 4, 7, 10, 14, 17, 21]
+  dom13: [0, 4, 7, 10, 14, 17, 21],
+  dom13fl9: [0, 10, 16, 21, 25]
 };
 
 // Modes
@@ -80,7 +106,10 @@ const regulars = {
   three: chords.diminished7,
   four: chords.augmented,
   five: layouts.fourths,
-  six: [0,6]
+  six: [0,6],
+  thirdsMaj: [0, 4, 7, 11, 14, 18, 21, 25, 28, 32, 35, 39, 42, 46, 49, 53, 56],
+  thirdsMin: [0, 3, 7, 10, 14, 17, 21, 24],
+  thirdsFull: [0, 4, 7, 11, 14, 18, 21, 25, 28, 32, 35, 39, 42, 46, 49, 53, 56, 60, 63, 67, 70, 74, 77, 81, 84]
 }
 
 // Note colors (ordered chromatically)

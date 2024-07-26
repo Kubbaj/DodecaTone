@@ -173,7 +173,7 @@ input[type="checkbox"] {
 }
 
 .key.active {
-    transform: scale(0.95);
+    transform: scale(0.9);
     filter: brightness(1.5);
 }
 

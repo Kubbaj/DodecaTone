@@ -43,12 +43,6 @@ function updateTonicDisplay() {
     }
 }
 
-function getToneNote(note, octave) {
-    const isBlackNote = note.includes('/');
-    const baseTone = isBlackNote ? note.charAt(0) + '#' : note.charAt(0);
-    return `${baseTone}${octave}`;
-}
-
 function setTonic(newTonic) {
     if (config.notes.includes(newTonic)) {
         const oldIndex = config.notes.indexOf(currentTonic);
@@ -189,7 +183,12 @@ function getNoteState(note, isActive = false) {
 
 // PLAYBACK
 
-// In app.js
+function getToneNote(note, octave) {
+    const isBlackNote = note.includes('/');
+    const baseTone = isBlackNote ? note.charAt(0) + '#' : note.charAt(0);
+    return `${baseTone}${octave}`;
+}
+
 function playNote(toneNote) {
     synth.triggerAttack(toneNote);
     console.log("starting", toneNote)
