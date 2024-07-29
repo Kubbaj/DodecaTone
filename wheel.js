@@ -198,7 +198,16 @@ export class Wheel {
         this.currentTonic = newTonic;
         this.currentOctave = newOctave;
         this.updateToneNotes();
+
+        // Recalculate and update pattern highlights
+        if (this.pattern && this.pattern.currentPattern.length > 0) {
+            const newTonicIndex = this.config.notes.indexOf(newTonic);
+            const updatedPatternNotes = this.pattern.currentPattern.map(interval => 
+                (interval + newTonicIndex) % 12
+            );
+            this.updatePatternHighlight(updatedPatternNotes);
     }
+}
     
     async switchLayout(newLayout) {
         if (newLayout === this.currentLayout) return;
@@ -240,6 +249,18 @@ export class Wheel {
         console.log("After switching layout, new positions:", Object.fromEntries(this.notePositions));
 
         if (this.pattern) this.pattern.drawPatternPolygon();
+    }
+
+    updatePatternHighlight(patternNotes) {
+        console.log("Updating pattern highlights:", patternNotes);
+        
+        this.container.classList.toggle('pattern-active', patternNotes.length > 0);
+        
+        this.noteElements.forEach((noteElement, noteId) => {
+            const inPattern = patternNotes.includes(noteId);
+            noteElement.classList.toggle('in-pattern', inPattern);
+            console.log(`Note ${noteId}: ${inPattern ? 'in pattern' : 'not in pattern'}`);
+        });
     }
 
 // ANIMATIONS (Press, Tonic, Layout, Fourths)

@@ -54,6 +54,7 @@ export class Keyboard {
     }
 
     updateKeyState(noteId, state, useColors, animate) {
+        console.log(`Updating key state: noteId=${noteId}, active=${state.active}, useColors=${useColors}, animate=${animate}`);
         const keyElement = this.keyElements.get(noteId);
         
         if (keyElement) {
@@ -80,6 +81,17 @@ export class Keyboard {
     
             this.arrowElement.style.opacity = '0';
         }
+    }
+
+    updatePatternHighlight(patternNotes) {
+        console.log("Updating keyboard pattern highlight:", patternNotes);
+        this.keyboardElement.classList.toggle('pattern-active', patternNotes.length > 0);
+        
+        this.keyElements.forEach((keyElement, noteId) => {
+            const inPattern = patternNotes.includes(noteId % 12);
+            keyElement.classList.toggle('in-pattern', inPattern);
+            console.log(`Key ${noteId}: ${inPattern ? 'in pattern' : 'not in pattern'}`);
+        });
     }
 
     createArrow() {

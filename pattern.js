@@ -16,6 +16,12 @@ export class Pattern {
     updatePattern(patternNotes) {
         this.currentPattern = patternNotes;
         this.drawPatternPolygon();
+    
+        const tonicIndex = this.wheel.config.notes.indexOf(this.wheel.currentTonic);
+        const updatedPatternNotes = patternNotes.map(interval => 
+            (interval + tonicIndex) % 12
+        );
+        this.wheel.updatePatternHighlight(updatedPatternNotes);
         if (this.currentPattern.length > 0) {
             this.playButton.style.display = "block";
             console.log("play button visible");

@@ -104,18 +104,20 @@ function initTonicPicker() {
 function updatePattern(newPatternValue) {
     if (newPatternValue === 'none') {
         pattern.updatePattern([]);
-        return;
+        keyboard.updatePatternHighlight([]);  // Add this line
+    } else {
+        const [category, patternName] = newPatternValue.split('.');
+        const patternNotes = config[category][patternName];
+
+        if (patternNotes) {
+            pattern.updatePattern(patternNotes);
+            keyboard.updatePatternHighlight(patternNotes);  // Add this line
+        } else {
+            console.error(`Pattern not found: ${newPatternValue}`);
+        }
     }
 
-    const [category, patternName] = newPatternValue.split('.');
-    const patternNotes = config[category][patternName];
-
-    if (!patternNotes) {
-        console.error(`Pattern not found: ${newPatternValue}`);
-        return;
-    }
-
-    pattern.updatePattern(patternNotes);
+    updateAllNoteStates();  // Make sure this is called after updating the pattern
 }
 
 // UPDATE LAYOUT

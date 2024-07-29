@@ -167,6 +167,23 @@ input[type="checkbox"] {
     color: #fff;
 }
 
+.keyboard.pattern-active .key:not(.in-pattern) {
+    filter: brightness(0.5);
+}
+
+.keyboard.pattern-active .key.in-pattern {
+    border-color: white;
+    border-width: 3px;
+}
+
+.keyboard.pattern-active .key:not(.in-pattern) .note-display {
+    opacity: 0.5;
+}
+
+.keyboard.pattern-active .key.in-pattern .note-display {
+    opacity: 1;
+}
+
 /* Animation Styles */
 .key {
     transition: transform 0.1s ease, filter 0.1s ease;
@@ -237,6 +254,25 @@ wheel .note {
     transition: r 0.2s ease;
 }
 
+.pattern-active g:not(.in-pattern) circle {
+    filter: brightness(0.5);
+    stroke: black;
+    stroke-width: 2px;
+}
+
+.pattern-active g:not(.in-pattern) text {
+    opacity: 0.4;
+}
+
+.pattern-active g.in-pattern circle {
+    filter: brightness(1);
+    stroke: white;
+    stroke-width: 3px;
+}
+
+.pattern-active g.in-pattern text {
+    opacity: 1;
+}
 /* Tonic Indicators*/
 #wheel-tonic-indicator, #keyboard-tonic-indicator {
     position: absolute;
