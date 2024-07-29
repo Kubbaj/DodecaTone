@@ -132,18 +132,43 @@ function updatePatternForNewTonic(newTonic, isTonicChange = false) {
         const adjustedPattern = currentPattern.map(interval => 
             (interval + tonicIndex) % 12
         );
+        
+        // Calculate the new octave
+        let newOctave = currentOctave;
+        if (isTonicChange) {
+            if (newTonic === 'C' && currentTonic === 'B') newOctave++;
+            else if (newTonic === 'B' && currentTonic === 'C') newOctave--;
+        }
+
+        const playableToneNotes = adjustedPattern.map(noteIndex => {
+            const note = config.notes[noteIndex];
+            const octave = noteIndex < tonicIndex ? newOctave + 1 : newOctave;
+            return formatToneNote(note, octave);
+        });
+
+        // Add the top note (one octave above the tonic)
+        playableToneNotes.push(formatToneNote(newTonic, newOctave + 1));
+
+        console.log("Playable tone notes:", playableToneNotes);
+
         wheel.updatePatternHighlight(adjustedPattern);
 
         if (isTonicChange && animate) {
-            // Only delay if it's a tonic change and animations are on
             setTimeout(() => {
-                keyboard.updatePatternHighlight(adjustedPattern);
+                keyboard.updatePatternHighlight(playableToneNotes);
             }, 500);
         } else {
-            // Update immediately for pattern changes or when animations are off
-            keyboard.updatePatternHighlight(adjustedPattern);
+            keyboard.updatePatternHighlight(playableToneNotes);
         }
     }
+}
+
+// Helper function to format tone notes consistently
+function formatToneNote(note, octave) {
+    if (note.includes('/')) {
+        return `${note.split('/')[0].replace('♯', '#')}${octave}`;
+    }
+    return `${note}${octave}`;
 }
 
 

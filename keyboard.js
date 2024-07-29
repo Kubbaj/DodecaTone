@@ -33,6 +33,10 @@ export class Keyboard {
             
             keyElement.className = `key ${isBlackNote ? 'black' : 'white'}`;
             keyElement.dataset.noteId = index;
+    
+            // Calculate toneNote
+            const octave = index < 12 ? 3 : 4;
+            keyElement.dataset.toneNote = this.formatToneNote(note, octave);
 
             // Calculate toneNote
             const baseTone = isBlackNote ? note.charAt(0) + '#' : note.charAt(0);
@@ -85,15 +89,24 @@ export class Keyboard {
         }
     }
 
-    updatePatternHighlight(patternNotes) {
-        console.log("Updating keyboard pattern highlight:", patternNotes);
-        this.keyboardElement.classList.toggle('pattern-active', patternNotes.length > 0);
+    updatePatternHighlight(playableToneNotes) {
+        console.log("Updating keyboard pattern highlight:", playableToneNotes);
         
-        this.keyElements.forEach((keyElement, noteId) => {
-            const inPattern = patternNotes.includes(noteId % 12);
-            keyElement.classList.toggle('in-pattern', inPattern);
-            console.log(`Key ${noteId}: ${inPattern ? 'in pattern' : 'not in pattern'}`);
-        });
+        this.keyboardElement.classList.toggle('pattern-active', playableToneNotes.length > 0);
+        
+            this.keyElements.forEach((keyElement, noteId) => {
+                console.log(`Key ${noteId}: ${keyElement.dataset.toneNote}`);
+                const inPattern = playableToneNotes.includes(keyElement.dataset.toneNote);
+                keyElement.classList.toggle('in-pattern', inPattern);
+            });
+        }
+
+    // Add this helper method to the Keyboard class
+    formatToneNote(note, octave) {
+        if (note.includes('/')) {
+            return `${note.split('/')[0].replace('♯', '#')}${octave}`;
+        }
+        return `${note}${octave}`;
     }
 
     createArrow() {
