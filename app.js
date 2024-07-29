@@ -65,6 +65,9 @@ function setTonic(newTonic) {
         keyboard.translateToTonic(newTonic, currentOctave);
         updateAllNoteStates();
 
+        // Add this line:
+        updatePatternForNewTonic(newTonic);
+
         if (autoplayTonic) {
             const toneNote = getToneNote(newTonic, currentOctave);
             
@@ -103,22 +106,37 @@ function initTonicPicker() {
 // UPDATE PATTERN
 function updatePattern(newPatternValue) {
     if (newPatternValue === 'none') {
+        currentPattern = [];
         pattern.updatePattern([]);
-        keyboard.updatePatternHighlight([]);  // Add this line
+        keyboard.updatePatternHighlight([]);
+        wheel.updatePatternHighlight([]);
     } else {
         const [category, patternName] = newPatternValue.split('.');
         const patternNotes = config[category][patternName];
 
         if (patternNotes) {
+            currentPattern = patternNotes;  // Store the current pattern
             pattern.updatePattern(patternNotes);
-            keyboard.updatePatternHighlight(patternNotes);  // Add this line
+            updatePatternForNewTonic(currentTonic);  // Use the current tonic
         } else {
             console.error(`Pattern not found: ${newPatternValue}`);
         }
     }
 
-    updateAllNoteStates();  // Make sure this is called after updating the pattern
+    updateAllNoteStates();
 }
+
+function updatePatternForNewTonic(newTonic) {
+    if (currentPattern && currentPattern.length > 0) {
+        const tonicIndex = config.notes.indexOf(newTonic);
+        const adjustedPattern = currentPattern.map(interval => 
+            (interval + tonicIndex) % 12
+        );
+        keyboard.updatePatternHighlight(adjustedPattern);
+        wheel.updatePatternHighlight(adjustedPattern);  // Ensure wheel is also updated
+    }
+}
+
 
 // UPDATE LAYOUT
 
