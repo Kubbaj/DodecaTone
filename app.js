@@ -66,7 +66,7 @@ function setTonic(newTonic) {
         updateAllNoteStates();
 
         // Add this line:
-        updatePatternForNewTonic(newTonic);
+        updatePatternForNewTonic(newTonic, true);
 
         if (autoplayTonic) {
             const toneNote = getToneNote(newTonic, currentOctave);
@@ -117,7 +117,7 @@ function updatePattern(newPatternValue) {
         if (patternNotes) {
             currentPattern = patternNotes;  // Store the current pattern
             pattern.updatePattern(patternNotes);
-            updatePatternForNewTonic(currentTonic);  // Use the current tonic
+            updatePatternForNewTonic(currentTonic, false);  // false indicates it's not a tonic change
         } else {
             console.error(`Pattern not found: ${newPatternValue}`);
         }
@@ -126,14 +126,23 @@ function updatePattern(newPatternValue) {
     updateAllNoteStates();
 }
 
-function updatePatternForNewTonic(newTonic) {
+function updatePatternForNewTonic(newTonic, isTonicChange = false) {
     if (currentPattern && currentPattern.length > 0) {
         const tonicIndex = config.notes.indexOf(newTonic);
         const adjustedPattern = currentPattern.map(interval => 
             (interval + tonicIndex) % 12
         );
-        keyboard.updatePatternHighlight(adjustedPattern);
-        wheel.updatePatternHighlight(adjustedPattern);  // Ensure wheel is also updated
+        wheel.updatePatternHighlight(adjustedPattern);
+
+        if (isTonicChange && animate) {
+            // Only delay if it's a tonic change and animations are on
+            setTimeout(() => {
+                keyboard.updatePatternHighlight(adjustedPattern);
+            }, 500);
+        } else {
+            // Update immediately for pattern changes or when animations are off
+            keyboard.updatePatternHighlight(adjustedPattern);
+        }
     }
 }
 

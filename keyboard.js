@@ -4,6 +4,8 @@ import * as config from './config.js';
 
 export class Keyboard {
     constructor(container, animate) {
+        this.currentTonic = 'C';
+        this.currentOctave = 4;
         this.container = container;
         this.window = container.parentElement; // This is the new keyboard-window element
         this.animate = animate;
@@ -129,6 +131,8 @@ export class Keyboard {
     }
 
     translateToTonic(newTonic, octave) {
+        this.currentTonic = newTonic;
+        this.currentOctave = octave;
         const keyWidth = this.keyWidth;
         const noteIndex = config.keyboardNotes.indexOf(newTonic);
         
