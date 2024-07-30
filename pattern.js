@@ -164,7 +164,11 @@ export class Pattern {
             const octave = this.wheel.currentOctave + (noteIndex < tonicIndex ? 1 : 0);
             return this.wheel.formatToneNote(note, octave);
         });
-        this.keyboard.updatePatternHighlight(playableToneNotes);
+         // Add the top note (one octave above the tonic)
+    const topNote = this.wheel.formatToneNote(this.wheel.currentTonic, this.wheel.currentOctave + 1);
+    playableToneNotes.push(topNote);
+
+    this.keyboard.updatePatternHighlight(playableToneNotes);
     }
     
     async animatePolygon(direction, shiftAmount) {
