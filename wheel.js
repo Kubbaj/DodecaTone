@@ -165,6 +165,13 @@ export class Wheel {
         });
     }
 
+    formatToneNote(note, octave) {
+        if (note.includes('/')) {
+            return `${note.split('/')[0].replace('♯', '#')}${octave}`;
+        }
+        return `${note}${octave}`;
+    }
+
     async rotateTonic(newTonic, newOctave) {
         const oldTonicIndex = config.notes.indexOf(this.currentTonic);
         const newTonicIndex = config.notes.indexOf(newTonic);

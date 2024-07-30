@@ -60,7 +60,6 @@ export class Keyboard {
     }
 
     updateKeyState(noteId, state, useColors, animate) {
-        console.log(`Updating key state: noteId=${noteId}, active=${state.active}, useColors=${useColors}, animate=${animate}`);
         const keyElement = this.keyElements.get(noteId);
         
         if (keyElement) {
@@ -94,12 +93,11 @@ export class Keyboard {
         
         this.keyboardElement.classList.toggle('pattern-active', playableToneNotes.length > 0);
         
-            this.keyElements.forEach((keyElement, noteId) => {
-                console.log(`Key ${noteId}: ${keyElement.dataset.toneNote}`);
-                const inPattern = playableToneNotes.includes(keyElement.dataset.toneNote);
-                keyElement.classList.toggle('in-pattern', inPattern);
-            });
-        }
+        this.keyElements.forEach((keyElement, noteId) => {
+            const inPattern = playableToneNotes.includes(keyElement.dataset.toneNote);
+            keyElement.classList.toggle('in-pattern', inPattern);
+        });
+    }
 
     // Add this helper method to the Keyboard class
     formatToneNote(note, octave) {

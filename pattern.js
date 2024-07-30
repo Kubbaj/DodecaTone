@@ -2,9 +2,10 @@
 import { playNoteForDuration } from './app.js';
 
 export class Pattern {
-    constructor(wheel, animate) {
-        this.animate = animate;
+    constructor(keyboard, wheel, animate) {
+        this.keyboard = keyboard;
         this.wheel = wheel;
+        this.animate = animate;
         this.currentPattern = [];
         this.playButton = document.getElementById('play-pattern-button');
         this.bracketVisualization = new BracketVisualization(this.bracketContainer);
@@ -105,8 +106,88 @@ export class Pattern {
         this.patternSvg.appendChild(polygon);
     }
 
-    shiftPattern() {};
+    async shiftPattern(direction) {
+        if (this.currentPattern.length < 2) {
+            console.log("Pattern is too short to shift");
+            return;
+        }
     
+        let shiftAmount;
+        if (direction === 'right') {
+            shiftAmount = this.currentPattern[1] - this.currentPattern[0];
+        } else if (direction === 'left') {
+            shiftAmount = 12 - (this.currentPattern[this.currentPattern.length - 1] - this.currentPattern[0]);
+        } else {
+            console.error("Invalid shift direction");
+            return;
+        }
+    
+        console.log(`Shifting pattern ${direction} by ${shiftAmount} steps`);
+    
+        // Calculate the new pattern
+        const newPattern = this.currentPattern.map(interval => {
+            let newInterval = direction === 'right' 
+                ? (interval - shiftAmount + 12) % 12
+                : (interval + shiftAmount) % 12;
+            return newInterval;
+        });
+    
+        // Sort the new pattern
+        newPattern.sort((a, b) => a - b);
+    
+        console.log("Original pattern:", this.currentPattern);
+        console.log("New pattern:", newPattern);
+    
+        console.log("PATTERNNN ANIMATE:", this.animate)
+        // Animate the changes
+        if (this.animate) {
+            console.log("ANIMATING TRANSITION")
+            await Promise.all([
+                this.animatePolygon(direction, shiftAmount),
+                this.bracketVisualization.animateBracket(direction, shiftAmount)
+            ]);
+        }
+    
+        // Update the current pattern
+        this.currentPattern = newPattern;
+    
+        // Update visuals
+        this.updatePattern(this.currentPattern);
+        this.updateKeyboardHighlight();
+    }
+    
+    updateKeyboardHighlight() {
+        const tonicIndex = this.wheel.config.notes.indexOf(this.wheel.currentTonic);
+        const playableToneNotes = this.currentPattern.map(interval => {
+            const noteIndex = (interval + tonicIndex) % 12;
+            const note = this.wheel.config.notes[noteIndex];
+            const octave = this.wheel.currentOctave + (noteIndex < tonicIndex ? 1 : 0);
+            return this.wheel.formatToneNote(note, octave);
+        });
+        this.keyboard.updatePatternHighlight(playableToneNotes);
+    }
+    
+    async animatePolygon(direction, shiftAmount) {
+        const tempPolygon = this.patternSvg.querySelector('polygon').cloneNode(true);
+        this.patternSvg.appendChild(tempPolygon);
+    
+        const originalPolygon = this.patternSvg.querySelector('polygon');
+        originalPolygon.style.opacity = '0';
+    
+        const duration = 450; // milliseconds
+        const steps = 60; // For smoother animation
+        const totalRotation = shiftAmount * 30; // 30 degrees per step
+        const rotationPerStep = totalRotation / steps;
+    
+        for (let i = 0; i <= steps; i++) {
+            const rotation = i * rotationPerStep * (direction === 'right' ? -1 : 1);
+            tempPolygon.setAttribute('transform', `rotate(${rotation})`);
+            await new Promise(resolve => setTimeout(resolve, duration / steps));
+        }
+    
+        this.patternSvg.removeChild(tempPolygon);
+        originalPolygon.style.opacity = '1';
+    }
 
 // PLAYBACK FUNCTIONS
 
@@ -216,8 +297,8 @@ class BracketVisualization {
         this.container = container;
         this.svg = this.createSVG();
         if (this.svg) {
-            this.horizontalLine = this.createHorizontalLine();
             this.patternGroup = this.createPatternGroup();
+            this.horizontalLine = this.createHorizontalLine();
         }
     }
 
@@ -229,27 +310,29 @@ class BracketVisualization {
         return svg;
     }
 
-    createHorizontalLine() {
-        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-        line.setAttribute("x1", "10.5"); // Shifted 2px to the left
-        line.setAttribute("y1", "15"); // 20px from the bottom
-        line.setAttribute("x2", "314.5"); // 4px longer (2px on each side)
-        line.setAttribute("y2", "15"); // 20px from the bottom
-        line.setAttribute("stroke", "white");
-        line.setAttribute("stroke-width", "4");
-        line.setAttribute("display", "none"); // Initially hidden
-        this.svg.appendChild(line);
-        return line;
-    }
-
     createPatternGroup() {
         const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
         this.svg.appendChild(group);
         return group;
     }
 
+    createHorizontalLine() {
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        line.setAttribute("x1", "10.5");
+        line.setAttribute("y1", "15");
+        line.setAttribute("x2", "314.5");
+        line.setAttribute("y2", "15");
+        line.setAttribute("stroke", "white");
+        line.setAttribute("stroke-width", "4");
+        line.setAttribute("class", "horizontal-line");
+        line.setAttribute("display", "none"); // Initially hidden
+        this.patternGroup.appendChild(line);
+        return line;
+    }
+
     updatePattern(pattern) {
         this.patternGroup.innerHTML = '';
+        this.patternGroup.appendChild(this.horizontalLine);
         
         if (pattern.length > 0) {
             this.horizontalLine.setAttribute("display", "inline"); // Show horizontal line
@@ -268,15 +351,31 @@ class BracketVisualization {
     createVerticalLine(noteIndex) {
         const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
         line.setAttribute("x1", 12.5 + noteIndex * 25);
-        line.setAttribute("y1", 15); // Start at horizontal line (20px from bottom)
+        line.setAttribute("y1", 15);
         line.setAttribute("x2", 12.5 + noteIndex * 25);
-        line.setAttribute("y2", 35); // End at bottom of bracket
+        line.setAttribute("y2", 35);
         line.setAttribute("stroke", "white");
         line.setAttribute("stroke-width", "4");
         this.patternGroup.appendChild(line);
     }
 
-    slidePattern(amount) {
-        // Implement sliding animation here
+    async animateBracket(direction, shiftAmount) {
+        const duration = 450; // milliseconds
+        const steps = 60; // For smoother animation
+        const totalShift = shiftAmount * 25; // 25 pixels per step
+        const shiftPerStep = totalShift / steps;
+
+        const tempGroup = this.patternGroup.cloneNode(true);
+        this.svg.appendChild(tempGroup);
+        this.patternGroup.style.opacity = '0';
+
+        for (let i = 0; i <= steps; i++) {
+            const shift = i * shiftPerStep * (direction === 'right' ? -1 : 1);
+            tempGroup.setAttribute('transform', `translate(${shift} 0)`);
+            await new Promise(resolve => setTimeout(resolve, duration / steps));
+        }
+
+        this.svg.removeChild(tempGroup);
+        this.patternGroup.style.opacity = '1';
     }
 }
