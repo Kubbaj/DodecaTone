@@ -127,6 +127,7 @@ function updatePattern(newPatternValue) {
 }
 
 function updatePatternForNewTonic(newTonic, isTonicChange = false) {
+    const currentPattern = pattern.getCurrentPattern();
     if (currentPattern && currentPattern.length > 0) {
         const tonicIndex = config.notes.indexOf(newTonic);
         const adjustedPattern = currentPattern.map(interval => 

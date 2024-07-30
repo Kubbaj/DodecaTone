@@ -155,6 +155,10 @@ export class Pattern {
         this.updatePattern(this.currentPattern);
         this.updateKeyboardHighlight();
     }
+
+    getCurrentPattern() {
+        return this.currentPattern;
+    }
     
     updateKeyboardHighlight() {
         const tonicIndex = this.wheel.config.notes.indexOf(this.wheel.currentTonic);
