@@ -2,24 +2,31 @@
 import { playNoteForDuration } from './app.js';
 
 export class Pattern {
-    constructor(wheel) {
+    constructor(wheel, animate) {
+        this.animate = animate;
         this.wheel = wheel;
         this.currentPattern = [];
         this.playButton = document.getElementById('play-pattern-button');
         this.bracketVisualization = new BracketVisualization(this.bracketContainer);
+        this.currentRotation = 0;
+        this.currentTranslation = 0;
     }
 
     initialize() {
+        
         this.createPatternSvg();
         this.playButton.addEventListener('click', () => this.playPattern());
 
-        this.bracketContainer = document.getElementById('bracket-window');
+        this.bracketContainer = document.getElementById('bracket-svg-container');
         if (this.bracketContainer) {
             this.bracketVisualization = new BracketVisualization(this.bracketContainer);
         } else {
             console.error("Bracket container not found");
         }
+        document.getElementById('shift-pattern-left').addEventListener('click', () => this.shiftPattern('left'));
+        document.getElementById('shift-pattern-right').addEventListener('click', () => this.shiftPattern('right'));
     }
+
     updatePattern(patternNotes) {
         this.currentPattern = patternNotes;
         this.drawPatternPolygon();
@@ -37,7 +44,18 @@ export class Pattern {
             this.playButton.style.display = "none";
             console.log("play button INvisible");
         }
+
+        const shiftLeftButton = document.getElementById('shift-pattern-left');
+    const shiftRightButton = document.getElementById('shift-pattern-right');
+    
+    if (this.currentPattern.length > 0) {
+        shiftLeftButton.style.display = 'block';
+        shiftRightButton.style.display = 'block';
+    } else {
+        shiftLeftButton.style.display = 'none';
+        shiftRightButton.style.display = 'none';
     }
+}
 
     createPatternSvg() {
         if (!this.wheel.svg) {
@@ -87,8 +105,10 @@ export class Pattern {
         this.patternSvg.appendChild(polygon);
     }
 
+    shiftPattern() {};
+    
 
-// In pattern.js
+// PLAYBACK FUNCTIONS
 
 createPlayButton() {
     const playButton = document.createElementNS("http://www.w3.org/2000/svg", "circle");

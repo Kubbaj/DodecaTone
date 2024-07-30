@@ -139,6 +139,31 @@ input[type="checkbox"] {
     justify-content: center;
 }
 
+.shift-pattern-button {
+    position: absolute;
+    top: 7px; /* Adjust as needed to align with the bracket window */
+    background-color: #555;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 18px; /* Reduced size */
+    height: 18px; /* Reduced size */
+    font-size: 12px; /* Reduced font size */
+    line-height: 1; /* Center text vertically */
+    padding: 0;
+    cursor: pointer;
+    display: none;
+    z-index: 10; /* Ensure buttons are above other elements */
+}
+
+#shift-pattern-left {
+    left: 300px; /* Half of keyboard-window width minus half of bracket-window width minus button width and some padding */
+}
+
+#shift-pattern-right {
+    right: 0px;
+}
+
 /* Key Styles */
 .key {
     position: absolute;
@@ -315,7 +340,7 @@ wheel .note {
 /* Toggles Panel */
 #toggles-panel {
     position: absolute;
-    top: 150px;
+    top: 350px;
     right: 20px;
     width: 200px;
     padding: 10px;

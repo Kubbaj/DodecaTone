@@ -31,7 +31,7 @@ tonicIndicators.toggleVisibility(true);
 const wheel = new Wheel(wheelContainer, animate);
 const keyboardContainer = document.getElementById('keyboard-container');
 const keyboard = new Keyboard(keyboardContainer, animate);
-const pattern = new Pattern(wheel);
+const pattern = new Pattern(wheel, animate);
 wheel.pattern = pattern;
 
 // UPDATE TONIC
