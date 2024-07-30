@@ -2,20 +2,35 @@
 import { playNoteForDuration } from './app.js';
 
 export class Pattern {
-    constructor(wheel) {
+    constructor(wheel, animate) {
+        this.animate = animate;
         this.wheel = wheel;
         this.currentPattern = [];
         this.playButton = document.getElementById('play-pattern-button');
+        this.bracketVisualization = new BracketVisualization(this.bracketContainer);
+        this.currentRotation = 0;
+        this.currentTranslation = 0;
     }
 
     initialize() {
+        
         this.createPatternSvg();
         this.playButton.addEventListener('click', () => this.playPattern());
+
+        this.bracketContainer = document.getElementById('bracket-svg-container');
+        if (this.bracketContainer) {
+            this.bracketVisualization = new BracketVisualization(this.bracketContainer);
+        } else {
+            console.error("Bracket container not found");
+        }
+        document.getElementById('shift-pattern-left').addEventListener('click', () => this.shiftPattern('left'));
+        document.getElementById('shift-pattern-right').addEventListener('click', () => this.shiftPattern('right'));
     }
 
     updatePattern(patternNotes) {
         this.currentPattern = patternNotes;
         this.drawPatternPolygon();
+        this.bracketVisualization.updatePattern(patternNotes);
     
         const tonicIndex = this.wheel.config.notes.indexOf(this.wheel.currentTonic);
         const updatedPatternNotes = patternNotes.map(interval => 
@@ -29,7 +44,18 @@ export class Pattern {
             this.playButton.style.display = "none";
             console.log("play button INvisible");
         }
+
+        const shiftLeftButton = document.getElementById('shift-pattern-left');
+    const shiftRightButton = document.getElementById('shift-pattern-right');
+    
+    if (this.currentPattern.length > 0) {
+        shiftLeftButton.style.display = 'block';
+        shiftRightButton.style.display = 'block';
+    } else {
+        shiftLeftButton.style.display = 'none';
+        shiftRightButton.style.display = 'none';
     }
+}
 
     createPatternSvg() {
         if (!this.wheel.svg) {
@@ -79,8 +105,10 @@ export class Pattern {
         this.patternSvg.appendChild(polygon);
     }
 
+    shiftPattern() {};
+    
 
-// In pattern.js
+// PLAYBACK FUNCTIONS
 
 createPlayButton() {
     const playButton = document.createElementNS("http://www.w3.org/2000/svg", "circle");
@@ -177,4 +205,78 @@ playToneNotes(toneNotes) {
     playNextNote();
 }
 
+}
+
+class BracketVisualization {
+    constructor(container) {
+        if (!container) {
+            console.error("No container provided for BracketVisualization");
+            return;
+        }
+        this.container = container;
+        this.svg = this.createSVG();
+        if (this.svg) {
+            this.horizontalLine = this.createHorizontalLine();
+            this.patternGroup = this.createPatternGroup();
+        }
+    }
+
+    createSVG() {
+        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svg.setAttribute("width", "325");
+        svg.setAttribute("height", "40");
+        this.container.appendChild(svg);
+        return svg;
+    }
+
+    createHorizontalLine() {
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        line.setAttribute("x1", "10.5"); // Shifted 2px to the left
+        line.setAttribute("y1", "15"); // 20px from the bottom
+        line.setAttribute("x2", "314.5"); // 4px longer (2px on each side)
+        line.setAttribute("y2", "15"); // 20px from the bottom
+        line.setAttribute("stroke", "white");
+        line.setAttribute("stroke-width", "4");
+        line.setAttribute("display", "none"); // Initially hidden
+        this.svg.appendChild(line);
+        return line;
+    }
+
+    createPatternGroup() {
+        const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        this.svg.appendChild(group);
+        return group;
+    }
+
+    updatePattern(pattern) {
+        this.patternGroup.innerHTML = '';
+        
+        if (pattern.length > 0) {
+            this.horizontalLine.setAttribute("display", "inline"); // Show horizontal line
+            
+            pattern.forEach(noteIndex => {
+                this.createVerticalLine(noteIndex);
+            });
+            
+            // Add extra line for the octave
+            this.createVerticalLine(12);
+        } else {
+            this.horizontalLine.setAttribute("display", "none"); // Hide horizontal line
+        }
+    }
+
+    createVerticalLine(noteIndex) {
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        line.setAttribute("x1", 12.5 + noteIndex * 25);
+        line.setAttribute("y1", 15); // Start at horizontal line (20px from bottom)
+        line.setAttribute("x2", 12.5 + noteIndex * 25);
+        line.setAttribute("y2", 35); // End at bottom of bracket
+        line.setAttribute("stroke", "white");
+        line.setAttribute("stroke-width", "4");
+        this.patternGroup.appendChild(line);
+    }
+
+    slidePattern(amount) {
+        // Implement sliding animation here
+    }
 }
