@@ -1,3 +1,7 @@
+:root {
+    --theme-color: #59A9FF; /* Default theme color */
+}
+
 /* General Styles */
 body {
     font-family: Arial, sans-serif;
@@ -57,10 +61,16 @@ h1 {
     transform: translateX(-50%);
   }
   
+  #tonic-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
   #tonic-display-container {
-    width: 50px; /* Adjust as needed */
+    width: 35px; /* Adjust as needed */
     text-align: center;
-    margin: 0 10px;
+    margin: 0 5px;
   }
   
   .select-group {
@@ -73,17 +83,41 @@ h1 {
     font-weight: bold;
 }
 
+select {
+    background-color: var(--theme-color);
+    border-radius: 5px;
+    border: 2px solid #000;
+}
+
 #decrease-tonic,
 #increase-tonic {
+    background-color: var(--theme-color);
     font-size: 16px;
-    padding: 5px 10px;
-    flex-shrink: 0; /* Prevent buttons from shrinking */
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 2px solid #000;
+    cursor: pointer;
+}
+
+.select-group, #tonic-selector {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.select-group label, #tonic-selector label {
+    margin-bottom: 5px;
 }
 
 /* Form Elements */
 select, button {
     padding: 5px 10px;
-    margin: 5px;
+    margin: 3px;
 }
 
 input[type="checkbox"] {
@@ -102,25 +136,33 @@ input[type="checkbox"] {
 /* Keyboard Container */
 #bracket-window {
     position: absolute;
-    top: 0;
+    top: 8px;
     right: calc(50% - 12.5px - 300px); /* Move it half a keywidth (25px/2) to the left */
     width: 325px; /* 13 keywidths (13 * 25px) */
     height: 40px; /* Increased from 30px to 40px */
     margin-bottom: 5px;
-    background-color: #333333; /* Temporary color for visibility */
+    background-color: #222222; /* Temporary color for visibility */
     overflow: hidden;
     border-radius: 5px;
+    border: 1px solid #2a2a2a;
+    box-shadow: 
+        inset 0 2px 4px rgba(0,0,0,0.5),
+        0 1px 0 rgba(255,255,255,0.1);
   }
-
-
   
   #keyboard-window {
     width: 80%;
     overflow: hidden;
     position: relative;
     height: 200px; /* Increased to accommodate the taller bracket window */
-    margin-top: 30px;
-    padding-right: 40px;
+    margin-top: 10px;
+    padding: 10px 40px 10px 0px;
+    background-color: #333333;
+    border-radius: 5px;
+    border: 1px solid #2a2a2a;
+    box-shadow: 
+        inset 0 2px 4px rgba(0,0,0,0.5),
+        0 1px 0 rgba(255,255,255,0.1);
   }
   
   #keyboard-container {
@@ -143,14 +185,14 @@ input[type="checkbox"] {
 
 .shift-pattern-button {
     position: absolute;
-    top: 7px; /* Adjust as needed to align with the bracket window */
-    background-color: #555;
-    color: white;
-    border: none;
+    top: 15px; /* Adjust as needed to align with the bracket window */
+    background-color: var(--theme-color);
+    color: black;
+    border: 2px solid #000;
     border-radius: 50%;
-    width: 18px; /* Reduced size */
-    height: 18px; /* Reduced size */
-    font-size: 12px; /* Reduced font size */
+    width: 20px; /* Reduced size */
+    height: 20px; /* Reduced size */
+    font-size: 13px; /* Reduced font size */
     line-height: 1; /* Center text vertically */
     padding: 0;
     cursor: pointer;
@@ -229,7 +271,7 @@ input[type="checkbox"] {
 }
 
 .key.active {
-    transform: scale(0.9);
+    transform: scale(0.95);
     filter: brightness(1.5);
 }
 
@@ -245,8 +287,14 @@ input[type="checkbox"] {
 #wheel-container {
     width: 300px;
     height: 300px;
-    margin-bottom: 20px;
     order: 3;
+    background-color: #333333;
+    border-radius: 5px;
+    padding: 10px;
+    border: 1px solid #2a2a2a;
+    box-shadow: 
+        inset 0 2px 4px rgba(0,0,0,0.5),
+        0 1px 0 rgba(255,255,255,0.1);
 }
 
 #wheel-container svg {
@@ -259,14 +307,14 @@ input[type="checkbox"] {
     position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, 276%);
+    transform: translate(-50%, 308%);
     z-index: 10;
   }
   
   #play-pattern-button {
     cursor: pointer;
     transition: transform 0.1s ease-in-out;
-    opacity: 70%;
+    opacity: 80%;
   }
   
   #play-pattern-button:hover {
@@ -312,6 +360,7 @@ wheel .note {
 .pattern-active g.in-pattern text {
     opacity: 1;
 }
+
 /* Tonic Indicators*/
 #wheel-tonic-indicator, #keyboard-tonic-indicator {
     position: absolute;
@@ -326,6 +375,7 @@ wheel .note {
     top: 0;
     left: 50%;
     transform: translateX(-50%);
+    filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3));
 }
 #keyboard-tonic-indicator {
     width: 30px;
@@ -334,9 +384,8 @@ wheel .note {
     top: -10px;
     left: 50%;
     transform: translateX(-50%);
+    filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3));
 }
-
-
 
 
 /* Toggles Panel */

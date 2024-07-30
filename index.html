@@ -17,20 +17,14 @@
 #options-container {
     width: 100%;
     order: 1;
-    margin-bottom: -10px;
-    margin-top: 50px;
+    margin-bottom: 10px;
+    margin-top: 15px;
 }
 
 #keyboard-window {
     width: 80%;
     order: 2;
-    margin-bottom: 20px;
-}
-
-#wheel-container {
-    width: 300px;
-    height: 300px;
-    order: 3;
+    margin-bottom: 15px;
 }
     </style>
 
@@ -44,7 +38,7 @@
         <div id="options-container">
             <div class="side-options left">
                 <div class="select-group">
-                    <label for="layout-select">Layout:</label>
+                    <label for="layout-select"><b>LAYOUT:</b></label>
                     <select id="layout-select">
                         <option value="chromatic">Chromatic</option>
                         <option value="fifths">Fifths</option>
@@ -54,16 +48,19 @@
             </div>
             
             <div id="tonic-selector">
-                <button id="decrease-tonic">&lt;</button>
-                <div id="tonic-display-container">
-                    <span id="current-tonic">C</span>
+                <label for="current-tonic"><b>TONIC:</b></label>
+                <div id="tonic-controls">
+                    <button id="decrease-tonic">&lt;</button>
+                    <div id="tonic-display-container">
+                        <span id="current-tonic">C</span>
+                    </div>
+                    <button id="increase-tonic">&gt;</button>
                 </div>
-                <button id="increase-tonic">&gt;</button>
             </div>
             
             <div class="side-options right">
                 <div class="select-group">
-                    <label for="pattern-select">Pattern:</label>
+                    <label for="pattern-select"><b>PATTERN:</b></label>
                     <select id="pattern-select">
                         <option value="none">None</option>
                         <optgroup label="Regulars">
@@ -145,11 +142,11 @@
         </div>
 
         <div id="keyboard-window">
-            <button id="shift-pattern-left" class="shift-pattern-button">&lt;</button>
+            <button id="shift-pattern-left" class="shift-pattern-button"><b>&lt;</b></button>
             <div id="bracket-window">
                 <div id="bracket-svg-container"></div>
             </div>
-            <button id="shift-pattern-right" class="shift-pattern-button">&gt;</button>
+            <button id="shift-pattern-right" class="shift-pattern-button"><b>&gt;</b></button>
             <div id="keyboard-container">
                 <!-- Keyboard will be inserted here by JavaScript -->
             </div>
@@ -185,7 +182,7 @@
         </div>
         <div class="toggle-group">
             <label for="toggle-indicators">Indicators:</label>
-            <input type="checkbox" id="toggle-indicators" checked>
+            <input type="checkbox" id="toggle-indicators">
         </div>
         <div class="toggle-group">
             <label for="toggle-autoplay">Autoplay:</label>

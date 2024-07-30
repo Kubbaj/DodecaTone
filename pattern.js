@@ -84,7 +84,7 @@ export class Pattern {
         console.log('Current Pattern:', this.currentPattern);
         console.log('Current Tonic:', this.wheel.currentTonic);
 
-        const polygonRadius = this.wheel.radius * 0.83; // Adjust this factor as needed
+        const polygonRadius = this.wheel.radius * 0.8; // Adjust this factor as needed
 
         const points = this.currentPattern.map(noteIndex => {
             const actualNoteIndex = (noteIndex + this.wheel.config.notes.indexOf(this.wheel.currentTonic)) % 12;

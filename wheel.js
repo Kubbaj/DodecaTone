@@ -43,7 +43,7 @@ export class Wheel {
         background.setAttribute("y", "-150");
         background.setAttribute("width", "300");
         background.setAttribute("height", "300");
-        background.setAttribute("fill", "#444444");
+        background.setAttribute("fill", "#00000000");
         this.svg.appendChild(background);
 
         this.notesGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");

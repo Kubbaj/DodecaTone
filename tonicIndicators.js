@@ -9,8 +9,8 @@ export class TonicIndicators {
         this.wheelIndicator = this.createWheelIndicator();
         this.keyboardIndicator = this.createKeyboardIndicator();
 
-        this.wheelYOffset = 351;
-        this.keyboardYOffset = 44;
+        this.wheelYOffset = 363;
+        this.keyboardYOffset = 54;
 
         this.positionIndicators();
         this.visible = false;
@@ -20,8 +20,8 @@ export class TonicIndicators {
         const indicator = document.getElementById('wheel-tonic-indicator') || document.createElement('div');
         indicator.id = 'wheel-tonic-indicator';
         indicator.style.position = 'absolute';
-        indicator.style.width = '42px';
-        indicator.style.height = '42px';
+        indicator.style.width = '45px';
+        indicator.style.height = '45px';
         indicator.style.border = `7px solid ${this.indicatorColor}`;
         indicator.style.borderRadius = '50%';
         indicator.style.pointerEvents = 'none';
@@ -34,7 +34,7 @@ export class TonicIndicators {
         indicator.id = 'keyboard-tonic-indicator';
         indicator.style.position = 'absolute';
         indicator.style.width = '31px';
-        indicator.style.height = '50px'; // Adjust based on your key height
+        indicator.style.height = '55px'; // Adjust based on your key height
         indicator.style.borderTop = `7px solid ${this.indicatorColor}`;
         indicator.style.borderLeft = `7px solid ${this.indicatorColor}`;
         indicator.style.borderRight = `7px solid ${this.indicatorColor}`;
