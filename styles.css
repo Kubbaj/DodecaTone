@@ -100,24 +100,36 @@ input[type="checkbox"] {
 }
 
 /* Keyboard Container */
-#keyboard-window {
+#bracket-window {
+    position: absolute;
+    top: 0;
+    right: calc(50% - 12.5px - 300px); /* Move it half a keywidth (25px/2) to the left */
+    width: 325px; /* 13 keywidths (13 * 25px) */
+    height: 40px; /* Increased from 30px to 40px */
+    margin-bottom: 5px;
+    background-color: #333333; /* Temporary color for visibility */
+    overflow: hidden;
+    border-radius: 5px;
+  }
+  
+  #keyboard-window {
     width: 80%;
     overflow: hidden;
     position: relative;
-    height: 160px;
+    height: 200px; /* Increased to accommodate the taller bracket window */
     margin-top: 30px;
-    padding-right: 40px; /* Add padding for the arrow */
-}
-
-#keyboard-container {
-    width: calc(650px + 40px); /* Increase width to account for arrow space */
+    padding-right: 40px;
+  }
+  
+  #keyboard-container {
+    width: calc(650px + 40px);
     height: 150px;
     display: flex;
     justify-content: center;
     order: 2;
-    position: relative; /* Add this */
-}
-
+    position: relative;
+    top: 45px; /* Pushed down to account for taller bracket window and margin */
+  }
 .keyboard {
     position: absolute; /* Change to absolute */
     left: 0; /* Add this */
@@ -220,7 +232,7 @@ input[type="checkbox"] {
     position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, 170%);
+    transform: translate(-50%, 270%);
     z-index: 10;
   }
   
