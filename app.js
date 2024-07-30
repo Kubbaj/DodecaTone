@@ -31,7 +31,7 @@ tonicIndicators.toggleVisibility(true);
 const wheel = new Wheel(wheelContainer, animate);
 const keyboardContainer = document.getElementById('keyboard-container');
 const keyboard = new Keyboard(keyboardContainer, animate);
-const pattern = new Pattern(wheel, animate);
+const pattern = new Pattern(keyboard, wheel, animate);
 wheel.pattern = pattern;
 
 // UPDATE TONIC
@@ -127,6 +127,7 @@ function updatePattern(newPatternValue) {
 }
 
 function updatePatternForNewTonic(newTonic, isTonicChange = false) {
+    const currentPattern = pattern.getCurrentPattern();
     if (currentPattern && currentPattern.length > 0) {
         const tonicIndex = config.notes.indexOf(newTonic);
         const adjustedPattern = currentPattern.map(interval => 
@@ -205,6 +206,7 @@ function toggleAnimation() {
     animate = !animate;
     wheel.animate = animate;
     keyboard.animate = animate;
+    pattern.animate = animate;
 }
 
 function toggleAutoplay() {
