@@ -18,8 +18,8 @@ export class Wheel {
         this.notePositions = new Map(); // Map note IDs to their current positions
 
         this.animationParams = {
-            scale: 1.15,
-            brightness: 1.5,
+            scale: 1.05,
+            brightness: 1.6,
             originalRadius: 25,
             duration: 200 // milliseconds
         };
@@ -275,7 +275,7 @@ export class Wheel {
             console.log(`Note ${noteId}: ${inPattern ? 'in pattern' : 'not in pattern'}`);
         });
     }
-    
+
 // ANIMATIONS (Press, Tonic, Layout, Fourths)
     animateNotePress(noteElement, isActive) {
         const noteCircle = noteElement.querySelector('circle');

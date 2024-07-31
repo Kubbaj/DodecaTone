@@ -4,7 +4,7 @@
 
 /* General Styles */
 body {
-    font-family: Arial, sans-serif;
+    font-family: 'Roboto', sans-serif;
     background-color: #444444;
     color: #f0f0f0;
     margin: 0;
@@ -24,7 +24,7 @@ header {
 
 h1 {
     margin: 0;
-    font-size: 1.5em;
+    font-size: 2em;
 }
 
 /* Options Container */
@@ -32,23 +32,11 @@ h1 {
     display: flex;
     justify-content: center;
     align-items: center;
-    width: 100%;
+    width: 80%;
+    height: 70px;
+    margin: 10px, 0px;
     position: relative;
-    order: 1;
-  }
-  
-  .side-options {
-    flex: 1;
-    display: flex;
-    align-items: center;
-  }
-  
-  .left {
-    justify-content: flex-end;
-  }
-  
-  .right {
-    justify-content: flex-start;
+    order: 2;
   }
   
   #tonic-selector {
@@ -139,8 +127,8 @@ input[type="checkbox"] {
 /* Keyboard Container */
 #bracket-window {
     position: absolute;
-    top: 8px;
-    right: calc(50% - 306.25px); /* Move it half a keywidth (25px/2) to the left */
+    top: 11px;
+    right: calc(50% - 312.5px); /* Move it half a keywidth (25px/2) to the left */
     width: 325px; /* 13 keywidths (13 * 25px) */
     height: 40px; /* Increased from 30px to 40px */
     margin-bottom: 5px;
@@ -157,10 +145,9 @@ input[type="checkbox"] {
     width: 81.5%;
     overflow: hidden;
     position: relative;
-    order: 2;
+    order: 1;
     height: 200px; /* Increased to accommodate the taller bracket window */
-    margin-top: 10px;
-    margin-bottom: 15px;
+    margin: 15px;
     padding: 10px 40px 10px 0px;
     background-color: #333333;
     border-radius: 5px;
@@ -170,13 +157,20 @@ input[type="checkbox"] {
         0 1px 0 rgba(255,255,255,0.1);
   }
   
+#pattern-select {
+    position: absolute;
+    left: 25px;
+    top: 11px;
+    font-size: 18px;
+}
+
   #keyboard-container {
     width: 670px ;
     height: 150px;
     display: flex;
     justify-content: center;
     position: relative;
-    top: 45px; /* Pushed down to account for taller bracket window and margin */
+    top: 50px; /* Pushed down to account for taller bracket window and margin */
   }
 
 .keyboard {
@@ -206,11 +200,11 @@ input[type="checkbox"] {
 }
 
 #shift-pattern-left {
-    left: 295px; /* Half of keyboard-window width minus half of bracket-window width minus button width and some padding */
+    left: 303px; /* Half of keyboard-window width minus half of bracket-window width minus button width and some padding */
 }
 
 #shift-pattern-right {
-    right: 10px;
+    right: 3px;
 }
 
 .keyboard, .wheel {
@@ -284,7 +278,7 @@ input[type="checkbox"] {
 
 .key.active {
     transform: scale(0.95);
-    filter: brightness(1.5);
+    filter: brightness(1.6);
 }
 
 .key.colored, .note.colored {
@@ -304,12 +298,77 @@ input[type="checkbox"] {
     background-color: #333333;
     border-radius: 160px;
     padding: 10px;
+    margin: 15px;
     border: 1px solid #2a2a2a;
     box-shadow: 
         inset 0 2px 4px rgba(0,0,0,0.5),
         0 1px 0 rgba(255,255,255,0.1);
     /* Remove any z-index here if present */
 }
+
+.layout-button {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 100px;  /* Increased width to accommodate text */
+    height: 120px; /* Increased height to accommodate text */
+    padding: 5px;
+    border: none;
+    background: #555;  /* Dark background color */
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2), 
+                0 -2px 4px rgba(255,255,255,0.1) inset;
+    transition: all 0.3s ease;
+}
+
+.layout-button:hover {
+    background: #666;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3), 
+                0 -2px 4px rgba(255,255,255,0.2) inset;
+    transform: translateY(-52%);  /* Slight lift on hover */
+}
+
+.layout-button:active {
+    box-shadow: 0 1px 2px rgba(0,0,0,0.2), 
+                0 -1px 2px rgba(255,255,255,0.1) inset;
+    transform: translateY(-49%);  /* Slight press effect */
+}
+
+.layout-button img {
+    width: 90%;
+    height: 90%;
+    object-fit: contain;
+}
+
+.button-text {
+    font-size: 10px;
+    color: #ddd;
+    text-transform: uppercase;
+}
+
+.button-text.top {
+    font-weight: normal;
+}
+
+.button-text.bottom {
+    font-weight: bold;
+    font-size: 12px;
+}
+
+#prev-layout {
+    left: -170px;
+}
+
+#next-layout {
+    right: -170px;
+}
+
+
 
 #wheel-container > svg {
     position: absolute;
@@ -429,7 +488,7 @@ wheel .note {
     right: 20px;
     width: 200px;
     padding: 10px;
-    background-color: #555555;
+    background-color: #666666;
     color: #f0f0f0;
     border-radius: 5px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);

@@ -148,7 +148,7 @@ export class Keyboard {
         const noteIndex = config.keyboardNotes.indexOf(newTonic);
         
         // Calculate offset: start at 11.5 keyWidths (for C4), then add 1 keyWidth per semitone
-        let offset = (noteIndex + 12.75) * keyWidth;
+        let offset = (noteIndex + 12.5) * keyWidth;
     
         // Adjust for octave
         if (octave === 3) {

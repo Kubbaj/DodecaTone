@@ -4,24 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DodecaTone</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
-    <style>
-#content-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-    max-width: 800px;
-}
-
-#options-container {
-    width: 100%;
-    order: 1;
-    margin-bottom: 10px;
-    margin-top: 15px;
-}
-    </style>
-
 </head>
 <body>
     <header>
@@ -30,17 +14,6 @@
 
     <div id="content-container">
         <div id="options-container">
-            <div class="side-options left">
-                <div class="select-group">
-                    <label for="layout-select"><b>LAYOUT:</b></label>
-                    <select id="layout-select">
-                        <option value="chromatic">Chromatic</option>
-                        <option value="fifths">Fifths</option>
-                        <option value="fourths">Fourths</option>
-                    </select>
-                </div>
-            </div>
-            
             <div id="tonic-selector">
                 <label for="current-tonic"><b>TONIC:</b></label>
                 <div id="tonic-controls">
@@ -51,91 +24,85 @@
                     <button id="increase-tonic">&gt;</button>
                 </div>
             </div>
-            
-            <div class="side-options right">
-                <div class="select-group">
-                    <label for="pattern-select"><b>PATTERN:</b></label>
-                    <select id="pattern-select">
-                        <option value="none">None</option>
-                        <optgroup label="Regulars">
-                            <option value="regulars.one">1:Chromatic</option>
-                            <option value="regulars.two">2:Whole Tone</option>
-                            <option value="regulars.three">3:Diminished</option>
-                            <option value="regulars.four">4:Augmented</option>
-                            <option value="regulars.five">5:Fourths</option>
-                            <option value="regulars.six">6:Tritone</option>
-                            <option value="regulars.thirdsFull">4,3:Thirds</option>
-                        </optgroup>
-                        <optgroup label="Scales">
-                            <option value="scales.chromatic">Chromatic</option>
-                            <option value="scales.major">Major Scale</option>
-                            <option value="scales.minor">Natural Minor Scale</option>
-                            <option value="scales.harmonicMinor">Harmonic Minor</option>
-                            <option value="scales.melodicMinor">Melodic Minor</option>
-                            <option value="scales.pentatonicMajor">Major Pentatonic</option>
-                            <option value="scales.pentatonicMinor">Minor Pentatonic</option>
-                            <option value="scales.blues">Blues</option>
-                            <option value="scales.wholeTone">Whole Tone</option>
-                            <option value="scales.dimWH">Dim:Whole/Half</option>
-                            <option value="scales.dimHW">Dim:Half/Whole</option>
-                            <option value="scales.augmented">Augmented Scale</option>
-                            <option value="scales.sixthDim">6th Dim (Bebop)</option>
-                            <option value="scales.dorianBebop">Dorian (Bebop)</option>
-                            <option value="scales.melodicBebop">Melodic (Bebop)</option>
-                            <option value="scales.harmonicBebop">Harmonic (Bebop)</option>
-                            <option value="scales.dominantBebop">Dominant (Bebop)</option>
-                            <option value="scales.altered">Altered Scale</option>
-                        </optgroup>
-                        <optgroup label="Exotic Scales">
-                            <option value="exoticScales.harmonicMajor">Harmonic Major</option>
-                            <option value="exoticScales.doubleHarmonic">Double Harmonic</option>
-                            <option value="exoticScales.prometheus">Prometheus</option>
-                            <option value="exoticScales.egyptian">Egyptian</option>
-                            <option value="exoticScales.hirajoshi">Hirajoshi</option>
-                            <option value="exoticScales.neapolitanMinor">Neapolitan Minor</option>
-                            <option value="exoticScales.neapolitanMajor">Neapolitan Major</option>
-                            <option value="exoticScales.arabian">Arabian</option>
-                            <option value="exoticScales.balinese">Balinese</option>
-                            <option value="exoticScales.charhargan">Charhargan</option>
-                            <option value="exoticScales.kurdish">Kurdish</option>
-                            <option value="exoticScales.spanish">Spanish/Gypsy</option>
-                            <option value="exoticScales.hungarian">Hungarian</option>
-                        </optgroup>
-                        <optgroup label="Chords">
-                            <option value="chords.major">Major Triad</option>
-                            <option value="chords.minor">Minor Triad</option>
-                            <option value="chords.diminished">Diminished Triad</option>
-                            <option value="chords.augmented">Augmented Triad</option>
-                            <option value="chords.sus2">Sus2</option>
-                            <option value="chords.sus4">Sus4</option>
-                            <option value="chords.major7">Major 7th</option>
-                            <option value="chords.minor7">Minor 7th</option>
-                            <option value="chords.dominant7">Dominant 7th</option>
-                            <option value="chords.diminished7">Diminished 7th</option>
-                            <option value="chords.halfDiminished7">Half-Diminished 7th</option>
-                        </optgroup>
-                        <optgroup label="Extended Chords">
-                            <option value="extChords.minor13">Minor 13</option>
-                            <option value="extChords.major13sh11">Major 13 (#11)</option>
-                            <option value="extChords.dom13">Dominant 13</option>
-                            <option value="extChords.dom13fl9">Dom13(b9)</option>
-                            <option value="extChords.dom13fl9sh11">Dom13(b9#11)</option>
-                        </optgroup>
-                        <optgroup label="Modes">
-                            <option value="modes.ionian">Ionian</option>
-                            <option value="modes.dorian">Dorian</option>
-                            <option value="modes.phrygian">Phrygian</option>
-                            <option value="modes.lydian">Lydian</option>
-                            <option value="modes.mixolydian">Mixolydian</option>
-                            <option value="modes.aeolian">Aeolian</option>
-                            <option value="modes.locrian">Locrian</option>
-                        </optgroup>
-                    </select>
-                </div>
-            </div>
         </div>
 
         <div id="keyboard-window">
+            <select id="pattern-select">
+                <option value="none">SELECT A PATTERN</option>
+                <optgroup label="Regulars">
+                    <option value="regulars.one">1:Chromatic</option>
+                    <option value="regulars.two">2:Whole Tone</option>
+                    <option value="regulars.three">3:Diminished</option>
+                    <option value="regulars.four">4:Augmented</option>
+                    <option value="regulars.five">5:Fourths</option>
+                    <option value="regulars.six">6:Tritone</option>
+                    <option value="regulars.thirdsFull">4,3:Thirds</option>
+                </optgroup>
+                <optgroup label="Scales">
+                    <option value="scales.chromatic">Chromatic</option>
+                    <option value="scales.major">Major Scale</option>
+                    <option value="scales.minor">Natural Minor Scale</option>
+                    <option value="scales.harmonicMinor">Harmonic Minor</option>
+                    <option value="scales.melodicMinor">Melodic Minor</option>
+                    <option value="scales.pentatonicMajor">Major Pentatonic</option>
+                    <option value="scales.pentatonicMinor">Minor Pentatonic</option>
+                    <option value="scales.blues">Blues</option>
+                    <option value="scales.wholeTone">Whole Tone</option>
+                    <option value="scales.dimWH">Dim:Whole/Half</option>
+                    <option value="scales.dimHW">Dim:Half/Whole</option>
+                    <option value="scales.augmented">Augmented Scale</option>
+                    <option value="scales.sixthDim">6th Dim (Bebop)</option>
+                    <option value="scales.dorianBebop">Dorian (Bebop)</option>
+                    <option value="scales.melodicBebop">Melodic (Bebop)</option>
+                    <option value="scales.harmonicBebop">Harmonic (Bebop)</option>
+                    <option value="scales.dominantBebop">Dominant (Bebop)</option>
+                    <option value="scales.altered">Altered Scale</option>
+                </optgroup>
+                <optgroup label="Exotic Scales">
+                    <option value="exoticScales.harmonicMajor">Harmonic Major</option>
+                    <option value="exoticScales.doubleHarmonic">Double Harmonic</option>
+                    <option value="exoticScales.prometheus">Prometheus</option>
+                    <option value="exoticScales.egyptian">Egyptian</option>
+                    <option value="exoticScales.hirajoshi">Hirajoshi</option>
+                    <option value="exoticScales.neapolitanMinor">Neapolitan Minor</option>
+                    <option value="exoticScales.neapolitanMajor">Neapolitan Major</option>
+                    <option value="exoticScales.arabian">Arabian</option>
+                    <option value="exoticScales.balinese">Balinese</option>
+                    <option value="exoticScales.charhargan">Charhargan</option>
+                    <option value="exoticScales.kurdish">Kurdish</option>
+                    <option value="exoticScales.spanish">Spanish/Gypsy</option>
+                    <option value="exoticScales.hungarian">Hungarian</option>
+                </optgroup>
+                <optgroup label="Chords">
+                    <option value="chords.major">Major Triad</option>
+                    <option value="chords.minor">Minor Triad</option>
+                    <option value="chords.diminished">Diminished Triad</option>
+                    <option value="chords.augmented">Augmented Triad</option>
+                    <option value="chords.sus2">Sus2</option>
+                    <option value="chords.sus4">Sus4</option>
+                    <option value="chords.major7">Major 7th</option>
+                    <option value="chords.minor7">Minor 7th</option>
+                    <option value="chords.dominant7">Dominant 7th</option>
+                    <option value="chords.diminished7">Diminished 7th</option>
+                    <option value="chords.halfDiminished7">Half-Diminished 7th</option>
+                </optgroup>
+                <optgroup label="Extended Chords">
+                    <option value="extChords.minor13">Minor 13</option>
+                    <option value="extChords.major13sh11">Major 13 (#11)</option>
+                    <option value="extChords.dom13">Dominant 13</option>
+                    <option value="extChords.dom13fl9">Dom13(b9)</option>
+                    <option value="extChords.dom13fl9sh11">Dom13(b9#11)</option>
+                </optgroup>
+                <optgroup label="Modes">
+                    <option value="modes.ionian">Ionian</option>
+                    <option value="modes.dorian">Dorian</option>
+                    <option value="modes.phrygian">Phrygian</option>
+                    <option value="modes.lydian">Lydian</option>
+                    <option value="modes.mixolydian">Mixolydian</option>
+                    <option value="modes.aeolian">Aeolian</option>
+                    <option value="modes.locrian">Locrian</option>
+                </optgroup>
+            </select>
             <button id="shift-pattern-left" class="shift-pattern-button"><b>&lt;</b></button>
             <div id="bracket-window">
                 <div id="bracket-svg-container"></div>
@@ -147,6 +114,11 @@
         </div>
 
         <div id="wheel-container" class="wheel">
+            <button id="prev-layout" class="layout-button">
+                <span class="button-text top">From</span>
+                <img src="resources/prev-icon.png" alt="Previous Layout">
+                <span class="button-text bottom">To</span>
+            </button>
             <div id="polygon-window"></div>
             <!-- Wheel will be inserted here by JavaScript -->
             <div id="play-button-container">
@@ -155,6 +127,11 @@
                   <path d="M25,20 L25,40 L40,30 Z" fill="white"/>
                 </svg>
               </div>
+              <button id="next-layout" class="layout-button">
+                <span class="button-text top">From</span>
+                <img src="resources/next-icon.png" alt="Next Layout">
+                <span class="button-text bottom">To</span>
+            </button>
         </div>
     </div>
 

@@ -23,6 +23,17 @@ let currentOctave = 4;
 let isMouseDown = false;
 let lastPlayedNote = null;
 
+const layoutTransitions = {
+    chromatic: { next: 'fifths', prev: null },
+    fifths: { next: 'fourths', prev: 'chromatic' },
+    fourths: { next: null, prev: 'fifths' }
+};
+
+const layoutIcons = {
+    chromatic: { next: 'Chr-5ths.png', prev: null },
+    fifths: { next: '5ths-4ths.png', prev: '5ths-Chr.png' },
+    fourths: { next: null, prev: '4ths-5ths.png' }
+};
 
 // Initialize components
 const wheelContainer = document.getElementById('wheel-container');
@@ -182,6 +193,35 @@ function updateLayout(newLayout) {
         currentLayout = newLayout;
         wheel.switchLayout(newLayout);
         updateAllNoteStates();
+        updateLayoutButtons();
+    }
+}
+
+function updateLayoutButtons() {
+    const prevButton = document.getElementById('prev-layout');
+    const nextButton = document.getElementById('next-layout');
+    
+    const transitions = layoutTransitions[currentLayout];
+    const icons = layoutIcons[currentLayout];
+    
+    if (transitions.prev) {
+        prevButton.style.display = 'flex';
+        prevButton.querySelector('img').src = `resources/${icons.prev}`;
+        prevButton.querySelector('.top').textContent = 'change to';
+        prevButton.querySelector('.bottom').textContent = transitions.prev;
+        prevButton.onclick = () => updateLayout(transitions.prev);
+    } else {
+        prevButton.style.display = 'none';
+    }
+    
+    if (transitions.next) {
+        nextButton.style.display = 'flex';
+        nextButton.querySelector('img').src = `resources/${icons.next}`;
+        nextButton.querySelector('.top').textContent = 'change to';
+        nextButton.querySelector('.bottom').textContent = transitions.next;
+        nextButton.onclick = () => updateLayout(transitions.next);
+    } else {
+        nextButton.style.display = 'none';
     }
 }
 
@@ -302,11 +342,12 @@ document.addEventListener('DOMContentLoaded', () => {
     toggleAnimation();
     initTonicPicker();
     updateTonicDisplay();
+    updateLayoutButtons();
 
     // updateLayout(currentLayout);
 
     // Event listeners
-    document.getElementById('layout-select').addEventListener('change', (e) => updateLayout(e.target.value));
+    // document.getElementById('layout-select').addEventListener('change', (e) => updateLayout(e.target.value));
     document.getElementById('toggle-animate').addEventListener('change', toggleAnimation);
     document.getElementById('toggle-sharps').addEventListener('change', toggleSharps);
     document.getElementById('toggle-colors').addEventListener('change', toggleColors);
