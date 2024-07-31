@@ -1,11 +1,11 @@
 :root {
-    --theme-color: #59A9FF; /* Default theme color */
+    --theme-color: #555555; /* Default theme color */
 }
 
 /* General Styles */
 body {
     font-family: 'Roboto', sans-serif;
-    background-color: #444444;
+    background-color: #404040;
     color: #f0f0f0;
     margin: 0;
     min-height: 100vh;
@@ -33,21 +33,52 @@ h1 {
     justify-content: center;
     align-items: center;
     width: 80%;
-    height: 70px;
+    height: 90px;
     margin: 10px, 0px;
     position: relative;
     order: 2;
   }
-  
-  #tonic-selector {
+
+#tonic-selector {
     display: flex;
     align-items: center;
     justify-content: center;
     width: 130px; /* Adjust as needed */
+    height: 85px;
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
   }
+
+.tonic-arrow-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tonic-arrow {
+    width: 15px; /* Adjust based on your image size */
+    height: 60px; /* Adjust based on your image size */
+}
+
+
+#tonic-display-container {
+    width: 50px; /* Adjust as needed */
+    text-align: center;
+    margin: 5px 15px;
+  }
+
+#current-tonic {
+    position: relative;
+    font-size: 47px;
+    font-weight: bold;
+    text-align: center;
+    top: 5px;
+}
   
   #tonic-controls {
     display: flex;
@@ -56,42 +87,88 @@ h1 {
     height: 35px;
 }
 
-  #tonic-display-container {
-    width: 40px; /* Adjust as needed */
-    text-align: center;
-    margin: 5px;
-  }
-  
-  .select-group {
-    margin: 0 100px; /* Adjust spacing as needed */
-    width: 250px;
-  }
-
-#current-tonic {
-    font-size: 30px;
-    font-weight: bold;
-    text-align: center;
-}
-
-select {
-    background-color: var(--theme-color);
-    border-radius: 5px;
-    border: 2px solid #000;
-}
-
 #decrease-tonic,
 #increase-tonic {
-    background-color: var(--theme-color);
+    background-color: #555555;
     font-size: 16px;
-    width: 30px;
-    height: 30px;
+    width: 25px;
+    height: 80px;
     padding: 0;
-    border-radius: 50%;
+    border-radius: 5px;
     display: flex;
     justify-content: center;
     align-items: center;
-    border: 2px solid #000;
+    border: none;
     cursor: pointer;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2), 
+                0 -2px 4px rgba(255,255,255,0.1) inset;
+    transition: all 0.3s ease;
+}
+
+#keyboard-area {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    position: relative;
+}
+
+#decrease-tonic-2,
+#increase-tonic-2 {
+    position: absolute;
+    background-color: #555555;
+    width: 30px;
+    height: 120px;
+    top: 75px;
+    border-radius: 5px;
+    cursor: pointer;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2), 
+                0 -2px 4px rgba(255,255,255,0.1) inset;
+    transition: all 0.3s ease;
+}
+
+#decrease-tonic-2 {
+    left: 10px;
+}
+
+#increase-tonic-2 {
+    right: 10px;
+}
+
+#decrease-tonic-2 img,
+#increase-tonic-2 img {
+    width: 20px;
+    height: 90px;
+}
+
+
+#decrease-tonic-2,
+#increase-tonic-2,
+#decrease-tonic,
+#increase-tonic {
+    transition: all 0.3s ease;
+}
+
+#decrease-tonic-2:hover,
+#increase-tonic-2:hover,
+#decrease-tonic:hover,
+#increase-tonic:hover {
+    background-color: #666666;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3), 
+                0 -2px 4px rgba(255,255,255,0.2) inset;
+    transform: translateY(-3%);  /* Slight lift on hover */
+}
+
+#decrease-tonic-2:active,
+#increase-tonic-2:active,
+#decrease-tonic:active,
+#increase-tonic:active {
+    background-color: #777777;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.2), 
+                0 -1px 2px rgba(255,255,255,0.1) inset;
+    transform: translateY(1%);  /* Slight press effect */
 }
 
 .select-group, #tonic-selector {
@@ -102,6 +179,18 @@ select {
 
 .select-group label, #tonic-selector label {
     margin-bottom: 5px;
+}
+
+.select-group {
+    margin: 0 100px; /* Adjust spacing as needed */
+    width: 250px;
+  }
+
+  
+select {
+    background-color: var(--theme-color);
+    border-radius: 5px;
+    border: 2px solid #000;
 }
 
 /* Form Elements */
@@ -128,7 +217,7 @@ input[type="checkbox"] {
 #bracket-window {
     position: absolute;
     top: 11px;
-    right: calc(50% - 312.5px); /* Move it half a keywidth (25px/2) to the left */
+    right: calc(50% - 307.5px); /* Move it half a keywidth (25px/2) to the left */
     width: 325px; /* 13 keywidths (13 * 25px) */
     height: 40px; /* Increased from 30px to 40px */
     margin-bottom: 5px;
@@ -147,8 +236,8 @@ input[type="checkbox"] {
     position: relative;
     order: 1;
     height: 200px; /* Increased to accommodate the taller bracket window */
-    margin: 15px;
-    padding: 10px 40px 10px 0px;
+    margin: 5px;
+    padding: 10px 50px 10px 0px;
     background-color: #333333;
     border-radius: 5px;
     border: 1px solid #2a2a2a;
@@ -157,9 +246,15 @@ input[type="checkbox"] {
         0 1px 0 rgba(255,255,255,0.1);
   }
   
+  .pattern-shift-arrow {
+    width: 20px; /* Adjust based on your image size */
+    height: 12px; /* Adjust based on your image size */
+}
+
 #pattern-select {
+    color: #fafafa;
     position: absolute;
-    left: 25px;
+    left: 30px;
     top: 11px;
     font-size: 18px;
 }
@@ -184,13 +279,12 @@ input[type="checkbox"] {
 
 .shift-pattern-button {
     position: absolute;
-    top: 15px; /* Adjust as needed to align with the bracket window */
-    background-color: var(--theme-color);
+    top: 17px; /* Adjust as needed to align with the bracket window */
+    background-color: #555555;
     color: black;
-    border: 2px solid #000;
-    border-radius: 50%;
-    width: 23px; /* Reduced size */
-    height: 23px; /* Reduced size */
+    border-radius: 5px;
+    width: 30px; /* Reduced size */
+    height: 25px; /* Reduced size */
     font-size: 13px; /* Reduced font size */
     line-height: 1; /* Center text vertically */
     padding: 0;
@@ -200,11 +294,11 @@ input[type="checkbox"] {
 }
 
 #shift-pattern-left {
-    left: 303px; /* Half of keyboard-window width minus half of bracket-window width minus button width and some padding */
+    left: 295px; /* Half of keyboard-window width minus half of bracket-window width minus button width and some padding */
 }
 
 #shift-pattern-right {
-    right: 3px;
+    right: 5px;
 }
 
 .keyboard, .wheel {
@@ -230,12 +324,12 @@ input[type="checkbox"] {
 }
 
 .key.white {
-    background-color: #fff;
+    background-color: #D8D8D8;
     z-index: 1;
 }
 
 .key.black {
-    background-color: black;
+    background-color: #262626;
     height: 100px;
     width: 20px;
     z-index: 2;
@@ -260,7 +354,7 @@ input[type="checkbox"] {
 
 .keyboard.pattern-active .key.in-pattern {
     border-color: white;
-    border-width: 3px;
+    border-width: 3.5px;
 }
 
 .keyboard.pattern-active .key:not(.in-pattern) .note-display {
@@ -296,8 +390,8 @@ input[type="checkbox"] {
     height: 300px;
     order: 3;
     background-color: #333333;
-    border-radius: 160px;
-    padding: 10px;
+    border-radius: 50%;
+    padding: 15px;
     margin: 15px;
     border: 1px solid #2a2a2a;
     box-shadow: 
@@ -484,14 +578,14 @@ wheel .note {
 /* Toggles Panel */
 #toggles-panel {
     position: absolute;
-    top: 350px;
+    top: 250px;
     right: 20px;
     width: 200px;
     padding: 10px;
     background-color: #666666;
     color: #f0f0f0;
     border-radius: 5px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
 }
 
 #toggles-panel h3 {

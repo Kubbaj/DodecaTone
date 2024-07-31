@@ -220,47 +220,43 @@ export class Wheel {
     }
 }
     
-    async switchLayout(newLayout) {
-        if (newLayout === this.currentLayout) return;
-    
-        console.log(`Switching from ${this.currentLayout} to ${newLayout}`);
-        console.log(`Current tonic: ${this.currentTonic}`);
-    
-        if ((this.currentLayout === 'chromatic' && newLayout === 'fourths') ||
-            (this.currentLayout === 'fourths' && newLayout === 'chromatic')) {
-            // First switch to fifths, then to the desired layout
-            await this.switchLayout('fifths');
-            return this.switchLayout(newLayout);
-        }
-    
-        const oldPositions = new Map(this.notePositions);
-        const newPositions = new Map();
-    
-        const tonicIndex = config.notes.indexOf(this.currentTonic);
-        const tonicOldPosition = this.notePositions.get(tonicIndex);
-        const tonicNewPosition = config.layouts[newLayout][tonicIndex];
-    
-        const shift = (tonicOldPosition - tonicNewPosition + 12) % 12;
-    
-        config.notes.forEach((_, i) => {
-            const layoutPosition = config.layouts[newLayout][i];
-            const newPosition = (layoutPosition + shift) % 12;
-            newPositions.set(i, newPosition);
-        });
-    
-        await this.animateLayoutSwitch(oldPositions, newPositions);
-    
-        // Update the actual positions
-        this.notePositions = newPositions;
-        this.notePositions.forEach((position, noteId) => {
-            this.updateNotePosition(noteId);
-        });
-    
-        this.currentLayout = newLayout;
-        console.log("After switching layout, new positions:", Object.fromEntries(this.notePositions));
+async switchLayout(newLayout) {
+    if (newLayout === this.currentLayout) return;
 
-        if (this.pattern) this.pattern.drawPatternPolygon();
-    }
+    console.log(`Switching from ${this.currentLayout} to ${newLayout}`);
+    console.log(`Current tonic: ${this.currentTonic}`);
+
+    const oldPositions = new Map(this.notePositions);
+    const newPositions = new Map();
+
+    const tonicIndex = config.notes.indexOf(this.currentTonic);
+    const tonicOldPosition = this.notePositions.get(tonicIndex);
+    const tonicNewPosition = config.layouts[newLayout][tonicIndex];
+
+    const shift = (tonicOldPosition - tonicNewPosition + 12) % 12;
+
+    config.notes.forEach((_, i) => {
+        const layoutPosition = config.layouts[newLayout][i];
+        const newPosition = (layoutPosition + shift) % 12;
+        newPositions.set(i, newPosition);
+    });
+
+    
+
+    // Update the actual positions
+    this.notePositions = newPositions;
+    this.notePositions.forEach((position, noteId) => {
+        this.updateNotePosition(noteId);
+    });
+
+    await Promise.all([
+        this.animateLayoutSwitch(oldPositions, newPositions),
+        this.pattern ? this.pattern.animatePatternTransition(this.config.layouts[this.currentLayout], this.config.layouts[newLayout]) : Promise.resolve()
+    ]);
+
+    this.currentLayout = newLayout;
+    console.log("After switching layout, new positions:", Object.fromEntries(this.notePositions));
+}
 
     updatePatternHighlight(patternNotes) {
         console.log("Updating pattern highlights:", patternNotes);
@@ -411,55 +407,8 @@ export class Wheel {
                 { transform: `translate(${oldX}px, ${oldY}px)` },
                 { transform: `translate(${newX}px, ${newY}px)` }
             ], {
-                duration: 500,
-                easing: 'ease-in-out',
-                fill: 'forwards'
-            }).finished;
-        });
-    
-        return Promise.all(animations).then(() => {
-            this.svg.removeChild(tempGroup);
-            // Show real elements
-            this.notesGroup.style.opacity = '1';
-        });
-    }
-
-    animateFifthsFourthsSwitch(oldPositions, newPositions) {
-        if (!this.animate) return Promise.resolve();
-    
-        // Hide real elements
-        this.notesGroup.style.opacity = '0';
-    
-        const tempGroup = this.createTemporaryElements();
-        this.svg.appendChild(tempGroup);
-    
-        const tonicIndex = config.notes.indexOf(this.currentTonic);
-        const tritoneIndex = (tonicIndex + 6) % 12;
-    
-        const animations = Array.from(tempGroup.children).map((tempElement, index) => {
-            const oldPos = oldPositions.get(index);
-            const newPos = newPositions.get(index);
-    
-            // If it's the tonic or tritone, don't move
-            if (index === tonicIndex || index === tritoneIndex) {
-                return Promise.resolve();
-            }
-    
-            const oldAngle = oldPos * (Math.PI / 6) - Math.PI / 2;
-            const newAngle = newPos * (Math.PI / 6) - Math.PI / 2;
-            const oldX = Math.cos(oldAngle) * this.radius;
-            const oldY = Math.sin(oldAngle) * this.radius;
-            const newX = Math.cos(newAngle) * this.radius;
-            const newY = Math.sin(newAngle) * this.radius;
-    
-            tempElement.setAttribute("transform", `translate(${oldX}, ${oldY})`);
-    
-            return tempElement.animate([
-                { transform: `translate(${oldX}px, ${oldY}px)` },
-                { transform: `translate(${newX}px, ${newY}px)` }
-            ], {
-                duration: 500,
-                easing: 'ease-in-out',
+                duration: 750,
+                // easing: 'ease-in-out',
                 fill: 'forwards'
             }).finished;
         });

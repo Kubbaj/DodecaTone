@@ -71,7 +71,7 @@ export class Keyboard {
                 noteDisplay.style.color = isBlackNote ? 'black' : 'white';
                 noteDisplay.style.fontWeight = 'bold';
             } else {
-                keyElement.style.backgroundColor = isBlackNote ? 'black' : 'white';
+                keyElement.style.backgroundColor = isBlackNote ? '#262626' : '#D8D8D8';
                 noteDisplay.style.color = isBlackNote ? 'white' : 'black';
                 noteDisplay.style.fontWeight = 'normal';
             }

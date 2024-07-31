@@ -17,18 +17,26 @@
             <div id="tonic-selector">
                 <label for="current-tonic"><b>TONIC:</b></label>
                 <div id="tonic-controls">
-                    <button id="decrease-tonic">&lt;</button>
+                    <button id="decrease-tonic" class="tonic-arrow-button">
+                        <img src="resources/wideArrowL.png" alt="Decrease tonic" class="tonic-arrow">
+                    </button>
                     <div id="tonic-display-container">
                         <span id="current-tonic">C</span>
                     </div>
-                    <button id="increase-tonic">&gt;</button>
+                    <button id="increase-tonic" class="tonic-arrow-button">
+                        <img src="resources/wideArrowR.png" alt="Increase tonic" class="tonic-arrow">
+                    </button>
                 </div>
             </div>
         </div>
 
+        <div id="keyboard-area">
+            <button id="decrease-tonic-2" class="tonic-arrow-button">
+                <img src="resources/wideArrowL.png" alt="Decrease tonic" class="tonic-arrow">
+            </button>
         <div id="keyboard-window">
             <select id="pattern-select">
-                <option value="none">SELECT A PATTERN</option>
+                <option value="none">(SELECT A PATTERN)</option>
                 <optgroup label="Regulars">
                     <option value="regulars.one">1:Chromatic</option>
                     <option value="regulars.two">2:Whole Tone</option>
@@ -103,20 +111,28 @@
                     <option value="modes.locrian">Locrian</option>
                 </optgroup>
             </select>
-            <button id="shift-pattern-left" class="shift-pattern-button"><b>&lt;</b></button>
+            <button id="shift-pattern-left" class="shift-pattern-button">
+                <img src="resources/thinArrowL.png" alt="Shift pattern left" class="pattern-shift-arrow">
+            </button>
             <div id="bracket-window">
                 <div id="bracket-svg-container"></div>
             </div>
-            <button id="shift-pattern-right" class="shift-pattern-button"><b>&gt;</b></button>
+            <button id="shift-pattern-right" class="shift-pattern-button">
+                <img src="resources/thinArrowR.png" alt="Shift pattern right" class="pattern-shift-arrow">
+            </button>
             <div id="keyboard-container">
                 <!-- Keyboard will be inserted here by JavaScript -->
             </div>
         </div>
+        <button id="increase-tonic-2" class="tonic-arrow-button">
+            <img src="resources/wideArrowR.png" alt="Increase tonic" class="tonic-arrow">
+        </button>
+    </div>
 
         <div id="wheel-container" class="wheel">
             <button id="prev-layout" class="layout-button">
                 <span class="button-text top">From</span>
-                <img src="resources/prev-icon.png" alt="Previous Layout">
+                <img src="resources/4ths-5ths.png" alt="Previous Layout">
                 <span class="button-text bottom">To</span>
             </button>
             <div id="polygon-window"></div>
@@ -129,7 +145,7 @@
               </div>
               <button id="next-layout" class="layout-button">
                 <span class="button-text top">From</span>
-                <img src="resources/next-icon.png" alt="Next Layout">
+                <img src="resources/Chr-5ths.png" alt="Next Layout">
                 <span class="button-text bottom">To</span>
             </button>
         </div>

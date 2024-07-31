@@ -24,15 +24,15 @@ let isMouseDown = false;
 let lastPlayedNote = null;
 
 const layoutTransitions = {
-    chromatic: { next: 'fifths', prev: null },
+    chromatic: { next: 'fifths', prev: 'fourths' },
     fifths: { next: 'fourths', prev: 'chromatic' },
-    fourths: { next: null, prev: 'fifths' }
+    fourths: { next: 'chromatic', prev: 'fifths' }
 };
 
 const layoutIcons = {
-    chromatic: { next: 'Chr-5ths.png', prev: null },
+    chromatic: { next: 'Chr-5ths.png', prev: 'Chr-4ths.png' },
     fifths: { next: '5ths-4ths.png', prev: '5ths-Chr.png' },
-    fourths: { next: null, prev: '4ths-5ths.png' }
+    fourths: { next: '4ths-Chr.png', prev: '4ths-5ths.png' }
 };
 
 // Initialize components
@@ -96,6 +96,8 @@ function setTonic(newTonic) {
 function initTonicPicker() {
     const decreaseButton = document.getElementById('decrease-tonic');
     const increaseButton = document.getElementById('increase-tonic');
+    const decreaseTonic2Button = document.getElementById('decrease-tonic-2');
+    const increaseTonic2Button = document.getElementById('increase-tonic-2');
 
     function changeTonic(direction) {
         const currentIndex = config.notes.indexOf(currentTonic);
@@ -111,6 +113,8 @@ function initTonicPicker() {
 
     decreaseButton.addEventListener('click', () => changeTonic('decrease'));
     increaseButton.addEventListener('click', () => changeTonic('increase'));
+    decreaseTonic2Button.addEventListener('click', () => changeTonic('decrease'));
+    increaseTonic2Button.addEventListener('click', () => changeTonic('increase'));
 
     // Initialize display
     updateTonicDisplay();
@@ -274,7 +278,7 @@ function getNoteState(note, isActive = false) {
     const baseNote = note || config.notes[config.notes.indexOf(note) % 12];
     return {
         display: config.getNoteDisplay(baseNote, useSharps),
-        color: useColors ? config.noteColors[baseNote] : (baseNote.includes('/') ? 'black' : 'white'),
+        color: useColors ? config.noteColors[baseNote] : (baseNote.includes('/') ? '#262626' : '#D8D8D8'),
         active: isActive
     };
 }

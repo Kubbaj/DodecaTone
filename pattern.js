@@ -71,6 +71,63 @@ createPatternSvg() {
     polygonWindow.appendChild(this.patternSvg);
 }
     
+async animatePatternTransition(oldLayout, newLayout) {
+    if (!this.animate || this.currentPattern.length === 0) return;
+
+    const originalPolygon = this.patternSvg.querySelector('polygon');
+    originalPolygon.style.display = 'none';  // Hide the original polygon
+
+    const startPoints = this.calculatePolygonPoints(oldLayout);
+    const endPoints = this.calculatePolygonPoints(newLayout);
+
+    const tempPolygon = originalPolygon.cloneNode(true);
+    tempPolygon.style.display = ''; // Ensure the cloned polygon is visible
+    this.patternSvg.appendChild(tempPolygon);
+
+    const duration = 750; // milliseconds
+    const steps = 60; // For smoother animation
+
+    for (let i = 0; i <= steps; i++) {
+        const progress = i / steps;
+        const currentPoints = this.interpolatePoints(startPoints, endPoints, progress);
+        tempPolygon.setAttribute('points', currentPoints.join(' '));
+        await new Promise(resolve => setTimeout(resolve, duration / steps));
+    }
+
+    this.patternSvg.removeChild(tempPolygon);
+    await this.drawPatternPolygon(); // Update with the final position
+    originalPolygon.style.display = ''; // Show the original polygon again
+}
+
+calculatePolygonPoints(layout) {
+    const tonicIndex = this.wheel.config.notes.indexOf(this.wheel.currentTonic);
+    const polygonRadius = this.wheel.radius * 0.8;
+
+    // Calculate points for all 12 positions
+    const allPoints = Array(12).fill().map((_, i) => {
+        const noteIndex = (i + tonicIndex) % 12;
+        const notePosition = layout[noteIndex];
+        const angle = (notePosition * 30) * (Math.PI / 180) - Math.PI / 2;
+        const x = Math.cos(angle) * polygonRadius;
+        const y = Math.sin(angle) * polygonRadius;
+        return { x, y, index: i };
+    });
+
+    // Filter to only the points in our pattern
+    return this.currentPattern
+        .map(interval => allPoints.find(point => point.index === interval))
+        .filter(point => point !== undefined);
+}
+
+interpolatePoints(startPoints, endPoints, progress) {
+    return startPoints.map((start, index) => {
+        const end = endPoints[index];
+        const x = start.x + (end.x - start.x) * progress;
+        const y = start.y + (end.y - start.y) * progress;
+        return `${x},${y}`;
+    });
+}
+
     drawPatternPolygon() {
         this.patternSvg.innerHTML = ''; // Clear previous content
 
@@ -375,6 +432,7 @@ class BracketVisualization {
         for (let i = 0; i <= steps; i++) {
             const shift = i * shiftPerStep * (direction === 'right' ? -1 : 1);
             tempGroup.setAttribute('transform', `translate(${shift} 0)`);
+            tempGroup.setAttribute('easing', `ease-in-out`);
             await new Promise(resolve => setTimeout(resolve, duration / steps));
         }
 
