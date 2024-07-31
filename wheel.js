@@ -13,7 +13,7 @@ export class Wheel {
         this.svg = null;
         this.notesGroup = null;
         this.patternGroup = null;
-        this.radius = 120;
+        this.radius = 118;
         this.noteElements = new Map(); // Store note elements with their ids
         this.notePositions = new Map(); // Map note IDs to their current positions
 
@@ -37,6 +37,7 @@ export class Wheel {
         this.svg.setAttribute("width", 300);
         this.svg.setAttribute("height", 300);
         this.svg.setAttribute("viewBox", "-150 -150 300 300");
+        this.svg.setAttribute("z-index", "5");
         
         const background = document.createElementNS("http://www.w3.org/2000/svg", "rect");
         background.setAttribute("x", "-150");
@@ -63,6 +64,7 @@ export class Wheel {
             const noteGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
             noteGroup.dataset.noteId = noteId;
             noteGroup.style.cursor = "pointer";
+            noteGroup.style.zIndex = "5";
     
             const noteCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
             noteCircle.setAttribute("r", "25");
@@ -74,6 +76,8 @@ export class Wheel {
             noteText.setAttribute("dominant-baseline", "central");
             
             noteGroup.append(noteCircle, noteText);
+            
+
     
 
             // SET INITIAL PROPERTIES

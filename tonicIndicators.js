@@ -9,7 +9,7 @@ export class TonicIndicators {
         this.wheelIndicator = this.createWheelIndicator();
         this.keyboardIndicator = this.createKeyboardIndicator();
 
-        this.wheelYOffset = 363;
+        this.wheelYOffset = 5;
         this.keyboardYOffset = 54;
 
         this.positionIndicators();

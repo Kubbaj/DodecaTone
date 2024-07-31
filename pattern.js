@@ -58,24 +58,19 @@ export class Pattern {
     }
 }
 
-    createPatternSvg() {
-        if (!this.wheel.svg) {
-            console.error("Wheel SVG not yet created");
-            return;
-        }
-        this.patternSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-        this.patternSvg.setAttribute("width", "300");
-        this.patternSvg.setAttribute("height", "300");
-        this.patternSvg.setAttribute("viewBox", "0 0 300 300");
-        this.patternSvg.style.position = "absolute";
-        this.patternSvg.style.top = "0";
-        this.patternSvg.style.left = "0";
-        this.patternSvg.style.overflow = "visible";
-        this.patternSvg.style.pointerEvents = "none";
-        this.wheel.svg.appendChild(this.patternSvg);
-        this.wheel.svg.insertBefore(this.patternSvg, this.wheel.notesGroup);
-    }
-
+createPatternSvg() {
+    this.patternSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    this.patternSvg.setAttribute("width", "100%");
+    this.patternSvg.setAttribute("height", "100%");
+    this.patternSvg.setAttribute("viewBox", "-95 -95 190 190"); // Adjust these values as needed
+    this.patternSvg.style.position = "absolute";
+    this.patternSvg.style.top = "0";
+    this.patternSvg.style.left = "0";
+    
+    const polygonWindow = document.getElementById('polygon-window');
+    polygonWindow.appendChild(this.patternSvg);
+}
+    
     drawPatternPolygon() {
         this.patternSvg.innerHTML = ''; // Clear previous content
 
@@ -100,7 +95,7 @@ export class Pattern {
         // Draw the pattern polygon
         const polygon = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
         polygon.setAttribute("points", points);
-        polygon.setAttribute("fill", "rgba(230, 230, 230, 0.3)");
+        // polygon.setAttribute("fill", "rgba(230, 230, 230, 0.3)");
         polygon.setAttribute("stroke", "white");
         polygon.setAttribute("stroke-width", "4");
         this.patternSvg.appendChild(polygon);
