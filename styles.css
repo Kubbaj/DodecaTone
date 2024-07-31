@@ -154,8 +154,10 @@ input[type="checkbox"] {
     width: 80%;
     overflow: hidden;
     position: relative;
+    order: 2;
     height: 200px; /* Increased to accommodate the taller bracket window */
     margin-top: 10px;
+    margin-bottom: 15px;
     padding: 10px 40px 10px 0px;
     background-color: #333333;
     border-radius: 5px;
@@ -166,14 +168,14 @@ input[type="checkbox"] {
   }
   
   #keyboard-container {
-    width: calc(650px + 40px);
+    width: 670px ;
     height: 150px;
     display: flex;
     justify-content: center;
-    order: 2;
     position: relative;
     top: 45px; /* Pushed down to account for taller bracket window and margin */
   }
+
 .keyboard {
     position: absolute; /* Change to absolute */
     left: 0; /* Add this */

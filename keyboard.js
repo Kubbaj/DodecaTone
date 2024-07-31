@@ -27,36 +27,34 @@ export class Keyboard {
     createKeys() {
         let position = 0;
         
-        config.keyboardNotes.forEach((note, index) => {
+        // Extend the loop to include C5 (25 keys total)
+        for (let index = 0; index < 25; index++) {
+            const note = config.keyboardNotes[index % 12];
             const keyElement = document.createElement('div');
             const isBlackNote = note.includes('/');
             
             keyElement.className = `key ${isBlackNote ? 'black' : 'white'}`;
             keyElement.dataset.noteId = index;
     
-            // Calculate toneNote
-            const octave = index < 12 ? 3 : 4;
+            // Calculate octave (3 for first 12, 4 for next 12, 5 for the last one)
+            const octave = Math.floor(index / 12) + 3;
             keyElement.dataset.toneNote = this.formatToneNote(note, octave);
-
-            // Calculate toneNote
-            const baseTone = isBlackNote ? note.charAt(0) + '#' : note.charAt(0);
-            keyElement.dataset.toneNote = `${baseTone}${index < 12 ? 3 : 4}`;
-
+    
             // Set the width and position of the key
             const width = this.keyWidth * (isBlackNote ? 1 : this.keyWidths[note.charAt(0)]);
             keyElement.style.width = `${width}px`;
             keyElement.style.left = `${position + (isBlackNote ? -this.keyWidth / 2 : 0)}px`;
             
             if (!isBlackNote) position += width;
-
+    
             const noteDisplay = document.createElement('span');
             noteDisplay.className = 'note-display';
             noteDisplay.textContent = config.getNoteDisplay(note, false);
-
+    
             keyElement.appendChild(noteDisplay);
             this.keyElements.set(index, keyElement);
             this.keyboardElement.appendChild(keyElement);
-        });
+        }
     }
 
     updateKeyState(noteId, state, useColors, animate) {
