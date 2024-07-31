@@ -265,15 +265,17 @@ export class Wheel {
     updatePatternHighlight(patternNotes) {
         console.log("Updating pattern highlights:", patternNotes);
         
-        this.container.classList.toggle('pattern-active', patternNotes.length > 0);
+        const hasPattern = patternNotes.length > 0;
+        this.container.classList.toggle('pattern-active', hasPattern);
         
         this.noteElements.forEach((noteElement, noteId) => {
-            const inPattern = patternNotes.includes(noteId);
+            const inPattern = hasPattern && patternNotes.includes(noteId);
             noteElement.classList.toggle('in-pattern', inPattern);
+            noteElement.style.pointerEvents = hasPattern ? (inPattern ? 'auto' : 'none') : 'auto';
             console.log(`Note ${noteId}: ${inPattern ? 'in pattern' : 'not in pattern'}`);
         });
     }
-
+    
 // ANIMATIONS (Press, Tonic, Layout, Fourths)
     animateNotePress(noteElement, isActive) {
         const noteCircle = noteElement.querySelector('circle');

@@ -20,6 +20,8 @@ let currentlyPlayingNote = null;
 let currentTonicDisplay = 'C';
 let autoplayTonic = true;
 let currentOctave = 4;
+let isMouseDown = false;
+let lastPlayedNote = null;
 
 
 // Initialize components
@@ -315,54 +317,77 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // PLAYBACK
 
+    function handleNotePlay(element) {
+        if (element && element.hasAttribute('data-tone-note')) {
+            const toneNote = element.getAttribute('data-tone-note');
+            if (toneNote !== lastPlayedNote) {
+                if (lastPlayedNote) {
+                    stopNote(lastPlayedNote);
+                }
+                playNote(toneNote);
+                lastPlayedNote = toneNote;
+            }
+        } else if (lastPlayedNote) {
+            stopNote(lastPlayedNote);
+            lastPlayedNote = null;
+        }
+    }
+    
     // For the wheel
-wheel.container.addEventListener('mousedown', (e) => {
-    const noteElement = e.target.closest('[data-tone-note]');
-    if (noteElement) {
-        const toneNote = noteElement.getAttribute('data-tone-note');
-        currentlyPlayingNote = toneNote;
-        playNote(toneNote);
-    }
-});
-
-wheel.container.addEventListener('mouseup', () => {
-    if (currentlyPlayingNote) {
-        stopNote(currentlyPlayingNote);
-        currentlyPlayingNote = null;
-    }
-});
-
-wheel.container.addEventListener('mouseleave', () => {
-    if (currentlyPlayingNote) {
-        stopNote(currentlyPlayingNote);
-        currentlyPlayingNote = null;
-    }
-});
-
-// For the keyboard
-keyboard.keyboardElement.addEventListener('mousedown', (e) => {
-    const keyElement = e.target.closest('[data-tone-note]');
-    if (keyElement) {
-        const toneNote = keyElement.getAttribute('data-tone-note');
-        currentlyPlayingNote = toneNote;
-        playNote(toneNote);
-    }
-});
-
-keyboard.keyboardElement.addEventListener('mouseup', () => {
-    if (currentlyPlayingNote) {
-        stopNote(currentlyPlayingNote);
-        currentlyPlayingNote = null;
-    }
-});
-
-keyboard.keyboardElement.addEventListener('mouseleave', () => {
-    if (currentlyPlayingNote) {
-        stopNote(currentlyPlayingNote);
-        currentlyPlayingNote = null;
-    }
-});
-
+    wheel.container.addEventListener('mousedown', (e) => {
+        isMouseDown = true;
+        handleNotePlay(e.target.closest('[data-tone-note]'));
+    });
+    
+    wheel.container.addEventListener('mousemove', (e) => {
+        if (isMouseDown) {
+            handleNotePlay(e.target.closest('[data-tone-note]'));
+        }
+    });
+    
+    wheel.container.addEventListener('mouseup', () => {
+        isMouseDown = false;
+        if (lastPlayedNote) {
+            stopNote(lastPlayedNote);
+            lastPlayedNote = null;
+        }
+    });
+    
+    wheel.container.addEventListener('mouseleave', () => {
+        isMouseDown = false;
+        if (lastPlayedNote) {
+            stopNote(lastPlayedNote);
+            lastPlayedNote = null;
+        }
+    });
+    
+    // For the keyboard
+    keyboard.keyboardElement.addEventListener('mousedown', (e) => {
+        isMouseDown = true;
+        handleNotePlay(e.target.closest('[data-tone-note]'));
+    });
+    
+    keyboard.keyboardElement.addEventListener('mousemove', (e) => {
+        if (isMouseDown) {
+            handleNotePlay(e.target.closest('[data-tone-note]'));
+        }
+    });
+    
+    keyboard.keyboardElement.addEventListener('mouseup', () => {
+        isMouseDown = false;
+        if (lastPlayedNote) {
+            stopNote(lastPlayedNote);
+            lastPlayedNote = null;
+        }
+    });
+    
+    keyboard.keyboardElement.addEventListener('mouseleave', () => {
+        isMouseDown = false;
+        if (lastPlayedNote) {
+            stopNote(lastPlayedNote);
+            lastPlayedNote = null;
+        }
+    });
 });
 
 export { playNote, stopNote, useColors, playNoteForDuration };

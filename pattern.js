@@ -47,7 +47,7 @@ export class Pattern {
         }
 
         const shiftLeftButton = document.getElementById('shift-pattern-left');
-    const shiftRightButton = document.getElementById('shift-pattern-right');
+        const shiftRightButton = document.getElementById('shift-pattern-right');
     
     if (this.currentPattern.length > 0) {
         shiftLeftButton.style.display = 'block';

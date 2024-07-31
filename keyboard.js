@@ -89,11 +89,13 @@ export class Keyboard {
     updatePatternHighlight(playableToneNotes) {
         console.log("Updating keyboard pattern highlight:", playableToneNotes);
         
-        this.keyboardElement.classList.toggle('pattern-active', playableToneNotes.length > 0);
+        const hasPattern = playableToneNotes.length > 0;
+        this.keyboardElement.classList.toggle('pattern-active', hasPattern);
         
         this.keyElements.forEach((keyElement, noteId) => {
-            const inPattern = playableToneNotes.includes(keyElement.dataset.toneNote);
+            const inPattern = hasPattern && playableToneNotes.includes(keyElement.dataset.toneNote);
             keyElement.classList.toggle('in-pattern', inPattern);
+            keyElement.style.pointerEvents = hasPattern ? (inPattern ? 'auto' : 'none') : 'auto';
         });
     }
 
@@ -111,7 +113,7 @@ export class Keyboard {
         arrow.innerHTML = '→';
         arrow.style.cssText = `
             position: absolute;
-            top: 50%;
+            top: 60%;
             transform: translateY(-50%);
             font-size: 24px;
             font-weight: bold;
@@ -169,7 +171,7 @@ export class Keyboard {
         const currentTonicIndex = config.notes.indexOf(newTonic);
         const keyDiff = currentTonicIndex - config.notes.indexOf('C'); // Difference from C
         const arrowPosition = this.arrowBasePosition - (keyDiff * this.keyWidth);
-        this.arrowElement.style.left = `${arrowPosition}px`;
+        this.arrowElement.style.left = `${arrowPosition + 37.5}px`;
 
     }
 
