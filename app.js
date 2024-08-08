@@ -99,18 +99,6 @@ function initTonicPicker() {
     const decreaseTonic2Button = document.getElementById('decrease-tonic-2');
     const increaseTonic2Button = document.getElementById('increase-tonic-2');
 
-    function changeTonic(direction) {
-        const currentIndex = config.notes.indexOf(currentTonic);
-        let newIndex;
-        if (direction === 'increase') {
-            newIndex = (currentIndex + 1) % config.notes.length;
-        } else {
-            newIndex = (currentIndex - 1 + config.notes.length) % config.notes.length;
-        }
-        setTonic(config.notes[newIndex]);
-        pattern.drawPatternPolygon();
-    }
-
     decreaseButton.addEventListener('click', () => changeTonic('decrease'));
     increaseButton.addEventListener('click', () => changeTonic('increase'));
     decreaseTonic2Button.addEventListener('click', () => changeTonic('decrease'));
@@ -119,6 +107,19 @@ function initTonicPicker() {
     // Initialize display
     updateTonicDisplay();
 }
+
+function changeTonic(direction) {
+    const currentIndex = config.notes.indexOf(currentTonic);
+    let newIndex;
+    if (direction === 'increase') {
+        newIndex = (currentIndex + 1) % config.notes.length;
+    } else {
+        newIndex = (currentIndex - 1 + config.notes.length) % config.notes.length;
+    }
+    setTonic(config.notes[newIndex]);
+    pattern.drawPatternPolygon();
+}
+
 
 // UPDATE PATTERN
 function updatePattern(newPatternValue) {
@@ -142,7 +143,48 @@ function updatePattern(newPatternValue) {
     const isPatternActive = newPatternValue !== 'none';
     document.getElementById('content-container').classList.toggle('pattern-active', isPatternActive);
 
+    updatePatternDisplay(newPatternValue);
     updateAllNoteStates();
+}
+
+function getAllPatterns() {
+    const patterns = [];
+    const selectItems = document.querySelectorAll('.select-subitem');
+    selectItems.forEach(item => patterns.push(item.dataset.value));
+    console.log(patterns)
+    return patterns;
+}
+
+function getCurrentPatternIndex() {
+    const allPatterns = getAllPatterns();
+    console.log(allPatterns.indexOf(currentPattern))
+    return allPatterns.indexOf(currentPattern);
+}
+
+function changePattern(direction) {
+    const allPatterns = getAllPatterns();
+    const currentIndex = getCurrentPatternIndex();
+    let newIndex;
+
+    if (direction === 'next') {
+        newIndex = (currentIndex + 1) % allPatterns.length;
+    } else {
+        newIndex = (currentIndex - 1 + allPatterns.length) % allPatterns.length;
+    }
+
+    const newPattern = allPatterns[newIndex];
+    updatePattern(newPattern);
+    updatePatternDisplay(newPattern);
+}
+
+function updatePatternDisplay(patternValue) {
+    const selectSelected = document.querySelector('.select-selected');
+    const selectedItem = document.querySelector(`.select-subitem[data-value="${patternValue}"]`);
+    if (selectedItem) {
+        selectSelected.textContent = selectedItem.textContent;
+    } else {
+        selectSelected.textContent = 'Select a pattern';
+    }
 }
 
 function updatePatternForNewTonic(newTonic, isTonicChange = false) {
@@ -418,16 +460,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-    // updateLayout(currentLayout);
 
     // Event listeners
-    // document.getElementById('layout-select').addEventListener('change', (e) => updateLayout(e.target.value));
     document.getElementById('toggle-animate').addEventListener('change', toggleAnimation);
     document.getElementById('toggle-sharps').addEventListener('change', toggleSharps);
     document.getElementById('toggle-colors').addEventListener('change', toggleColors);
     document.getElementById('toggle-indicators').addEventListener('change', toggleIndicators);
     document.getElementById('toggle-autoplay').addEventListener('change', toggleAutoplay);
     document.getElementById('pattern-select').addEventListener('change', (e) => updatePattern(e.target.value));
+    document.addEventListener('keydown', handleKeyboardShortcuts);
 
     
     // PLAYBACK
@@ -505,4 +546,32 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
+function handleKeyboardShortcuts(event) {
+    // Prevent default behavior for some keys
+    if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', ' '].includes(event.key)) {
+        event.preventDefault();
+    }
+
+    switch (event.key) {
+        case 'ArrowLeft':
+            changeTonic('decrease');
+            break;
+        case 'ArrowRight':
+            changeTonic('increase');
+            break;
+        case 'ArrowUp':
+            changePattern('next');
+            break;
+        case 'ArrowDown':
+            changePattern('previous');
+            break;
+        case 'Escape':
+            updatePattern('none');
+            break;
+        case ' ': // Space key
+            pattern.playPattern();
+            break;
+        // Add more shortcuts as needed
+    }
+}
 export { playNote, stopNote, useColors, playNoteForDuration };

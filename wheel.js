@@ -391,6 +391,7 @@ async switchLayout(newLayout) {
     
         const tempGroup = this.createTemporaryElements();
         this.svg.appendChild(tempGroup);
+        this.svg.setAttribute("z-index", 2000);
     
         const animations = Array.from(tempGroup.children).map((tempElement, index) => {
             const oldPos = oldPositions.get(index);

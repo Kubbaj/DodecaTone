@@ -143,29 +143,44 @@
     <div id="keyboard-tonic-indicator"></div>
 
     <div id="toggles-panel">
-        <h3>Settings:</h3>
+        <h3><u>Settings:</u></h3>
         <div class="toggle-group">
             <label for="toggle-sharps">Sharps:</label>
-            <input type="checkbox" id="toggle-sharps">
+            <label class="switch">
+                <input type="checkbox" id="toggle-sharps">
+                <span class="slider"></span>
+            </label>
         </div>
         <div class="toggle-group">
             <label for="toggle-animate">Animation:</label>
-            <input type="checkbox" id="toggle-animate" checked>
+            <label class="switch">
+                <input type="checkbox" id="toggle-animate" checked>
+                <span class="slider"></span>
+            </label>
         </div>
         <div class="toggle-group">
             <label for="toggle-colors">Colors:</label>
-            <input type="checkbox" id="toggle-colors" checked>
+            <label class="switch">
+                <input type="checkbox" id="toggle-colors" checked>
+                <span class="slider"></span>
+            </label>
         </div>
         <div class="toggle-group">
             <label for="toggle-indicators">Indicators:</label>
-            <input type="checkbox" id="toggle-indicators">
+            <label class="switch">
+                <input type="checkbox" id="toggle-indicators">
+                <span class="slider"></span>
+            </label>
         </div>
         <div class="toggle-group">
             <label for="toggle-autoplay">Autoplay:</label>
-            <input type="checkbox" id="toggle-autoplay" checked>
+            <label class="switch">
+                <input type="checkbox" id="toggle-autoplay" checked>
+                <span class="slider"></span>
+            </label>
         </div>
     </div>
-
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <script type="module" src="app.js"></script>
 </body>

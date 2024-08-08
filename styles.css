@@ -613,11 +613,11 @@ input[type="checkbox"] {
 }
 
 #prev-layout {
-    left: -170px;
+    left: -200px;
 }
 
 #next-layout {
-    right: -170px;
+    right: -200px;
 }
 
 
@@ -674,11 +674,11 @@ input[type="checkbox"] {
 /* TOGGLES STUFF */
 #toggles-panel {
     position: absolute;
-    top: 250px;
-    right: 20px;
-    width: 200px;
+    top: 70px;
+    left: 20px;
+    width: 170px;
     padding: 10px;
-    background-color: #666666;
+    background-color: #696969;
     color: #f0f0f0;
     border-radius: 5px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.3);
@@ -686,23 +686,73 @@ input[type="checkbox"] {
 
 #toggles-panel h3 {
     margin-top: 0;
+    font-size: 2em;
+    margin-block-start: 0em;
+    margin-block-end: 0.5em;
 }
 
 .toggle-group {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 10px;
+    margin-bottom: 5px;
 }
 
 .toggle-group label {
     display: block;
-    margin-bottom: 5px;
+    margin-top: 2px;
+    font-size: 1.2em;
 }
 
 #toggle-debug {
     margin-top: 10px;
     width: 100%;
+}
+
+/* Hide default checkbox */
+.toggle-group input[type="checkbox"] {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+/* Create a custom slider */
+.slider {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 30px;
+    top: 5px;
+    cursor: pointer;
+    background-color: #ccc;
+    border-radius: 20px;
+    transition: 0.2s;
+}
+
+.slider:before {
+    content: "";
+    position: absolute;
+    height: 26px;
+    width: 26px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    border-radius: 50%;
+    transition: 0.4s;
+}
+
+/* Checked state */
+.toggle-group input:checked + .slider {
+    background-color: #4caf50;
+}
+
+.toggle-group input:checked + .slider:before {
+    transform: translateX(20px);
+}
+
+/* Hover effect */
+.slider:hover {
+    background-color: #a5d6a7;
 }
 
 
@@ -720,7 +770,7 @@ input[type="checkbox"] {
   #pattern-select-container {
     position: absolute;
     /* Adjust these values to position it correctly */
-    top: 5px;
+    top: 6px;
     left: 55px;
     z-index: 1000; /* Ensure it's above other elements */
   }
@@ -728,7 +778,7 @@ input[type="checkbox"] {
   .custom-select {
     position: relative;
     display: inline-block;
-    width: 200px;
+    width: 230px;
   }
   
   .select-selected {

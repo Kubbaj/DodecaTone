@@ -29,14 +29,14 @@ const getNoteDisplay = (note, useSharps) => {
 
 // Scales
 const scales = {
-  "Chromatic": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
-  "Major": [0, 2, 4, 5, 7, 9, 11],
+  "Major Scale": [0, 2, 4, 5, 7, 9, 11],
   "Natural Minor": [0, 2, 3, 5, 7, 8, 10],
   "Harmonic Minor": [0, 2, 3, 5, 7, 8, 11],
   "Melodic Minor": [0, 2, 3, 5, 7, 9, 11],
   "Major Pentatonic": [0, 2, 4, 7, 9],
   "Minor Pentatonic": [0, 3, 5, 7, 10],
   "Blues": [0, 3, 5, 6, 7, 10],
+  "Chromatic": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
   "Whole Tone": [0, 2, 4, 6, 8, 10],
 };
 
@@ -89,13 +89,12 @@ const extendeds = {
 };
 
 const intervals = {
-  "minor 2nd": [0, 1],
-  "Major 2nd": [0, 2],
-  "minor 3rd": [0, 3],
-  "Major 3rd": [0, 4],
-  "Perfect 4th": [0, 5],
-  "Tritone": [0, 6],
-  "Perfect 5th": [0, 7]
+  "1: min2/Maj7": [0, 1],
+  "2: Maj2/min7": [0, 2],
+  "3: min3/Maj6": [0, 3],
+  "4: Maj3/min6": [0, 4],
+  "5: Per4/Per5": [0, 5],
+  "6: TRITONE": [0, 6],
 };
 
 // Modes
