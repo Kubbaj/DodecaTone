@@ -15,7 +15,7 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 20px;
+    padding: 10px;
     position: relative;
 }
 
@@ -39,6 +39,7 @@ h1 {
     justify-content: center;
     width: 100%;
     position: relative;
+    margin-bottom: 10px;
 }
 
 #keyboard-window {
@@ -121,7 +122,7 @@ h1 {
     background-color: #333333;
     border-radius: 50%;
     padding: 15px;
-    margin: 15px;
+    margin-top: 15px;
     border: 1px solid #2a2a2a;
     box-shadow: 
         inset 0 2px 4px rgba(0,0,0,0.5),
@@ -256,7 +257,7 @@ wheel .note {
         0 1px 0 rgba(255,255,255,0.1);
 }
   
-.pattern-active #bracket-window::after, #polygon-window::after {
+.pattern-active #bracket-window::after, .pattern-active #polygon-window::after {
     content: '';
     position: absolute;
     top: 0;
@@ -269,7 +270,7 @@ wheel .note {
     pointer-events: none;
   }
   
-  .pattern-active #bracket-window:hover::after, #polygon-window:hover::after {
+  .pattern-active #bracket-window:hover::after, .pattern-active #polygon-window:hover::after {
     opacity: 1;
   }
 
@@ -290,14 +291,24 @@ wheel .note {
   /* TONIC ARROWS */
   #tonic-selector {
     position: absolute;
-    width: 130px;
+    width: 85px;
     height: 85px;
     left: 50%;
     transform: translateX(-50%);
+    margin-top: 10px;
+    margin-bottom: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
+    background-color: #555555;
+    border: solid 4px white;
+    border-radius: 10px;
 }
+
+    #tonic-selector label {
+        position: absolute;
+        top: 5px;
+    }
 
 .tonic-arrow {
     filter: drop-shadow(0 2px 2px rgba(0,0,0,0.2));
@@ -332,7 +343,7 @@ wheel .note {
 
 #decrease-tonic {
     position: absolute;
-    left: -160px;
+    left: -170px;
     transform: translateY(-20%);
 }
 
@@ -346,7 +357,7 @@ wheel .note {
 }
 
 #increase-tonic {
-    right: -160px;
+    right: -170px;
     transform: translateY(-20%) scaleX(-1);
 }
 
@@ -362,7 +373,7 @@ wheel .note {
 #tonic-display-container {
     width: 50px;
     text-align: center;
-    margin: 5px 15px;
+    margin: 15px 10px 5px;
 }
 
 #current-tonic {
@@ -493,13 +504,13 @@ input[type="checkbox"] {
   
   .pattern-active #bracket-window:hover .pattern-shift-arrow,
   .pattern-active #polygon-window:hover .pattern-shift-arrow {
-    opacity: 1;
+    opacity: 0.8;
   }
   
   #shift-pattern-left, #shift-pattern-right {
-    top: 10px; /* Adjust as needed */
-    width: 30px;
-    height: 20px;
+    top: 5px; /* Adjust as needed */
+    width: 40px;
+    height: 30px;
   }
   
   #shift-pattern-left {
@@ -516,16 +527,16 @@ input[type="checkbox"] {
     top: 40%;
     left: 30px;
     transform: translateY(-50%);
-    width: 40px;
-    height: 40px;
+    width: 50px;
+    height: 50px;
   }
   
   #shift-pattern-right-curved {
     top: 40%;
     right: 30px;
     transform: translateY(-50%) scaleX(-1);
-    width: 40px;
-    height: 40px;
+    width: 50px;
+    height: 50px;
   }
   
   /* Hover effects */
@@ -705,3 +716,98 @@ input[type="checkbox"] {
     background: red;
     z-index: 9999;
   }  */
+
+  #pattern-select-container {
+    position: absolute;
+    /* Adjust these values to position it correctly */
+    top: 5px;
+    left: 55px;
+    z-index: 1000; /* Ensure it's above other elements */
+  }
+
+  .custom-select {
+    position: relative;
+    display: inline-block;
+    width: 200px;
+  }
+  
+  .select-selected {
+    background-color: #444;
+    color: #fff;
+    padding: 8px 16px;
+    border: 1px solid #666;
+    cursor: pointer;
+    border-radius: 5px;
+
+  }
+  
+  .select-items {
+    display: none;
+    position: absolute;
+    background-color: #444;
+    min-width: 200px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+    cursor: pointer;
+    border-radius: 5px;
+  }
+  
+  .select-item {
+    color: #fff;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    position: relative;
+  }
+  
+  .submenu {
+    display: none;
+    position: absolute;
+    left: 100%;
+    top: 0;
+    background-color: #444;
+    min-width: 200px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    cursor: pointer;
+    border-radius: 5px;
+  }
+  
+  .select-item:hover .submenu {
+    display: block;
+  }
+  
+  .select-subitem {
+    color: #fff;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+  }
+  
+  .select-item:hover, .select-subitem:hover {
+    background-color: #555;
+  }
+
+  .select-item::after {
+    content: '▶';
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .select-item.none-option::after {
+    content: ''; /* Ensures no arrow is shown for the [NONE] option */
+}
+
+  .select-selected::after {
+    content: '▼';
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  
+  .select-item, .select-subitem {
+    position: relative;
+    padding-right: 25px; /* Make room for the arrow */
+  }

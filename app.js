@@ -122,7 +122,7 @@ function initTonicPicker() {
 
 // UPDATE PATTERN
 function updatePattern(newPatternValue) {
-    if (newPatternValue === 'none') {
+    if (newPatternValue === 'none' || newPatternValue === '[]') {
         currentPattern = [];
         pattern.updatePattern([]);
         keyboard.updatePatternHighlight([]);
@@ -182,6 +182,48 @@ function updatePatternForNewTonic(newTonic, isTonicChange = false) {
         }
     }
 }
+
+function populatePatternMenu() {
+    const selectItems = document.querySelector('#pattern-select .select-items');
+    
+    // Add [NONE] option
+    const noneOption = document.createElement('div');
+    noneOption.className = 'select-item none-option';
+    noneOption.textContent = '[NONE]';
+    noneOption.dataset.value = 'none';
+    selectItems.appendChild(noneOption);
+  
+    const patterns = {
+      'Intervals': config.intervals,
+      'Regulars': config.regulars,
+      'Scales': config.scales,
+      // 'Exotic Scales': config.exotics,
+      'Triads': config.triads,
+      // 'Extendedchords': config.extendeds,
+      'Modes': config.modes
+    };
+  
+    for (const [category, patternSet] of Object.entries(patterns)) {
+      const categoryDiv = document.createElement('div');
+      categoryDiv.className = 'select-item';
+      categoryDiv.textContent = category;
+  
+      const submenu = document.createElement('div');
+      submenu.className = 'submenu';
+  
+      for (const [patternName, pattern] of Object.entries(patternSet)) {
+        console.log(patternName, pattern);
+        const patternDiv = document.createElement('div');
+        patternDiv.className = 'select-subitem';
+        patternDiv.textContent = patternName;
+        patternDiv.dataset.value = `${category.toLowerCase().replace(' ', '')}.${patternName}`;
+        submenu.appendChild(patternDiv);
+      }
+  
+      categoryDiv.appendChild(submenu);
+      selectItems.appendChild(categoryDiv);
+    }
+  }
 
 // Helper function to format tone notes consistently
 function formatToneNote(note, octave) {
@@ -349,6 +391,32 @@ document.addEventListener('DOMContentLoaded', () => {
     initTonicPicker();
     updateTonicDisplay();
     updateLayoutButtons();
+    populatePatternMenu();
+
+  const customSelect = document.querySelector('.custom-select');
+  const selectSelected = customSelect.querySelector('.select-selected');
+  const selectItems = customSelect.querySelector('.select-items');
+
+  selectSelected.addEventListener('click', function(e) {
+    e.stopPropagation();
+    selectItems.style.display = selectItems.style.display === 'block' ? 'none' : 'block';
+  });
+
+  document.addEventListener('click', function() {
+    selectItems.style.display = 'none';
+  });
+
+  // Use event delegation for dynamically created elements
+  selectItems.addEventListener('click', function(e) {
+    if (e.target.classList.contains('select-subitem') || e.target.dataset.value === 'none') {
+      e.stopPropagation();
+      const value = e.target.dataset.value;
+      selectSelected.textContent = e.target.textContent;
+      selectItems.style.display = 'none';
+      // Call your existing updatePattern function here
+      updatePattern(value);
+    }
+  });
 
     // updateLayout(currentLayout);
 
