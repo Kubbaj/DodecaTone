@@ -89,11 +89,11 @@ const extendeds = {
 };
 
 const intervals = {
-  "1: min2/Maj7": [0, 1],
-  "2: Maj2/min7": [0, 2],
-  "3: min3/Maj6": [0, 3],
-  "4: Maj3/min6": [0, 4],
-  "5: Per4/Per5": [0, 5],
+  "1: min2<sup>nd</sup>/Maj7<sup>th</sup>": [0, 1],
+  "2: Maj2<sup>nd</sup>/min7<sup>th</sup>": [0, 2],
+  "3: min3<sup>rd</sup>/Maj6<sup>th</sup>": [0, 3],
+  "4: Maj3<sup>rd</sup>/min6<sup>th</sup>": [0, 4],
+  "5: Per4<sup>th</sup>/Per5<sup>th</sup>": [0, 5],
   "6: TRITONE": [0, 6],
 };
 

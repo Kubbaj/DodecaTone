@@ -183,7 +183,7 @@ function updatePatternDisplay(patternValue) {
         selectSelected.textContent = '[NONE]';
     } else {
         const [category, patternName] = patternValue.split(/[\[\]]+/);
-        selectSelected.textContent = patternName.replace(/"/g, '');
+        selectSelected.innerHTML = patternName.replace(/"/g, '');
     }
 }
 
@@ -254,7 +254,7 @@ function populatePatternMenu() {
       for (const [patternName, pattern] of Object.entries(patternSet)) {
         const patternDiv = document.createElement('div');
         patternDiv.className = 'select-subitem';
-        patternDiv.textContent = patternName;
+        patternDiv.innerHTML = patternName;
         patternDiv.dataset.value = `${category.toLowerCase()}["${patternName}"]`;
         submenu.appendChild(patternDiv);
       }
@@ -551,6 +551,19 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
+function resetToDefaults() {
+    // Reset pattern
+    updatePattern('none');
+
+    // Reset tonic to C
+    setTonic('C');
+
+    // Reset layout to chromatic
+    if (currentLayout !== 'chromatic') {
+        updateLayout('chromatic');
+    }
+}
+
 function handleKeyboardShortcuts(event) {
     // Prevent default behavior for some keys
     if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', ' '].includes(event.key)) {
@@ -589,11 +602,28 @@ function handleKeyboardShortcuts(event) {
                 }
                 break;
         case 'Escape':
-            updatePattern('none');
+            resetToDefaults();
             break;
         case ' ': // Space key
             pattern.playPattern();
             break;
+        }
+
+        if (isShiftPressed) {
+            switch (event.key.toLowerCase()) {
+                case 'c':
+                    event.preventDefault();
+                    toggleColors();
+                    return;
+                case 'a':
+                    event.preventDefault();
+                    toggleAnimation();
+                    return;
+                case 's':
+                    event.preventDefault();
+                    toggleSharps();
+                    return;
+            }
         }
 }
 export { playNote, stopNote, useColors, playNoteForDuration };

@@ -301,8 +301,10 @@ wheel .note {
     align-items: center;
     justify-content: center;
     background-color: #555555;
-    border: solid 4px white;
+    border: solid 2px white;
     border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2), 
+                0 -4px 6px rgba(255,255,255,0.1) inset;
 }
 
     #tonic-selector label {
@@ -743,7 +745,7 @@ input[type="checkbox"] {
 
 /* Checked state */
 .toggle-group input:checked + .slider {
-    background-color: #4caf50;
+    background-color: #437ad9;
 }
 
 .toggle-group input:checked + .slider:before {
@@ -752,7 +754,7 @@ input[type="checkbox"] {
 
 /* Hover effect */
 .slider:hover {
-    background-color: #a5d6a7;
+    background-color: #9bb1d7;
 }
 
 
