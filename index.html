@@ -19,23 +19,32 @@
             <div id="tonic-selector">
                 <label for="current-tonic"><b>TONIC:</b></label>
                 <div id="tonic-controls">
-                    <svg id="decrease-tonic" class="tonic-arrow curved-arrow" width="500" height="500" viewBox="80 30 300 300" xmlns="http://www.w3.org/2000/svg">
-                        <path class="arrow-fill" d="M330.67 58.883A472.5 472.5 0 0 0 127.665 209.1l-23.64 -18.47 11.632 94.75 94.75 -11.635 -23.643 -18.47a397.5 397.5 0 0 1 170.782 -126.375Z" stroke="#333333" stroke-width="2"/>
-                      </svg>
+                    <svg id="decrease-tonic" class="tonic-arrow curved-arrow" width="500" height="500"
+                        viewBox="80 30 300 300" xmlns="http://www.w3.org/2000/svg">
+                        <path class="arrow-fill"
+                            d="M330.67 58.883A472.5 472.5 0 0 0 127.665 209.1l-23.64 -18.47 11.632 94.75 94.75 -11.635 -23.643 -18.47a397.5 397.5 0 0 1 170.782 -126.375Z"
+                            stroke="#333333" stroke-width="2" />
+                    </svg>
                     <div id="tonic-display-container">
                         <span id="current-tonic">C</span>
                     </div>
-                    <svg id="increase-tonic" class="tonic-arrow curved-arrow" width="500" height="500" viewBox="80 30 300 300" xmlns="http://www.w3.org/2000/svg">
-                        <path class="arrow-fill" d="M330.67 58.883A472.5 472.5 0 0 0 127.665 209.1l-23.64 -18.47 11.632 94.75 94.75 -11.635 -23.643 -18.47a397.5 397.5 0 0 1 170.782 -126.375Z" stroke="#333333" stroke-width="2"/>
-                      </svg>
+                    <svg id="increase-tonic" class="tonic-arrow curved-arrow" width="500" height="500"
+                        viewBox="80 30 300 300" xmlns="http://www.w3.org/2000/svg">
+                        <path class="arrow-fill"
+                            d="M330.67 58.883A472.5 472.5 0 0 0 127.665 209.1l-23.64 -18.47 11.632 94.75 94.75 -11.635 -23.643 -18.47a397.5 397.5 0 0 1 170.782 -126.375Z"
+                            stroke="#333333" stroke-width="2" />
+                    </svg>
                 </div>
             </div>
         </div>
 
         <div id="keyboard-area">
-            <svg id="decrease-tonic-2" class="tonic-arrow straight-arrow" width="200" height="200" viewBox="20 100 100 100" xmlns="http://www.w3.org/2000/svg">
-                <path class="arrow-fill" d="M 95.28418597154361 135 L 62.88612887243036 135 L 62.88612887243036 123 L 35.88612887243036 150 L 62.88612887243036 177 L 62.88612887243036 165 L 95.28418597154361 165Z" stroke="#333333" stroke-width="1"></path>
-              </svg>
+            <svg id="decrease-tonic-2" class="tonic-arrow straight-arrow" width="200" height="200"
+                viewBox="20 100 100 100" xmlns="http://www.w3.org/2000/svg">
+                <path class="arrow-fill"
+                    d="M 95.28418597154361 135 L 62.88612887243036 135 L 62.88612887243036 123 L 35.88612887243036 150 L 62.88612887243036 177 L 62.88612887243036 165 L 95.28418597154361 165Z"
+                    stroke="#333333" stroke-width="1"></path>
+            </svg>
             <div id="keyboard-window">
                 <select id="pattern-select">
                     <option value="none">(SELECT A PATTERN)</option>
@@ -113,23 +122,32 @@
                         <option value="modes.locrian">Locrian</option>
                     </optgroup>
                 </select>
-                <button id="shift-pattern-left" class="shift-pattern-button">
-                    <img src="resources/thinArrowL.png" alt="Shift pattern left" class="pattern-shift-arrow">
-                </button>
                 <div id="bracket-window">
+                    <svg id="shift-pattern-left" class="pattern-shift-arrow straight-arrow" width="200" height="100"
+                        viewBox="113 125 50 50" xmlns="http://www.w3.org/2000/svg">
+                        <path class="arrow-fill"
+                            d="M 161.5 145 L 133.31604390859823 145 L 133.31604390859823 141 L 108.11604390859823 150 L 133.31604390859823 159 L 133.31604390859823 155 L 161.5 155 Z"
+                            fill="#ffffff" stroke="#ffffff" stroke-width="2"></path>
+                    </svg>
                     <div id="bracket-svg-container"></div>
+                    <svg id="shift-pattern-right" class="pattern-shift-arrow straight-arrow" width="200" height="100"
+                        viewBox="113 125 50 50" xmlns="http://www.w3.org/2000/svg">
+                        <path class="arrow-fill"
+                            d="M 161.5 145 L 133.31604390859823 145 L 133.31604390859823 141 L 108.11604390859823 150 L 133.31604390859823 159 L 133.31604390859823 155 L 161.5 155 Z"
+                            fill="#ffffff" stroke="#ffffff" stroke-width="2"></path>
+                    </svg>
                 </div>
-                <button id="shift-pattern-right" class="shift-pattern-button">
-                    <img src="resources/thinArrowR.png" alt="Shift pattern right" class="pattern-shift-arrow">
-                </button>
                 <div id="keyboard-container">
                     <!-- Keyboard will be inserted here by JavaScript -->
                 </div>
             </div>
 
-            <svg id="increase-tonic-2" class="tonic-arrow straight-arrow" width="200" height="200" viewBox="20 100 100 100" xmlns="http://www.w3.org/2000/svg">
-                <path class="arrow-fill" d="M 95.28418597154361 135 L 62.88612887243036 135 L 62.88612887243036 123 L 35.88612887243036 150 L 62.88612887243036 177 L 62.88612887243036 165 L 95.28418597154361 165Z" stroke="#333333" stroke-width="1"></path>
-              </svg>
+            <svg id="increase-tonic-2" class="tonic-arrow straight-arrow" width="200" height="200"
+                viewBox="20 100 100 100" xmlns="http://www.w3.org/2000/svg">
+                <path class="arrow-fill"
+                    d="M 95.28418597154361 135 L 62.88612887243036 135 L 62.88612887243036 123 L 35.88612887243036 150 L 62.88612887243036 177 L 62.88612887243036 165 L 95.28418597154361 165Z"
+                    stroke="#333333" stroke-width="1"></path>
+            </svg>
 
         </div>
 
@@ -139,14 +157,29 @@
                 <img src="resources/4ths-5ths.png" alt="Previous Layout">
                 <span class="button-text bottom">To</span>
             </button>
-            <div id="polygon-window"></div>
-            <!-- Wheel will be inserted here by JavaScript -->
+            <div id="polygon-window">
+                <!-- Wheel will be inserted here by JavaScript -->
+            </div>
             <div id="play-button-container">
+                <svg id="shift-pattern-left-curved" class="pattern-shift-arrow curved-arrow" width="200" height="200"
+                    viewBox="107 120 70 70" xmlns="http://www.w3.org/2000/svg">
+                    <path class="arrow-fill"
+                        d="M 159.00000000000003 128.98591688967602 A 82 82 0 0 0 128.98591688967602 159 L 125.52181527453827 157 L 120.71604390859821 183.32384017536782 L 141.11027254265815 166 L 137.64617092752042 164 A 72 72 0 0 1 164 137.64617092752042 Z"
+                        fill="#ffffff" stroke="#ffffff" stroke-width="2"></path>
+                </svg>
+
                 <svg id="play-pattern-button" width="40" height="40" viewBox="0 0 60 60" style="display: none;">
                     <circle cx="30" cy="30" r="30" fill="#555555" />
                     <path d="M25,20 L25,40 L40,30 Z" fill="white" />
                 </svg>
             </div>
+            <svg id="shift-pattern-right-curved" class="pattern-shift-arrow curved-arrow" width="200" height="200"
+                viewBox="107 120 70 70" xmlns="http://www.w3.org/2000/svg">
+                <path class="arrow-fill"
+                    d="M 159.00000000000003 128.98591688967602 A 82 82 0 0 0 128.98591688967602 159 L 125.52181527453827 157 L 120.71604390859821 183.32384017536782 L 141.11027254265815 166 L 137.64617092752042 164 A 72 72 0 0 1 164 137.64617092752042 Z"
+                    fill="#ffffff" stroke="#ffffff" stroke-width="2"></path>
+            </svg>
+
             <button id="next-layout" class="layout-button">
                 <span class="button-text top">From</span>
                 <img src="resources/Chr-5ths.png" alt="Next Layout">

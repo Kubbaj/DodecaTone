@@ -139,6 +139,8 @@ function updatePattern(newPatternValue) {
             console.error(`Pattern not found: ${newPatternValue}`);
         }
     }
+    const isPatternActive = newPatternValue !== 'none';
+    document.getElementById('content-container').classList.toggle('pattern-active', isPatternActive);
 
     updateAllNoteStates();
 }

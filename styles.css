@@ -30,7 +30,244 @@ h1 {
     font-size: 2em;
 }
 
-/* Options Container */
+
+
+
+
+
+/* KEYBOARD STUFF*/
+#keyboard-area {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    position: relative;
+}
+
+#keyboard-window {
+    width: 81.5%;
+    overflow: hidden;
+    position: relative;
+    order: 1;
+    height: 200px; /* Increased to accommodate the taller bracket window */
+    margin: 5px;
+    padding: 10px 50px 10px 0px;
+    background-color: #333333;
+    border-radius: 5px;
+    border: 1px solid #2a2a2a;
+    box-shadow: 
+        inset 0 2px 4px rgba(0,0,0,0.5),
+        0 1px 0 rgba(255,255,255,0.1);
+  }
+
+  #keyboard-container {
+    width: 670px ;
+    height: 150px;
+    display: flex;
+    justify-content: center;
+    position: relative;
+    top: 50px; /* Pushed down to account for taller bracket window and margin */
+  }
+
+.keyboard {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 650px;
+    height: 100%;
+    justify-content: center;
+}
+
+.key {
+    position: absolute;
+    width: 40px;
+    height: 150px;
+    border: 2px solid #000;
+    box-sizing: border-box;
+    display: flex;
+    border-radius: 5px;
+    justify-content: center;
+    align-items: flex-end;
+    padding-bottom: 10px;
+    cursor: pointer;
+    transition: transform 0.1s ease, filter 0.1s ease;
+}
+
+.key.white {
+    background-color: #D8D8D8;
+    z-index: 1;
+}
+
+.key.black {
+    background-color: #262626;
+    height: 100px;
+    width: 20px;
+    z-index: 2;
+}
+
+.key.active {
+    transform: scale(0.95);
+    filter: brightness(1.6);
+}
+
+
+
+
+
+
+/* WHEEL STUFF */
+#wheel-container {
+    position: relative;
+    width: 300px;
+    height: 300px;
+    order: 3;
+    background-color: #333333;
+    border-radius: 50%;
+    padding: 15px;
+    margin: 15px;
+    border: 1px solid #2a2a2a;
+    box-shadow: 
+        inset 0 2px 4px rgba(0,0,0,0.5),
+        0 1px 0 rgba(255,255,255,0.1);
+    /* Remove any z-index here if present */
+}
+
+#wheel-svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 3; /* Highest z-index to be on top */
+}
+
+#wheel-container svg * {
+    visibility: visible !important;
+}
+
+.note circle {
+    stroke-width: 2;
+}
+
+.note text {
+    font-size: 14px;
+}
+
+wheel .note {
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.wheel .note circle {
+    transition: r 0.2s ease;
+}
+
+.pattern-active g:not(.in-pattern) circle {
+    filter: brightness(0.5);
+    stroke: black;
+    stroke-width: 2px;
+}
+
+.pattern-active g:not(.in-pattern) text {
+    opacity: 0.4;
+}
+
+.pattern-active g.in-pattern circle {
+    filter: brightness(1);
+    stroke: white;
+    stroke-width: 3px;
+}
+
+.pattern-active g.in-pattern text {
+    opacity: 1;
+}
+
+/* KEYS AND WHEEL STUFF*/
+.keyboard, .wheel {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+  }
+
+
+.note-display {
+    font-size: 12px;
+    color: #000;
+    position: absolute;
+    bottom: 5px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.key.black .note-display {
+    color: #fff;
+}
+
+.keyboard.pattern-active .key:not(.in-pattern) {
+    filter: brightness(0.5);
+}
+
+.keyboard.pattern-active .key.in-pattern {
+    border-color: white;
+    border-width: 3.5px;
+}
+
+.keyboard.pattern-active .key:not(.in-pattern) .note-display {
+    opacity: 0.5;
+}
+
+.keyboard.pattern-active .key.in-pattern .note-display {
+    opacity: 1;
+}
+
+
+
+
+
+/* PATTERNS STUFF */
+#bracket-window {
+    position: absolute;
+    top: 11px;
+    right: calc(50% - 307.5px); /* Move it half a keywidth (25px/2) to the left */
+    width: 325px; /* 13 keywidths (13 * 25px) */
+    height: 40px; /* Increased from 30px to 40px */
+    margin-bottom: 5px;
+    background-color: #222222; /* Temporary color for visibility */
+    overflow: hidden;
+    border-radius: 5px;
+    border: 1px solid #2a2a2a;
+    box-shadow: 
+        inset 0 2px 4px rgba(0,0,0,0.5),
+        0 1px 0 rgba(255,255,255,0.1);
+  }
+
+  #polygon-window {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 190px;  /* Adjust based on your wheel size */
+    height: 190px; /* Adjust based on your wheel size */
+    border-radius: 50%;
+    overflow: hidden;
+    /* pointer-events: none; /* Allow clicks to pass through to the wheel beneath */
+    background-color: #222222;
+    z-index: 2;
+    box-shadow: 
+        inset 0 2px 4px rgba(0,0,0,0.5),
+        0 1px 0 rgba(255,255,255,0.1);
+}
+
+#bracket-window, #polygon-window {
+    transition: background-color 0.3s ease;
+}
+
+#bracket-window:hover, #polygon-window:hover {
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+
+/* CONTROLS STUFF */
 #options-container {
     display: flex;
     justify-content: center;
@@ -42,6 +279,9 @@ h1 {
     order: 2;
   }
 
+
+  /* ARROWS */
+  /* TONIC ARROWS */
   #tonic-selector {
     position: absolute;
     width: 130px;
@@ -127,13 +367,7 @@ h1 {
     top: 5px;
 }
 
-#keyboard-area {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    position: relative;
-}
+
 
 #decrease-tonic-2,
 #increase-tonic-2 {
@@ -218,39 +452,6 @@ input[type="checkbox"] {
     width: 100%;
     max-width: 800px;
 }
-
-/* Keyboard Container */
-#bracket-window {
-    position: absolute;
-    top: 11px;
-    right: calc(50% - 307.5px); /* Move it half a keywidth (25px/2) to the left */
-    width: 325px; /* 13 keywidths (13 * 25px) */
-    height: 40px; /* Increased from 30px to 40px */
-    margin-bottom: 5px;
-    background-color: #222222; /* Temporary color for visibility */
-    overflow: hidden;
-    border-radius: 5px;
-    border: 1px solid #2a2a2a;
-    box-shadow: 
-        inset 0 2px 4px rgba(0,0,0,0.5),
-        0 1px 0 rgba(255,255,255,0.1);
-  }
-  
-  #keyboard-window {
-    width: 81.5%;
-    overflow: hidden;
-    position: relative;
-    order: 1;
-    height: 200px; /* Increased to accommodate the taller bracket window */
-    margin: 5px;
-    padding: 10px 50px 10px 0px;
-    background-color: #333333;
-    border-radius: 5px;
-    border: 1px solid #2a2a2a;
-    box-shadow: 
-        inset 0 2px 4px rgba(0,0,0,0.5),
-        0 1px 0 rgba(255,255,255,0.1);
-  }
   
   .pattern-shift-arrow {
     width: 20px; /* Adjust based on your image size */
@@ -265,146 +466,76 @@ input[type="checkbox"] {
     font-size: 18px;
 }
 
-  #keyboard-container {
-    width: 670px ;
-    height: 150px;
-    display: flex;
-    justify-content: center;
+  
+#keyboard-area, #wheel-container {
     position: relative;
-    top: 50px; /* Pushed down to account for taller bracket window and margin */
   }
-
-.keyboard {
-    position: absolute; /* Change to absolute */
-    left: 0; /* Add this */
-    top: 0; /* Add this */
-    width: 650px; /* Set explicit width */
-    height: 100%;
-    justify-content: center;
-}
-
-.shift-pattern-button {
+  
+  .pattern-shift-arrow {
     position: absolute;
-    top: 17px; /* Adjust as needed to align with the bracket window */
-    background-color: #555555;
-    color: black;
-    border-radius: 5px;
-    width: 30px; /* Reduced size */
-    height: 25px; /* Reduced size */
-    font-size: 13px; /* Reduced font size */
-    line-height: 1; /* Center text vertically */
-    padding: 0;
     cursor: pointer;
-    display: none;
-    z-index: 10; /* Ensure buttons are above other elements */
-}
-
-#shift-pattern-left {
-    left: 295px; /* Half of keyboard-window width minus half of bracket-window width minus button width and some padding */
-}
-
-#shift-pattern-right {
-    right: 5px;
-}
-
-.keyboard, .wheel {
-    user-select: none;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 10;
   }
-
-/* Key Styles */
-.key {
-    position: absolute;
-    width: 40px;
-    height: 150px;
-    border: 2px solid #000;
-    box-sizing: border-box;
-    display: flex;
-    border-radius: 5px;
-    justify-content: center;
-    align-items: flex-end;
-    padding-bottom: 10px;
-    cursor: pointer;
-}
-
-.key.white {
-    background-color: #D8D8D8;
-    z-index: 1;
-}
-
-.key.black {
-    background-color: #262626;
-    height: 100px;
-    width: 20px;
-    z-index: 2;
-}
-
-.note-display {
-    font-size: 12px;
-    color: #000;
-    position: absolute;
-    bottom: 5px;
-    left: 50%;
-    transform: translateX(-50%);
-}
-
-.key.black .note-display {
-    color: #fff;
-}
-
-.keyboard.pattern-active .key:not(.in-pattern) {
-    filter: brightness(0.5);
-}
-
-.keyboard.pattern-active .key.in-pattern {
-    border-color: white;
-    border-width: 3.5px;
-}
-
-.keyboard.pattern-active .key:not(.in-pattern) .note-display {
-    opacity: 0.5;
-}
-
-.keyboard.pattern-active .key.in-pattern .note-display {
+  
+  .pattern-active .pattern-shift-arrow {
+    opacity: 0;
+    pointer-events: auto;
+  }
+  
+  .pattern-active #keyboard-area:hover .straight-arrow,
+  .pattern-active #wheel-container:hover .curved-arrow {
     opacity: 1;
-}
+  }
+  
+  #shift-pattern-left, #shift-pattern-right {
+    top: 10px; /* Adjust as needed */
+    width: 30px;
+    height: 20px;
+  }
+  
+  #shift-pattern-left {
+    left: 10px;
+  }
+  
+  #shift-pattern-right {
+    right: 10px;
+    transform: scaleX(-1);
+  }
+  
+   
+  #shift-pattern-left-curved {
+    top: 0%;
+    left: -50px;
+    transform: translateY(-50%);
+    width: 50px;
+    height: 50px;
+  }
+  
+  #shift-pattern-right-curved {
+    top: 42%;
+    right: 100px;
+    transform: translateY(-40%) scaleX(-1);
+    width: 50px;
+    height: 50px;
+  }
+  
+  /* Hover effects */
+  #shift-pattern-left:hover {
+    transform: scale(1.1);
+  }
+  
+  #shift-pattern-right:hover {
+    transform: scaleX(-1) scale(1.1);
+  }
+  
+  #shift-pattern-right-curved:hover {
+    transform: translateY(-50%) scaleX(-1) scale(1.1);
+  }
+  
 
-/* Animation Styles */
-.key {
-    transition: transform 0.1s ease, filter 0.1s ease;
-}
-
-.key.active {
-    transform: scale(0.95);
-    filter: brightness(1.6);
-}
-
-.key.colored, .note.colored {
-    transition: none;
-}
-
-.key.colored.active {
-    filter: brightness(1.5);
-}
-
-/* Wheel Container */
-#wheel-container {
-    position: relative;
-    width: 300px;
-    height: 300px;
-    order: 3;
-    background-color: #333333;
-    border-radius: 50%;
-    padding: 15px;
-    margin: 15px;
-    border: 1px solid #2a2a2a;
-    box-shadow: 
-        inset 0 2px 4px rgba(0,0,0,0.5),
-        0 1px 0 rgba(255,255,255,0.1);
-    /* Remove any z-index here if present */
-}
 
 .layout-button {
     position: absolute;
@@ -470,21 +601,12 @@ input[type="checkbox"] {
 
 
 
-#wheel-container > svg {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 3; /* Highest z-index to be on top */
-}
-
 #play-button-container {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    z-index: 4; /* Above everything else */
+    z-index: 11; /* Above everything else */
 }
   
   #play-pattern-button {
@@ -497,62 +619,9 @@ input[type="checkbox"] {
     transform: scale(1.1);
   }
 
-#wheel-container svg * {
-    visibility: visible !important;
-}
+  
 
-.note circle {
-    stroke-width: 2;
-}
 
-.note text {
-    font-size: 14px;
-}
-
-wheel .note {
-    transition: transform 0.2s ease, opacity 0.2s ease;
-}
-
-.wheel .note circle {
-    transition: r 0.2s ease;
-}
-
-.pattern-active g:not(.in-pattern) circle {
-    filter: brightness(0.5);
-    stroke: black;
-    stroke-width: 2px;
-}
-
-.pattern-active g:not(.in-pattern) text {
-    opacity: 0.4;
-}
-
-.pattern-active g.in-pattern circle {
-    filter: brightness(1);
-    stroke: white;
-    stroke-width: 3px;
-}
-
-.pattern-active g.in-pattern text {
-    opacity: 1;
-}
-
-#polygon-window {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 190px;  /* Adjust based on your wheel size */
-    height: 190px; /* Adjust based on your wheel size */
-    border-radius: 50%;
-    overflow: hidden;
-    pointer-events: none; /* Allow clicks to pass through to the wheel beneath */
-    background-color: #222222;
-    z-index: 2;
-    box-shadow: 
-        inset 0 2px 4px rgba(0,0,0,0.5),
-        0 1px 0 rgba(255,255,255,0.1);
-}
 
 /* Tonic Indicators*/
 #wheel-tonic-indicator, #keyboard-tonic-indicator {
@@ -581,7 +650,7 @@ wheel .note {
 }
 
 
-/* Toggles Panel */
+/* TOGGLES STUFF */
 #toggles-panel {
     position: absolute;
     top: 250px;

@@ -38,6 +38,7 @@ export class Wheel {
         this.svg.setAttribute("height", 300);
         this.svg.setAttribute("viewBox", "-150 -150 300 300");
         this.svg.setAttribute("z-index", "5");
+        this.svg.setAttribute("id", "wheel-svg");
         
         const background = document.createElementNS("http://www.w3.org/2000/svg", "rect");
         background.setAttribute("x", "-150");
