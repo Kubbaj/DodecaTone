@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
     <header>
         <h1><u>DodecaTone (4.0)</u></h1>
@@ -17,117 +19,119 @@
             <div id="tonic-selector">
                 <label for="current-tonic"><b>TONIC:</b></label>
                 <div id="tonic-controls">
-                    <button id="decrease-tonic" class="tonic-arrow-button">
-                        <img src="resources/wideArrowL.png" alt="Decrease tonic" class="tonic-arrow">
-                    </button>
+                    <svg id="decrease-tonic" class="tonic-arrow curved-arrow" width="500" height="500" viewBox="80 30 300 300" xmlns="http://www.w3.org/2000/svg">
+                        <path class="arrow-fill" d="M330.67 58.883A472.5 472.5 0 0 0 127.665 209.1l-23.64 -18.47 11.632 94.75 94.75 -11.635 -23.643 -18.47a397.5 397.5 0 0 1 170.782 -126.375Z" stroke="#333333" stroke-width="2"/>
+                      </svg>
                     <div id="tonic-display-container">
                         <span id="current-tonic">C</span>
                     </div>
-                    <button id="increase-tonic" class="tonic-arrow-button">
-                        <img src="resources/wideArrowR.png" alt="Increase tonic" class="tonic-arrow">
-                    </button>
+                    <svg id="increase-tonic" class="tonic-arrow curved-arrow" width="500" height="500" viewBox="80 30 300 300" xmlns="http://www.w3.org/2000/svg">
+                        <path class="arrow-fill" d="M330.67 58.883A472.5 472.5 0 0 0 127.665 209.1l-23.64 -18.47 11.632 94.75 94.75 -11.635 -23.643 -18.47a397.5 397.5 0 0 1 170.782 -126.375Z" stroke="#333333" stroke-width="2"/>
+                      </svg>
                 </div>
             </div>
         </div>
 
         <div id="keyboard-area">
-            <button id="decrease-tonic-2" class="tonic-arrow-button">
-                <img src="resources/wideArrowL.png" alt="Decrease tonic" class="tonic-arrow">
-            </button>
-        <div id="keyboard-window">
-            <select id="pattern-select">
-                <option value="none">(SELECT A PATTERN)</option>
-                <optgroup label="Regulars">
-                    <option value="regulars.one">1:Chromatic</option>
-                    <option value="regulars.two">2:Whole Tone</option>
-                    <option value="regulars.three">3:Diminished</option>
-                    <option value="regulars.four">4:Augmented</option>
-                    <option value="regulars.five">5:Fourths</option>
-                    <option value="regulars.six">6:Tritone</option>
-                    <option value="regulars.thirdsFull">4,3:Thirds</option>
-                </optgroup>
-                <optgroup label="Scales">
-                    <option value="scales.chromatic">Chromatic</option>
-                    <option value="scales.major">Major Scale</option>
-                    <option value="scales.minor">Natural Minor Scale</option>
-                    <option value="scales.harmonicMinor">Harmonic Minor</option>
-                    <option value="scales.melodicMinor">Melodic Minor</option>
-                    <option value="scales.pentatonicMajor">Major Pentatonic</option>
-                    <option value="scales.pentatonicMinor">Minor Pentatonic</option>
-                    <option value="scales.blues">Blues</option>
-                    <option value="scales.wholeTone">Whole Tone</option>
-                    <option value="scales.dimWH">Dim:Whole/Half</option>
-                    <option value="scales.dimHW">Dim:Half/Whole</option>
-                    <option value="scales.augmented">Augmented Scale</option>
-                    <option value="scales.sixthDim">6th Dim (Bebop)</option>
-                    <option value="scales.dorianBebop">Dorian (Bebop)</option>
-                    <option value="scales.melodicBebop">Melodic (Bebop)</option>
-                    <option value="scales.harmonicBebop">Harmonic (Bebop)</option>
-                    <option value="scales.dominantBebop">Dominant (Bebop)</option>
-                    <option value="scales.altered">Altered Scale</option>
-                </optgroup>
-                <optgroup label="Exotic Scales">
-                    <option value="exoticScales.harmonicMajor">Harmonic Major</option>
-                    <option value="exoticScales.doubleHarmonic">Double Harmonic</option>
-                    <option value="exoticScales.prometheus">Prometheus</option>
-                    <option value="exoticScales.egyptian">Egyptian</option>
-                    <option value="exoticScales.hirajoshi">Hirajoshi</option>
-                    <option value="exoticScales.neapolitanMinor">Neapolitan Minor</option>
-                    <option value="exoticScales.neapolitanMajor">Neapolitan Major</option>
-                    <option value="exoticScales.arabian">Arabian</option>
-                    <option value="exoticScales.balinese">Balinese</option>
-                    <option value="exoticScales.charhargan">Charhargan</option>
-                    <option value="exoticScales.kurdish">Kurdish</option>
-                    <option value="exoticScales.spanish">Spanish/Gypsy</option>
-                    <option value="exoticScales.hungarian">Hungarian</option>
-                </optgroup>
-                <optgroup label="Chords">
-                    <option value="chords.major">Major Triad</option>
-                    <option value="chords.minor">Minor Triad</option>
-                    <option value="chords.diminished">Diminished Triad</option>
-                    <option value="chords.augmented">Augmented Triad</option>
-                    <option value="chords.sus2">Sus2</option>
-                    <option value="chords.sus4">Sus4</option>
-                    <option value="chords.major7">Major 7th</option>
-                    <option value="chords.minor7">Minor 7th</option>
-                    <option value="chords.dominant7">Dominant 7th</option>
-                    <option value="chords.diminished7">Diminished 7th</option>
-                    <option value="chords.halfDiminished7">Half-Diminished 7th</option>
-                </optgroup>
-                <optgroup label="Extended Chords">
-                    <option value="extChords.minor13">Minor 13</option>
-                    <option value="extChords.major13sh11">Major 13 (#11)</option>
-                    <option value="extChords.dom13">Dominant 13</option>
-                    <option value="extChords.dom13fl9">Dom13(b9)</option>
-                    <option value="extChords.dom13fl9sh11">Dom13(b9#11)</option>
-                </optgroup>
-                <optgroup label="Modes">
-                    <option value="modes.ionian">Ionian</option>
-                    <option value="modes.dorian">Dorian</option>
-                    <option value="modes.phrygian">Phrygian</option>
-                    <option value="modes.lydian">Lydian</option>
-                    <option value="modes.mixolydian">Mixolydian</option>
-                    <option value="modes.aeolian">Aeolian</option>
-                    <option value="modes.locrian">Locrian</option>
-                </optgroup>
-            </select>
-            <button id="shift-pattern-left" class="shift-pattern-button">
-                <img src="resources/thinArrowL.png" alt="Shift pattern left" class="pattern-shift-arrow">
-            </button>
-            <div id="bracket-window">
-                <div id="bracket-svg-container"></div>
+            <svg id="decrease-tonic-2" class="tonic-arrow straight-arrow" width="200" height="200" viewBox="20 100 100 100" xmlns="http://www.w3.org/2000/svg">
+                <path class="arrow-fill" d="M 95.28418597154361 135 L 62.88612887243036 135 L 62.88612887243036 123 L 35.88612887243036 150 L 62.88612887243036 177 L 62.88612887243036 165 L 95.28418597154361 165Z" stroke="#333333" stroke-width="1"></path>
+              </svg>
+            <div id="keyboard-window">
+                <select id="pattern-select">
+                    <option value="none">(SELECT A PATTERN)</option>
+                    <optgroup label="Regulars">
+                        <option value="regulars.one">1:Chromatic</option>
+                        <option value="regulars.two">2:Whole Tone</option>
+                        <option value="regulars.three">3:Diminished</option>
+                        <option value="regulars.four">4:Augmented</option>
+                        <option value="regulars.five">5:Fourths</option>
+                        <option value="regulars.six">6:Tritone</option>
+                        <option value="regulars.thirdsFull">4,3:Thirds</option>
+                    </optgroup>
+                    <optgroup label="Scales">
+                        <option value="scales.chromatic">Chromatic</option>
+                        <option value="scales.major">Major Scale</option>
+                        <option value="scales.minor">Natural Minor Scale</option>
+                        <option value="scales.harmonicMinor">Harmonic Minor</option>
+                        <option value="scales.melodicMinor">Melodic Minor</option>
+                        <option value="scales.pentatonicMajor">Major Pentatonic</option>
+                        <option value="scales.pentatonicMinor">Minor Pentatonic</option>
+                        <option value="scales.blues">Blues</option>
+                        <option value="scales.wholeTone">Whole Tone</option>
+                        <option value="scales.dimWH">Dim:Whole/Half</option>
+                        <option value="scales.dimHW">Dim:Half/Whole</option>
+                        <option value="scales.augmented">Augmented Scale</option>
+                        <option value="scales.sixthDim">6th Dim (Bebop)</option>
+                        <option value="scales.dorianBebop">Dorian (Bebop)</option>
+                        <option value="scales.melodicBebop">Melodic (Bebop)</option>
+                        <option value="scales.harmonicBebop">Harmonic (Bebop)</option>
+                        <option value="scales.dominantBebop">Dominant (Bebop)</option>
+                        <option value="scales.altered">Altered Scale</option>
+                    </optgroup>
+                    <optgroup label="Exotic Scales">
+                        <option value="exoticScales.harmonicMajor">Harmonic Major</option>
+                        <option value="exoticScales.doubleHarmonic">Double Harmonic</option>
+                        <option value="exoticScales.prometheus">Prometheus</option>
+                        <option value="exoticScales.egyptian">Egyptian</option>
+                        <option value="exoticScales.hirajoshi">Hirajoshi</option>
+                        <option value="exoticScales.neapolitanMinor">Neapolitan Minor</option>
+                        <option value="exoticScales.neapolitanMajor">Neapolitan Major</option>
+                        <option value="exoticScales.arabian">Arabian</option>
+                        <option value="exoticScales.balinese">Balinese</option>
+                        <option value="exoticScales.charhargan">Charhargan</option>
+                        <option value="exoticScales.kurdish">Kurdish</option>
+                        <option value="exoticScales.spanish">Spanish/Gypsy</option>
+                        <option value="exoticScales.hungarian">Hungarian</option>
+                    </optgroup>
+                    <optgroup label="Chords">
+                        <option value="chords.major">Major Triad</option>
+                        <option value="chords.minor">Minor Triad</option>
+                        <option value="chords.diminished">Diminished Triad</option>
+                        <option value="chords.augmented">Augmented Triad</option>
+                        <option value="chords.sus2">Sus2</option>
+                        <option value="chords.sus4">Sus4</option>
+                        <option value="chords.major7">Major 7th</option>
+                        <option value="chords.minor7">Minor 7th</option>
+                        <option value="chords.dominant7">Dominant 7th</option>
+                        <option value="chords.diminished7">Diminished 7th</option>
+                        <option value="chords.halfDiminished7">Half-Diminished 7th</option>
+                    </optgroup>
+                    <optgroup label="Extended Chords">
+                        <option value="extChords.minor13">Minor 13</option>
+                        <option value="extChords.major13sh11">Major 13 (#11)</option>
+                        <option value="extChords.dom13">Dominant 13</option>
+                        <option value="extChords.dom13fl9">Dom13(b9)</option>
+                        <option value="extChords.dom13fl9sh11">Dom13(b9#11)</option>
+                    </optgroup>
+                    <optgroup label="Modes">
+                        <option value="modes.ionian">Ionian</option>
+                        <option value="modes.dorian">Dorian</option>
+                        <option value="modes.phrygian">Phrygian</option>
+                        <option value="modes.lydian">Lydian</option>
+                        <option value="modes.mixolydian">Mixolydian</option>
+                        <option value="modes.aeolian">Aeolian</option>
+                        <option value="modes.locrian">Locrian</option>
+                    </optgroup>
+                </select>
+                <button id="shift-pattern-left" class="shift-pattern-button">
+                    <img src="resources/thinArrowL.png" alt="Shift pattern left" class="pattern-shift-arrow">
+                </button>
+                <div id="bracket-window">
+                    <div id="bracket-svg-container"></div>
+                </div>
+                <button id="shift-pattern-right" class="shift-pattern-button">
+                    <img src="resources/thinArrowR.png" alt="Shift pattern right" class="pattern-shift-arrow">
+                </button>
+                <div id="keyboard-container">
+                    <!-- Keyboard will be inserted here by JavaScript -->
+                </div>
             </div>
-            <button id="shift-pattern-right" class="shift-pattern-button">
-                <img src="resources/thinArrowR.png" alt="Shift pattern right" class="pattern-shift-arrow">
-            </button>
-            <div id="keyboard-container">
-                <!-- Keyboard will be inserted here by JavaScript -->
-            </div>
+
+            <svg id="increase-tonic-2" class="tonic-arrow straight-arrow" width="200" height="200" viewBox="20 100 100 100" xmlns="http://www.w3.org/2000/svg">
+                <path class="arrow-fill" d="M 95.28418597154361 135 L 62.88612887243036 135 L 62.88612887243036 123 L 35.88612887243036 150 L 62.88612887243036 177 L 62.88612887243036 165 L 95.28418597154361 165Z" stroke="#333333" stroke-width="1"></path>
+              </svg>
+
         </div>
-        <button id="increase-tonic-2" class="tonic-arrow-button">
-            <img src="resources/wideArrowR.png" alt="Increase tonic" class="tonic-arrow">
-        </button>
-    </div>
 
         <div id="wheel-container" class="wheel">
             <button id="prev-layout" class="layout-button">
@@ -139,11 +143,11 @@
             <!-- Wheel will be inserted here by JavaScript -->
             <div id="play-button-container">
                 <svg id="play-pattern-button" width="40" height="40" viewBox="0 0 60 60" style="display: none;">
-                  <circle cx="30" cy="30" r="30" fill="#555555"/>
-                  <path d="M25,20 L25,40 L40,30 Z" fill="white"/>
+                    <circle cx="30" cy="30" r="30" fill="#555555" />
+                    <path d="M25,20 L25,40 L40,30 Z" fill="white" />
                 </svg>
-              </div>
-              <button id="next-layout" class="layout-button">
+            </div>
+            <button id="next-layout" class="layout-button">
                 <span class="button-text top">From</span>
                 <img src="resources/Chr-5ths.png" alt="Next Layout">
                 <span class="button-text bottom">To</span>
@@ -181,4 +185,5 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <script type="module" src="app.js"></script>
 </body>
+
 </html>

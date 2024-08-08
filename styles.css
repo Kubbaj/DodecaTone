@@ -1,5 +1,8 @@
 :root {
-    --theme-color: #555555; /* Default theme color */
+    --theme-color: #555555;
+    --svg-fill-color: #555555;
+    --svg-hover-color: #666666;
+    --svg-active-color: #777777;
 }
 
 /* General Styles */
@@ -39,38 +42,82 @@ h1 {
     order: 2;
   }
 
-#tonic-selector {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 130px; /* Adjust as needed */
-    height: 85px;
+  #tonic-selector {
     position: absolute;
+    width: 130px;
+    height: 85px;
     left: 50%;
     transform: translateX(-50%);
-  }
-
-.tonic-arrow-button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
 .tonic-arrow {
-    width: 15px; /* Adjust based on your image size */
-    height: 60px; /* Adjust based on your image size */
+    filter: drop-shadow(0 2px 2px rgba(0,0,0,0.2));
+    transition: fill 0.3s ease, transform 0.3s ease;
+    cursor: pointer;
+    position: absolute;
+    top: 50%;
 }
 
+.tonic-arrow .arrow-fill {
+    fill: var(--svg-fill-color);
+    transition: fill 0.3s ease;
+  }
+  
+  .tonic-arrow:hover .arrow-fill {
+    fill: var(--svg-hover-color);
+  }
+  
+  .tonic-arrow:active .arrow-fill {
+    fill: var(--svg-active-color);
+  }
+
+.curved-arrow {
+    width: 160px;
+    height: 160px;
+}
+
+.straight-arrow {
+    width: 115px;
+    height: 115px;
+}
+
+#decrease-tonic {
+    position: absolute;
+    left: -160px;
+    transform: translateY(-25%);
+}
+
+#decrease-tonic:hover {
+    filter: drop-shadow(0 4px 4px rgba(0,0,0,0.3));
+    transform: translateY(-28%);
+}
+
+#decrease-tonic:active {
+    transform: translateY(-24%);
+}
+
+#increase-tonic {
+    right: -160px;
+    transform: translateY(-25%) scaleX(-1);
+}
+
+#increase-tonic:hover {
+    filter: drop-shadow(0 4px 4px rgba(0,0,0,0.3));
+    transform: translateY(-28%) scaleX(-1);
+}
+
+#increase-tonic:active {
+    transform: translateY(-24%) scaleX(-1);
+}
 
 #tonic-display-container {
-    width: 50px; /* Adjust as needed */
+    width: 50px;
     text-align: center;
     margin: 5px 15px;
-  }
+}
 
 #current-tonic {
     position: relative;
@@ -78,32 +125,6 @@ h1 {
     font-weight: bold;
     text-align: center;
     top: 5px;
-}
-  
-  #tonic-controls {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 35px;
-}
-
-#decrease-tonic,
-#increase-tonic {
-    background-color: #555555;
-    font-size: 16px;
-    width: 25px;
-    height: 80px;
-    padding: 0;
-    border-radius: 5px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border: none;
-    cursor: pointer;
-    border-radius: 5px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2), 
-                0 -2px 4px rgba(255,255,255,0.1) inset;
-    transition: all 0.3s ease;
 }
 
 #keyboard-area {
@@ -117,68 +138,53 @@ h1 {
 #decrease-tonic-2,
 #increase-tonic-2 {
     position: absolute;
-    background-color: #555555;
-    width: 30px;
-    height: 120px;
     top: 75px;
-    border-radius: 5px;
+    fill: var(--svg-fill-color);
+    transition: fill 0.3s ease, transform 0.3s ease;
     cursor: pointer;
-    border-radius: 5px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2), 
-                0 -2px 4px rgba(255,255,255,0.1) inset;
-    transition: all 0.3s ease;
 }
 
 #decrease-tonic-2 {
-    left: 10px;
+    left: -50px;
+    transform: translateY(0);
 }
 
 #increase-tonic-2 {
-    right: 10px;
-}
-
-#decrease-tonic-2 img,
-#increase-tonic-2 img {
-    width: 20px;
-    height: 90px;
-}
-
-
-#decrease-tonic-2,
-#increase-tonic-2,
-#decrease-tonic,
-#increase-tonic {
-    transition: all 0.3s ease;
+    right: -50px;
+    transform: scaleX(-1) translateY(0);
 }
 
 #decrease-tonic-2:hover,
-#increase-tonic-2:hover,
-#decrease-tonic:hover,
-#increase-tonic:hover {
-    background-color: #666666;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.3), 
-                0 -2px 4px rgba(255,255,255,0.2) inset;
-    transform: translateY(-3%);  /* Slight lift on hover */
+#increase-tonic-2:hover {
+    filter: drop-shadow(0 4px 4px rgba(0,0,0,0.3));
+    fill: var(--svg-hover-color);
+}
+
+#decrease-tonic-2:hover {
+    transform: translateY(-3%);
+}
+
+#increase-tonic-2:hover {
+    transform: scaleX(-1) translateY(-3%);
 }
 
 #decrease-tonic-2:active,
-#increase-tonic-2:active,
-#decrease-tonic:active,
-#increase-tonic:active {
-    background-color: #777777;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.2), 
-                0 -1px 2px rgba(255,255,255,0.1) inset;
-    transform: translateY(1%);  /* Slight press effect */
+#increase-tonic-2:active {
+    fill: var(--svg-active-color);
+}
+
+#decrease-tonic-2:active {
+    transform: translateY(1%);
+}
+
+#increase-tonic-2:active {
+    transform: scaleX(-1) translateY(1%);
 }
 
 .select-group, #tonic-selector {
     display: flex;
     flex-direction: column;
     align-items: center;
-}
-
-.select-group label, #tonic-selector label {
-    margin-bottom: 5px;
 }
 
 .select-group {
