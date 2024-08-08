@@ -53,6 +53,7 @@
             width: 50px;
             height: 30px;
         }
+        
     </style>
 </head>
 <body>
@@ -296,6 +297,65 @@ updateArrows();
 document.querySelectorAll('input').forEach(input => {
     input.addEventListener('input', updateArrows);
 });
+
+// Function to generate SVG for a single arrow
+function generateArrowSVG(d, fill, stroke) {
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+  svg.setAttribute("width", "100");
+  svg.setAttribute("height", "100");
+  svg.setAttribute("viewBox", "0 0 100 100");
+
+  const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  path.setAttribute("d", d);
+  path.setAttribute("fill", fill);
+  path.setAttribute("stroke", stroke);
+
+  svg.appendChild(path);
+  return svg;
+}
+
+// Function to download SVG
+function downloadSVG(svg, filename) {
+  const serializer = new XMLSerializer();
+  let source = serializer.serializeToString(svg);
+  
+  // Add namespace
+  if (!source.match(/^<svg[^>]+xmlns="http\:\/\/www\.w3\.org\/2000\/svg"/)) {
+    source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
+  }
+  
+  // Add XML declaration
+  source = '<?xml version="1.0" standalone="no"?>\r\n' + source;
+  
+  // Convert svg source to URI data scheme.
+  const url = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(source);
+  
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+// Add click event listeners to arrows
+function addArrowClickListeners() {
+  const arrowPaths = document.querySelectorAll("#linearArrows path, #circularArrows path");
+  arrowPaths.forEach((path, index) => {
+    path.style.cursor = "pointer";
+    path.addEventListener("click", () => {
+      const d = path.getAttribute("d");
+      const fill = path.getAttribute("fill");
+      const stroke = path.getAttribute("stroke");
+      const svg = generateArrowSVG(d, fill, stroke);
+      downloadSVG(svg, `arrow_${index + 1}.svg`);
+    });
+  });
+}
+
+// Call this function after your arrows are created
+addArrowClickListeners();
     </script>
 </body>
 
