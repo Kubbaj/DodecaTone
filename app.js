@@ -123,35 +123,35 @@ function changeTonic(direction) {
 
 // UPDATE PATTERN
 function updatePattern(newPatternValue) {
-    if (newPatternValue === 'none' || newPatternValue === '[]') {
-        currentPattern = [];
+    if (newPatternValue === 'none') {
+        currentPattern = 'none';
         pattern.updatePattern([]);
         keyboard.updatePatternHighlight([]);
         wheel.updatePatternHighlight([]);
     } else {
-        const [category, patternName] = newPatternValue.split('.');
-        const patternNotes = config[category][patternName];
+        const [category, patternName] = newPatternValue.split(/[\[\]]+/);
+        const patternNotes = config[category][patternName.replace(/"/g, '')];
 
         if (patternNotes) {
-            currentPattern = patternNotes;  // Store the current pattern
+            currentPattern = newPatternValue;  // Store the current pattern value
             pattern.updatePattern(patternNotes);
-            updatePatternForNewTonic(currentTonic, false);  // false indicates it's not a tonic change
+            updatePatternForNewTonic(currentTonic, false);
         } else {
             console.error(`Pattern not found: ${newPatternValue}`);
         }
     }
+
+    updatePatternDisplay(newPatternValue);
     const isPatternActive = newPatternValue !== 'none';
     document.getElementById('content-container').classList.toggle('pattern-active', isPatternActive);
 
-    updatePatternDisplay(newPatternValue);
     updateAllNoteStates();
 }
 
 function getAllPatterns() {
-    const patterns = [];
+    const patterns = ['none'];
     const selectItems = document.querySelectorAll('.select-subitem');
     selectItems.forEach(item => patterns.push(item.dataset.value));
-    console.log(patterns)
     return patterns;
 }
 
@@ -167,9 +167,9 @@ function changePattern(direction) {
     let newIndex;
 
     if (direction === 'next') {
-        newIndex = (currentIndex + 1) % allPatterns.length;
+        newIndex = (currentIndex - 1) % allPatterns.length;
     } else {
-        newIndex = (currentIndex - 1 + allPatterns.length) % allPatterns.length;
+        newIndex = (currentIndex + 1 + allPatterns.length) % allPatterns.length;
     }
 
     const newPattern = allPatterns[newIndex];
@@ -179,11 +179,11 @@ function changePattern(direction) {
 
 function updatePatternDisplay(patternValue) {
     const selectSelected = document.querySelector('.select-selected');
-    const selectedItem = document.querySelector(`.select-subitem[data-value="${patternValue}"]`);
-    if (selectedItem) {
-        selectSelected.textContent = selectedItem.textContent;
+    if (patternValue === 'none') {
+        selectSelected.textContent = '[NONE]';
     } else {
-        selectSelected.textContent = 'Select a pattern';
+        const [category, patternName] = patternValue.split(/[\[\]]+/);
+        selectSelected.textContent = patternName.replace(/"/g, '');
     }
 }
 
@@ -239,9 +239,7 @@ function populatePatternMenu() {
       'Intervals': config.intervals,
       'Regulars': config.regulars,
       'Scales': config.scales,
-      // 'Exotic Scales': config.exotics,
       'Triads': config.triads,
-      // 'Extendedchords': config.extendeds,
       'Modes': config.modes
     };
   
@@ -254,18 +252,17 @@ function populatePatternMenu() {
       submenu.className = 'submenu';
   
       for (const [patternName, pattern] of Object.entries(patternSet)) {
-        console.log(patternName, pattern);
         const patternDiv = document.createElement('div');
         patternDiv.className = 'select-subitem';
         patternDiv.textContent = patternName;
-        patternDiv.dataset.value = `${category.toLowerCase().replace(' ', '')}.${patternName}`;
+        patternDiv.dataset.value = `${category.toLowerCase()}["${patternName}"]`;
         submenu.appendChild(patternDiv);
       }
   
       categoryDiv.appendChild(submenu);
       selectItems.appendChild(categoryDiv);
     }
-  }
+}
 
 // Helper function to format tone notes consistently
 function formatToneNote(note, octave) {
@@ -284,6 +281,14 @@ function updateLayout(newLayout) {
         wheel.switchLayout(newLayout);
         updateAllNoteStates();
         updateLayoutButtons();
+    }
+}
+
+function triggerLayoutChange(direction) {
+    const transitions = layoutTransitions[currentLayout];
+    const newLayout = transitions[direction];
+    if (newLayout) {
+        updateLayout(newLayout);
     }
 }
 
@@ -552,26 +557,43 @@ function handleKeyboardShortcuts(event) {
         event.preventDefault();
     }
 
+    const isShiftPressed = event.shiftKey;
+    console.log(isShiftPressed)
     switch (event.key) {
         case 'ArrowLeft':
-            changeTonic('decrease');
+            if (isShiftPressed) {
+                pattern.shiftPattern('left');
+            } else {
+                changeTonic('decrease');
+            }
             break;
         case 'ArrowRight':
-            changeTonic('increase');
+            if (isShiftPressed) {
+                pattern.shiftPattern('right');
+            } else {
+                changeTonic('increase');
+            }
             break;
-        case 'ArrowUp':
-            changePattern('next');
-            break;
-        case 'ArrowDown':
-            changePattern('previous');
-            break;
+            case 'ArrowUp':
+                if (isShiftPressed) {
+                    changePattern('next');
+                } else {
+                    triggerLayoutChange('next');
+                }
+                break;
+            case 'ArrowDown':
+                if (isShiftPressed) {
+                    changePattern('previous');
+                } else {
+                    triggerLayoutChange('prev');
+                }
+                break;
         case 'Escape':
             updatePattern('none');
             break;
         case ' ': // Space key
             pattern.playPattern();
             break;
-        // Add more shortcuts as needed
-    }
+        }
 }
 export { playNote, stopNote, useColors, playNoteForDuration };
