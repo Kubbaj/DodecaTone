@@ -26,6 +26,8 @@ export class Pattern {
         }
         document.getElementById('shift-pattern-left').addEventListener('click', () => this.shiftPattern('left'));
         document.getElementById('shift-pattern-right').addEventListener('click', () => this.shiftPattern('right'));
+        document.getElementById('shift-pattern-left-curved').addEventListener('click', () => this.shiftPattern('left'));
+        document.getElementById('shift-pattern-right-curved').addEventListener('click', () => this.shiftPattern('right'));
     }
 
     updatePattern(patternNotes) {

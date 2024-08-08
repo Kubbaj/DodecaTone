@@ -32,9 +32,6 @@ h1 {
 
 
 
-
-
-
 /* KEYBOARD STUFF*/
 #keyboard-area {
     display: flex;
@@ -236,6 +233,7 @@ wheel .note {
     overflow: hidden;
     border-radius: 5px;
     border: 1px solid #2a2a2a;
+    transition: 0.3s ease;
     box-shadow: 
         inset 0 2px 4px rgba(0,0,0,0.5),
         0 1px 0 rgba(255,255,255,0.1);
@@ -250,22 +248,30 @@ wheel .note {
     height: 190px; /* Adjust based on your wheel size */
     border-radius: 50%;
     overflow: hidden;
-    /* pointer-events: none; /* Allow clicks to pass through to the wheel beneath */
     background-color: #222222;
-    z-index: 2;
+    z-index: 4;
+    transition: 0.3s ease;
     box-shadow: 
         inset 0 2px 4px rgba(0,0,0,0.5),
         0 1px 0 rgba(255,255,255,0.1);
 }
-
-#bracket-window, #polygon-window {
-    transition: background-color 0.3s ease;
-}
-
-#bracket-window:hover, #polygon-window:hover {
+  
+.pattern-active #bracket-window::after, #polygon-window::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     background-color: rgba(0, 0, 0, 0.5);
-}
-
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
+  
+  .pattern-active #bracket-window:hover::after, #polygon-window:hover::after {
+    opacity: 1;
+  }
 
 /* CONTROLS STUFF */
 #options-container {
@@ -315,8 +321,8 @@ wheel .note {
   }
 
 .curved-arrow {
-    width: 160px;
-    height: 160px;
+    width: 150px;
+    height: 150px;
 }
 
 .straight-arrow {
@@ -327,30 +333,30 @@ wheel .note {
 #decrease-tonic {
     position: absolute;
     left: -160px;
-    transform: translateY(-25%);
+    transform: translateY(-20%);
 }
 
 #decrease-tonic:hover {
     filter: drop-shadow(0 4px 4px rgba(0,0,0,0.3));
-    transform: translateY(-28%);
+    transform: translateY(-23%);
 }
 
 #decrease-tonic:active {
-    transform: translateY(-24%);
+    transform: translateY(-19%);
 }
 
 #increase-tonic {
     right: -160px;
-    transform: translateY(-25%) scaleX(-1);
+    transform: translateY(-20%) scaleX(-1);
 }
 
 #increase-tonic:hover {
     filter: drop-shadow(0 4px 4px rgba(0,0,0,0.3));
-    transform: translateY(-28%) scaleX(-1);
+    transform: translateY(-23%) scaleX(-1);
 }
 
 #increase-tonic:active {
-    transform: translateY(-24%) scaleX(-1);
+    transform: translateY(-19%) scaleX(-1);
 }
 
 #tonic-display-container {
@@ -477,7 +483,7 @@ input[type="checkbox"] {
     transition: opacity 0.3s ease, transform 0.3s ease;
     opacity: 0;
     pointer-events: none;
-    z-index: 10;
+    z-index: 6;
   }
   
   .pattern-active .pattern-shift-arrow {
@@ -485,8 +491,8 @@ input[type="checkbox"] {
     pointer-events: auto;
   }
   
-  .pattern-active #keyboard-area:hover .straight-arrow,
-  .pattern-active #wheel-container:hover .curved-arrow {
+  .pattern-active #bracket-window:hover .pattern-shift-arrow,
+  .pattern-active #polygon-window:hover .pattern-shift-arrow {
     opacity: 1;
   }
   
@@ -507,24 +513,28 @@ input[type="checkbox"] {
   
    
   #shift-pattern-left-curved {
-    top: 0%;
-    left: -50px;
+    top: 40%;
+    left: 30px;
     transform: translateY(-50%);
-    width: 50px;
-    height: 50px;
+    width: 40px;
+    height: 40px;
   }
   
   #shift-pattern-right-curved {
-    top: 42%;
-    right: 100px;
-    transform: translateY(-40%) scaleX(-1);
-    width: 50px;
-    height: 50px;
+    top: 40%;
+    right: 30px;
+    transform: translateY(-50%) scaleX(-1);
+    width: 40px;
+    height: 40px;
   }
   
   /* Hover effects */
   #shift-pattern-left:hover {
     transform: scale(1.1);
+  } 
+  
+  #shift-pattern-left-curved:hover {
+    transform: translateY(-50%) scale(1.1);
   }
   
   #shift-pattern-right:hover {
@@ -606,7 +616,7 @@ input[type="checkbox"] {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    z-index: 11; /* Above everything else */
+    z-index: 5; /* Above everything else */
 }
   
   #play-pattern-button {
