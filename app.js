@@ -8,6 +8,10 @@ import { Pattern } from './pattern.js';
 
 // Initialize Tone.js
 const synth = new Tone.PolySynth(Tone.Synth).toDestination();
+Tone.start().then(() => {
+    keepAudioContextAlive();
+    console.log('Audio is ready');
+});
 
 // Global state
 let currentLayout = 'chromatic';
@@ -376,22 +380,34 @@ function getNoteState(note, isActive = false) {
 
 // PLAYBACK
 
+function keepAudioContextAlive() {
+    const silentOscillator = new Tone.Oscillator().start();
+    silentOscillator.volume.value = -Infinity;  // Make it silent
+    silentOscillator.toDestination();
+}
+
 function getToneNote(note, octave) {
     const isBlackNote = note.includes('/');
     const baseTone = isBlackNote ? note.charAt(0) + '#' : note.charAt(0);
     return `${baseTone}${octave}`;
 }
 
-function playNote(toneNote) {
+async function playNote(toneNote) {
+    if (Tone.context.state !== 'running') {
+        await Tone.start();
+    }
     synth.triggerAttack(toneNote);
-    console.log("starting", toneNote)
-    updateNoteState(toneNote, true, currentOctave);  // Always set to active when playing
+    console.log("starting", toneNote);
+    updateNoteState(toneNote, true, currentOctave);
 }
 
-function stopNote(toneNote) {
+async function stopNote(toneNote) {
+    if (Tone.context.state !== 'running') {
+        await Tone.start();
+    }
     synth.triggerRelease(toneNote);
-    console.log("stopping", toneNote)
-    updateNoteState(toneNote, false, currentOctave);  // Always set to inactive when stopping
+    console.log("stopping", toneNote);
+    updateNoteState(toneNote, false, currentOctave);
 }
 
 function updateNoteState(toneNote, isActive) {

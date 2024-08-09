@@ -51,8 +51,9 @@ export class Wheel {
         this.notesGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
         this.patternGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
         
-        this.svg.appendChild(this.notesGroup);
         this.svg.appendChild(this.patternGroup);
+        this.svg.appendChild(this.notesGroup);
+        
         
         this.container.appendChild(this.svg);
     }
@@ -381,17 +382,32 @@ async switchLayout(newLayout) {
     animateLayoutSwitch(oldPositions, newPositions) {
         if (!this.animate) return Promise.resolve();
     
-        if ((this.currentLayout === 'fifths' && this.nextLayout === 'fourths') ||
-            (this.currentLayout === 'fourths' && this.nextLayout === 'fifths')) {
-            return this.animateFifthsFourthsSwitch(oldPositions, newPositions);
-        }
+        // Create a new div for our temporary elements
+        const tempContainer = document.createElement('div');
+        tempContainer.style.position = 'absolute';
+        tempContainer.style.top = '0';
+        tempContainer.style.left = '0';
+        tempContainer.style.width = '100%';
+        tempContainer.style.height = '100%';
+        tempContainer.style.zIndex = '1000'; // Ensure it's above other elements
+    
+        // Create a new SVG inside this div
+        const tempSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        tempSvg.setAttribute("width", "100%");
+        tempSvg.setAttribute("height", "100%");
+        tempSvg.setAttribute("viewBox", "-150 -150 300 300");
+        
+        tempContainer.appendChild(tempSvg);
+    
+        // Create temporary elements
+        const tempGroup = this.createTemporaryElements();
+        tempSvg.appendChild(tempGroup);
+    
+        // Add the temporary container to the wheel container
+        this.container.appendChild(tempContainer);
     
         // Hide real elements
         this.notesGroup.style.opacity = '0';
-    
-        const tempGroup = this.createTemporaryElements();
-        this.svg.appendChild(tempGroup);
-        this.svg.setAttribute("z-index", 2000);
     
         const animations = Array.from(tempGroup.children).map((tempElement, index) => {
             const oldPos = oldPositions.get(index);
@@ -410,15 +426,23 @@ async switchLayout(newLayout) {
                 { transform: `translate(${newX}px, ${newY}px)` }
             ], {
                 duration: 750,
-                // easing: 'ease-in-out',
                 fill: 'forwards'
             }).finished;
         });
     
         return Promise.all(animations).then(() => {
-            this.svg.removeChild(tempGroup);
+            // Remove the temporary container
+            this.container.removeChild(tempContainer);
+    
+            // Update positions of real elements
+            this.notePositions.forEach((position, noteId) => {
+                this.updateNotePosition(noteId);
+            });
+    
             // Show real elements
             this.notesGroup.style.opacity = '1';
         });
     }
+
+   
 }
