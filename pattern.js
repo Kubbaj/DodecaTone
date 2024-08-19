@@ -74,7 +74,13 @@ createPatternSvg() {
 }
     
 async animatePatternTransition(oldLayout, newLayout) {
-    if (!this.animate || this.currentPattern.length === 0) return;
+    if (!this.currentPattern.length) return;
+
+    if (!this.animate) {
+        // Instantly update the polygon without animation
+        this.drawPatternPolygon();
+        return;
+    }
 
     const originalPolygon = this.patternSvg.querySelector('polygon');
     originalPolygon.style.display = 'none';  // Hide the original polygon
@@ -107,8 +113,7 @@ calculatePolygonPoints(layout) {
 
     // Calculate points for all 12 positions
     const allPoints = Array(12).fill().map((_, i) => {
-        const noteIndex = (i + tonicIndex) % 12;
-        const notePosition = layout[noteIndex];
+        const notePosition = layout[i];
         const angle = (notePosition * 30) * (Math.PI / 180) - Math.PI / 2;
         const x = Math.cos(angle) * polygonRadius;
         const y = Math.sin(angle) * polygonRadius;
@@ -228,28 +233,39 @@ interpolatePoints(startPoints, endPoints, progress) {
 
     this.keyboard.updatePatternHighlight(playableToneNotes);
     }
+
+    getRotationAngleForLayout() {
+        switch (this.wheel.currentLayout) {
+            case 'fifths':
+                return -150;
+            case 'fourths':
+                return 150;
+            default: // chromatic
+                return 30;
+        }
+    }
     
     async animatePolygon(direction, shiftAmount) {
-        const tempPolygon = this.patternSvg.querySelector('polygon').cloneNode(true);
-        this.patternSvg.appendChild(tempPolygon);
-    
-        const originalPolygon = this.patternSvg.querySelector('polygon');
-        originalPolygon.style.opacity = '0';
-    
-        const duration = 450; // milliseconds
-        const steps = 60; // For smoother animation
-        const totalRotation = shiftAmount * 30; // 30 degrees per step
-        const rotationPerStep = totalRotation / steps;
-    
-        for (let i = 0; i <= steps; i++) {
-            const rotation = i * rotationPerStep * (direction === 'right' ? -1 : 1);
-            tempPolygon.setAttribute('transform', `rotate(${rotation})`);
-            await new Promise(resolve => setTimeout(resolve, duration / steps));
-        }
-    
-        this.patternSvg.removeChild(tempPolygon);
-        originalPolygon.style.opacity = '1';
+    const tempPolygon = this.patternSvg.querySelector('polygon').cloneNode(true);
+    this.patternSvg.appendChild(tempPolygon);
+
+    const originalPolygon = this.patternSvg.querySelector('polygon');
+    originalPolygon.style.opacity = '0';
+
+    const duration = 450; // milliseconds
+    const steps = 60; // For smoother animation
+    const rotationPerStep = this.getRotationAngleForLayout();
+    const totalRotation = (shiftAmount * rotationPerStep) % 360;
+
+    for (let i = 0; i <= steps; i++) {
+        const rotation = i * (totalRotation / steps) * (direction === 'right' ? -1 : 1);
+        tempPolygon.setAttribute('transform', `rotate(${rotation})`);
+        await new Promise(resolve => setTimeout(resolve, duration / steps));
     }
+
+    this.patternSvg.removeChild(tempPolygon);
+    originalPolygon.style.opacity = '1';
+}
 
 // PLAYBACK FUNCTIONS
 
