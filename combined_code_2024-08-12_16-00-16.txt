@@ -1,0 +1,3455 @@
+
+
+// File: app.js
+
+// app.js
+
+import * as config from './config.js';
+import { Wheel } from './wheel.js';
+import { Keyboard } from './keyboard.js';
+import { TonicIndicators } from './tonicIndicators.js';
+import { Pattern } from './pattern.js';
+
+// Initialize Tone.js
+const synth = new Tone.PolySynth(Tone.Synth).toDestination();
+Tone.start().then(() => {
+    keepAudioContextAlive();
+    console.log('Audio is ready');
+});
+
+// Global state
+let currentLayout = 'chromatic';
+let currentPattern = 'none';
+let currentTonic = 'C';
+let useSharps = false;
+let useColors = false;
+let animate = false;
+let currentlyPlayingNote = null;
+let currentTonicDisplay = 'C';
+let autoplayTonic = true;
+let currentOctave = 4;
+let isMouseDown = false;
+let lastPlayedNote = null;
+
+const layoutTransitions = {
+    chromatic: { next: 'fifths', prev: 'fourths' },
+    fifths: { next: 'fourths', prev: 'chromatic' },
+    fourths: { next: 'chromatic', prev: 'fifths' }
+};
+
+const layoutIcons = {
+    chromatic: { next: 'Chr-5ths.png', prev: 'Chr-4ths.png' },
+    fifths: { next: '5ths-4ths.png', prev: '5ths-Chr.png' },
+    fourths: { next: '4ths-Chr.png', prev: '4ths-5ths.png' }
+};
+
+// Initialize components
+const wheelContainer = document.getElementById('wheel-container');
+const keyboardWindow = document.getElementById('keyboard-window');
+const tonicIndicators = new TonicIndicators(wheelContainer, keyboardWindow, useColors);
+tonicIndicators.toggleVisibility(false);
+
+const wheel = new Wheel(wheelContainer, animate);
+const keyboardContainer = document.getElementById('keyboard-container');
+const keyboard = new Keyboard(keyboardContainer, animate);
+const pattern = new Pattern(keyboard, wheel, animate);
+wheel.pattern = pattern;
+
+// UPDATE TONIC
+
+function updateTonicDisplay() {
+    const currentTonicDisplay = document.getElementById('current-tonic');
+    if (currentTonicDisplay) {
+        currentTonicDisplay.textContent = config.getNoteDisplay(currentTonic, useSharps);
+    }
+}
+
+function setTonic(newTonic) {
+    if (config.notes.includes(newTonic)) {
+        const oldIndex = config.notes.indexOf(currentTonic);
+        const newIndex = config.notes.indexOf(newTonic);
+        
+        if (currentTonic === 'C' && newTonic === 'B' && currentOctave === 4) {
+            currentOctave = 3;
+        } else if (currentTonic === 'B' && newTonic === 'C' && currentOctave === 3) {
+            currentOctave = 4;
+        } else if (currentTonic === 'C' && newTonic === 'B' && currentOctave === 3) {
+            currentOctave = 4;
+        } else if (currentTonic === 'B' && newTonic === 'C' && currentOctave === 4) {
+            currentOctave = 3;
+        }
+
+        currentTonic = newTonic;
+        console.log(`Tonic changed to: ${currentTonic}, Octave: ${currentOctave}`);
+        updateTonicDisplay();
+        wheel.rotateTonic(newTonic, currentOctave);
+        keyboard.translateToTonic(newTonic, currentOctave);
+        updateAllNoteStates();
+
+        // Add this line:
+        updatePatternForNewTonic(newTonic, true);
+
+        if (autoplayTonic) {
+            const toneNote = getToneNote(newTonic, currentOctave);
+            
+            const delay = animate ? 450 : 0;
+            
+            setTimeout(() => {
+                playNoteForDuration(toneNote);
+            }, delay);
+        }
+    }
+}
+
+function initTonicPicker() {
+    const decreaseButton = document.getElementById('decrease-tonic');
+    const increaseButton = document.getElementById('increase-tonic');
+    const decreaseTonic2Button = document.getElementById('decrease-tonic-2');
+    const increaseTonic2Button = document.getElementById('increase-tonic-2');
+
+    decreaseButton.addEventListener('click', () => changeTonic('decrease'));
+    increaseButton.addEventListener('click', () => changeTonic('increase'));
+    decreaseTonic2Button.addEventListener('click', () => changeTonic('decrease'));
+    increaseTonic2Button.addEventListener('click', () => changeTonic('increase'));
+
+    // Initialize display
+    updateTonicDisplay();
+}
+
+function changeTonic(direction) {
+    const currentIndex = config.notes.indexOf(currentTonic);
+    let newIndex;
+    if (direction === 'increase') {
+        newIndex = (currentIndex + 1) % config.notes.length;
+    } else {
+        newIndex = (currentIndex - 1 + config.notes.length) % config.notes.length;
+    }
+    setTonic(config.notes[newIndex]);
+    pattern.drawPatternPolygon();
+}
+
+
+// UPDATE PATTERN
+function updatePattern(newPatternValue) {
+    if (newPatternValue === 'none') {
+        currentPattern = 'none';
+        pattern.updatePattern([]);
+        keyboard.updatePatternHighlight([]);
+        wheel.updatePatternHighlight([]);
+    } else {
+        const [category, patternName] = newPatternValue.split(/[\[\]]+/);
+        const patternNotes = config[category][patternName.replace(/"/g, '')];
+
+        if (patternNotes) {
+            currentPattern = newPatternValue;  // Store the current pattern value
+            pattern.updatePattern(patternNotes);
+            updatePatternForNewTonic(currentTonic, false);
+        } else {
+            console.error(`Pattern not found: ${newPatternValue}`);
+        }
+    }
+
+    updatePatternDisplay(newPatternValue);
+    const isPatternActive = newPatternValue !== 'none';
+    document.getElementById('content-container').classList.toggle('pattern-active', isPatternActive);
+
+    updateAllNoteStates();
+}
+
+function getAllPatterns() {
+    const patterns = ['none'];
+    const selectItems = document.querySelectorAll('.select-subitem');
+    selectItems.forEach(item => patterns.push(item.dataset.value));
+    return patterns;
+}
+
+function getCurrentPatternIndex() {
+    const allPatterns = getAllPatterns();
+    console.log(allPatterns.indexOf(currentPattern))
+    return allPatterns.indexOf(currentPattern);
+}
+
+function changePattern(direction) {
+    const allPatterns = getAllPatterns();
+    const currentIndex = getCurrentPatternIndex();
+    let newIndex;
+
+    if (direction === 'next') {
+        newIndex = (currentIndex - 1) % allPatterns.length;
+    } else {
+        newIndex = (currentIndex + 1 + allPatterns.length) % allPatterns.length;
+    }
+
+    const newPattern = allPatterns[newIndex];
+    updatePattern(newPattern);
+    updatePatternDisplay(newPattern);
+}
+
+function updatePatternDisplay(patternValue) {
+    const selectSelected = document.querySelector('.select-selected');
+    if (patternValue === 'none') {
+        selectSelected.textContent = '[NONE]';
+    } else {
+        const [category, patternName] = patternValue.split(/[\[\]]+/);
+        selectSelected.innerHTML = patternName.replace(/"/g, '');
+    }
+}
+
+function updatePatternForNewTonic(newTonic, isTonicChange = false) {
+    const currentPattern = pattern.getCurrentPattern();
+    if (currentPattern && currentPattern.length > 0) {
+        const tonicIndex = config.notes.indexOf(newTonic);
+        const adjustedPattern = currentPattern.map(interval => 
+            (interval + tonicIndex) % 12
+        );
+        
+        // Calculate the new octave
+        let newOctave = currentOctave;
+        if (isTonicChange) {
+            if (newTonic === 'C' && currentTonic === 'B') newOctave++;
+            else if (newTonic === 'B' && currentTonic === 'C') newOctave--;
+        }
+
+        const playableToneNotes = adjustedPattern.map(noteIndex => {
+            const note = config.notes[noteIndex];
+            const octave = noteIndex < tonicIndex ? newOctave + 1 : newOctave;
+            return formatToneNote(note, octave);
+        });
+
+        // Add the top note (one octave above the tonic)
+        playableToneNotes.push(formatToneNote(newTonic, newOctave + 1));
+
+        console.log("Playable tone notes:", playableToneNotes);
+
+        wheel.updatePatternHighlight(adjustedPattern);
+
+        if (isTonicChange && animate) {
+            setTimeout(() => {
+                keyboard.updatePatternHighlight(playableToneNotes);
+            }, 500);
+        } else {
+            keyboard.updatePatternHighlight(playableToneNotes);
+        }
+    }
+}
+
+function populatePatternMenu() {
+    const selectItems = document.querySelector('#pattern-select .select-items');
+    
+    // Add [NONE] option
+    const noneOption = document.createElement('div');
+    noneOption.className = 'select-item none-option';
+    noneOption.textContent = '[NONE]';
+    noneOption.dataset.value = 'none';
+    selectItems.appendChild(noneOption);
+  
+    const patterns = {
+      'Intervals': config.intervals,
+      'Regulars': config.regulars,
+      'Scales': config.scales,
+      'Triads': config.triads,
+      'Modes': config.modes
+    };
+  
+    for (const [category, patternSet] of Object.entries(patterns)) {
+      const categoryDiv = document.createElement('div');
+      categoryDiv.className = 'select-item';
+      categoryDiv.textContent = category;
+  
+      const submenu = document.createElement('div');
+      submenu.className = 'submenu';
+  
+      for (const [patternName, pattern] of Object.entries(patternSet)) {
+        const patternDiv = document.createElement('div');
+        patternDiv.className = 'select-subitem';
+        patternDiv.innerHTML = patternName;
+        patternDiv.dataset.value = `${category.toLowerCase()}["${patternName}"]`;
+        submenu.appendChild(patternDiv);
+      }
+  
+      categoryDiv.appendChild(submenu);
+      selectItems.appendChild(categoryDiv);
+    }
+}
+
+// Helper function to format tone notes consistently
+function formatToneNote(note, octave) {
+    if (note.includes('/')) {
+        return `${note.split('/')[0].replace('♯', '#')}${octave}`;
+    }
+    return `${note}${octave}`;
+}
+
+
+// UPDATE LAYOUT
+
+function updateLayout(newLayout) {
+    if (config.layouts.hasOwnProperty(newLayout)) {
+        currentLayout = newLayout;
+        wheel.switchLayout(newLayout);
+        updateAllNoteStates();
+        updateLayoutButtons();
+    }
+}
+
+function triggerLayoutChange(direction) {
+    const transitions = layoutTransitions[currentLayout];
+    const newLayout = transitions[direction];
+    if (newLayout) {
+        updateLayout(newLayout);
+    }
+}
+
+function updateLayoutButtons() {
+    const prevButton = document.getElementById('prev-layout');
+    const nextButton = document.getElementById('next-layout');
+    
+    const transitions = layoutTransitions[currentLayout];
+    const icons = layoutIcons[currentLayout];
+    
+    if (transitions.prev) {
+        prevButton.style.display = 'flex';
+        prevButton.querySelector('img').src = `resources/${icons.prev}`;
+        prevButton.querySelector('.top').textContent = 'change to';
+        prevButton.querySelector('.bottom').textContent = transitions.prev;
+        prevButton.onclick = () => updateLayout(transitions.prev);
+    } else {
+        prevButton.style.display = 'none';
+    }
+    
+    if (transitions.next) {
+        nextButton.style.display = 'flex';
+        nextButton.querySelector('img').src = `resources/${icons.next}`;
+        nextButton.querySelector('.top').textContent = 'change to';
+        nextButton.querySelector('.bottom').textContent = transitions.next;
+        nextButton.onclick = () => updateLayout(transitions.next);
+    } else {
+        nextButton.style.display = 'none';
+    }
+}
+
+// TOGGLES
+
+function toggleSharps() {
+    useSharps = !useSharps;
+    console.log("Toggled sharps. New value:", useSharps);
+    updateTonicDisplay(); // Add this line
+    updateAllNoteStates();
+}
+
+function toggleIndicators() {
+    tonicIndicators.toggleVisibility();
+}
+
+function toggleColors() {
+    useColors = !useColors;
+    updateAllNoteStates();
+    tonicIndicators.updateIndicatorColor();
+}
+
+function toggleAnimation() {
+    animate = !animate;
+    wheel.animate = animate;
+    keyboard.animate = animate;
+    pattern.animate = animate;
+}
+
+function toggleAutoplay() {
+    autoplayTonic = !autoplayTonic;
+}
+
+
+
+function updateAllNoteStates() {
+    config.keyboardNotes.forEach((note, noteId) => {
+        const baseNoteId = noteId % 12;
+        const isActive = wheel.noteElements.get(baseNoteId)?.classList.contains('active') || 
+                         keyboard.keyElements.get(noteId)?.classList.contains('active');
+        const state = getNoteState(config.notes[baseNoteId], isActive);
+        if (noteId < 12) {
+            wheel.updateNoteState(noteId, state, useColors, animate, currentOctave);
+        }
+        keyboard.updateKeyState(noteId, state, useColors, animate, currentOctave);
+    });
+}
+
+function getNoteState(note, isActive = false) {
+    const baseNote = note || config.notes[config.notes.indexOf(note) % 12];
+    return {
+        display: config.getNoteDisplay(baseNote, useSharps),
+        color: useColors ? config.noteColors[baseNote] : (baseNote.includes('/') ? '#262626' : '#D8D8D8'),
+        active: isActive
+    };
+}
+
+// PLAYBACK
+
+function keepAudioContextAlive() {
+    const silentOscillator = new Tone.Oscillator().start();
+    silentOscillator.volume.value = -Infinity;  // Make it silent
+    silentOscillator.toDestination();
+}
+
+function getToneNote(note, octave) {
+    const isBlackNote = note.includes('/');
+    const baseTone = isBlackNote ? note.charAt(0) + '#' : note.charAt(0);
+    return `${baseTone}${octave}`;
+}
+
+async function playNote(toneNote) {
+    if (Tone.context.state !== 'running') {
+        await Tone.start();
+    }
+    synth.triggerAttack(toneNote);
+    console.log("starting", toneNote);
+    updateNoteState(toneNote, true, currentOctave);
+}
+
+async function stopNote(toneNote) {
+    if (Tone.context.state !== 'running') {
+        await Tone.start();
+    }
+    synth.triggerRelease(toneNote);
+    console.log("stopping", toneNote);
+    updateNoteState(toneNote, false, currentOctave);
+}
+
+function updateNoteState(toneNote, isActive) {
+    const [noteName, octave] = toneNote.split(/(\d+)/);
+    // Show arrow for notes in octave 5 or higher
+    if (animate){
+    keyboard.showArrow(parseInt(octave) >= 5 && isActive);
+    }
+    // Update keyboard
+    const keyElement = document.querySelector(`.keyboard [data-tone-note="${toneNote}"]`);
+    if (keyElement) {
+        const noteId = parseInt(keyElement.dataset.noteId);
+        const baseNoteId = noteId % 12;
+        const state = getNoteState(config.notes[baseNoteId], isActive);
+        keyboard.updateKeyState(noteId, state, useColors, animate, currentOctave);
+    }
+
+    // Update wheel
+    const wheelElement = document.querySelector(`.wheel [data-tone-note="${toneNote}"]`);
+    if (wheelElement) {
+        const noteId = parseInt(wheelElement.dataset.noteId);
+        const state = getNoteState(config.notes[noteId], isActive);
+        wheel.updateNoteState(noteId, state, useColors, animate, currentOctave);
+    }
+}
+
+function playNoteForDuration(toneNote, duration = 250) {
+    try {
+        playNote(toneNote);
+        setTimeout(() => {
+            stopNote(toneNote);
+        }, duration);
+    } catch (error) {
+        console.error(`Error playing note ${toneNote}:`, error);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    wheel.initialize();
+    keyboard.initialize();
+    pattern.initialize();
+    toggleColors();
+    toggleAnimation();
+    initTonicPicker();
+    updateTonicDisplay();
+    updateLayoutButtons();
+    populatePatternMenu();
+
+  const customSelect = document.querySelector('.custom-select');
+  const selectSelected = customSelect.querySelector('.select-selected');
+  const selectItems = customSelect.querySelector('.select-items');
+
+  selectSelected.addEventListener('click', function(e) {
+    e.stopPropagation();
+    selectItems.style.display = selectItems.style.display === 'block' ? 'none' : 'block';
+  });
+
+  document.addEventListener('click', function() {
+    selectItems.style.display = 'none';
+  });
+
+  // Use event delegation for dynamically created elements
+  selectItems.addEventListener('click', function(e) {
+    if (e.target.classList.contains('select-subitem') || e.target.dataset.value === 'none') {
+      e.stopPropagation();
+      const value = e.target.dataset.value;
+      selectSelected.textContent = e.target.textContent;
+      selectItems.style.display = 'none';
+      // Call your existing updatePattern function here
+      updatePattern(value);
+    }
+  });
+
+
+    // Event listeners
+    document.getElementById('toggle-animate').addEventListener('change', toggleAnimation);
+    document.getElementById('toggle-sharps').addEventListener('change', toggleSharps);
+    document.getElementById('toggle-colors').addEventListener('change', toggleColors);
+    document.getElementById('toggle-indicators').addEventListener('change', toggleIndicators);
+    document.getElementById('toggle-autoplay').addEventListener('change', toggleAutoplay);
+    document.getElementById('pattern-select').addEventListener('change', (e) => updatePattern(e.target.value));
+    document.addEventListener('keydown', handleKeyboardShortcuts);
+
+    
+    // PLAYBACK
+
+    function handleNotePlay(element) {
+        if (element && element.hasAttribute('data-tone-note')) {
+            const toneNote = element.getAttribute('data-tone-note');
+            if (toneNote !== lastPlayedNote) {
+                if (lastPlayedNote) {
+                    stopNote(lastPlayedNote);
+                }
+                playNote(toneNote);
+                lastPlayedNote = toneNote;
+            }
+        } else if (lastPlayedNote) {
+            stopNote(lastPlayedNote);
+            lastPlayedNote = null;
+        }
+    }
+    
+    // For the wheel
+    wheel.container.addEventListener('mousedown', (e) => {
+        isMouseDown = true;
+        handleNotePlay(e.target.closest('[data-tone-note]'));
+    });
+    
+    wheel.container.addEventListener('mousemove', (e) => {
+        if (isMouseDown) {
+            handleNotePlay(e.target.closest('[data-tone-note]'));
+        }
+    });
+    
+    wheel.container.addEventListener('mouseup', () => {
+        isMouseDown = false;
+        if (lastPlayedNote) {
+            stopNote(lastPlayedNote);
+            lastPlayedNote = null;
+        }
+    });
+    
+    wheel.container.addEventListener('mouseleave', () => {
+        isMouseDown = false;
+        if (lastPlayedNote) {
+            stopNote(lastPlayedNote);
+            lastPlayedNote = null;
+        }
+    });
+    
+    // For the keyboard
+    keyboard.keyboardElement.addEventListener('mousedown', (e) => {
+        isMouseDown = true;
+        handleNotePlay(e.target.closest('[data-tone-note]'));
+    });
+    
+    keyboard.keyboardElement.addEventListener('mousemove', (e) => {
+        if (isMouseDown) {
+            handleNotePlay(e.target.closest('[data-tone-note]'));
+        }
+    });
+    
+    keyboard.keyboardElement.addEventListener('mouseup', () => {
+        isMouseDown = false;
+        if (lastPlayedNote) {
+            stopNote(lastPlayedNote);
+            lastPlayedNote = null;
+        }
+    });
+    
+    keyboard.keyboardElement.addEventListener('mouseleave', () => {
+        isMouseDown = false;
+        if (lastPlayedNote) {
+            stopNote(lastPlayedNote);
+            lastPlayedNote = null;
+        }
+    });
+});
+
+function resetToDefaults() {
+    // Reset pattern
+    updatePattern('none');
+
+    // Reset tonic to C
+    setTonic('C');
+
+    // Reset layout to chromatic
+    if (currentLayout !== 'chromatic') {
+        updateLayout('chromatic');
+    }
+}
+
+function handleKeyboardShortcuts(event) {
+    // Prevent default behavior for some keys
+    if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', ' '].includes(event.key)) {
+        event.preventDefault();
+    }
+
+    const isShiftPressed = event.shiftKey;
+    console.log(isShiftPressed)
+    switch (event.key) {
+        case 'ArrowLeft':
+            if (isShiftPressed) {
+                pattern.shiftPattern('left');
+            } else {
+                changeTonic('decrease');
+            }
+            break;
+        case 'ArrowRight':
+            if (isShiftPressed) {
+                pattern.shiftPattern('right');
+            } else {
+                changeTonic('increase');
+            }
+            break;
+            case 'ArrowUp':
+                if (isShiftPressed) {
+                    changePattern('next');
+                } else {
+                    triggerLayoutChange('next');
+                }
+                break;
+            case 'ArrowDown':
+                if (isShiftPressed) {
+                    changePattern('previous');
+                } else {
+                    triggerLayoutChange('prev');
+                }
+                break;
+        case 'Escape':
+            resetToDefaults();
+            break;
+        case ' ': // Space key
+            pattern.playPattern();
+            break;
+        }
+
+        if (isShiftPressed) {
+            switch (event.key.toLowerCase()) {
+                case 'c':
+                    event.preventDefault();
+                    toggleColors();
+                    return;
+                case 'a':
+                    event.preventDefault();
+                    toggleAnimation();
+                    return;
+                case 's':
+                    event.preventDefault();
+                    toggleSharps();
+                    return;
+            }
+        }
+}
+export { playNote, stopNote, useColors, playNoteForDuration };
+
+// File: arrows.html
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Circular and Linear Arrows</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f3f3f3;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: rgb(214, 214, 214);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        #arrowContainer {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        #linearArrows {
+            margin-bottom: 20px;
+        }
+        #circularArrows {
+            max-width: 100%;
+            height: auto;
+        }
+        .controls {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 10px;
+            align-items: center;
+            width: 100%;
+        }
+        label {
+            font-weight: bold;
+        }
+        input[type="range"] {
+            width: 100%;
+        }
+        input[type="color"] {
+            width: 50px;
+            height: 30px;
+        }
+        
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="arrowContainer">
+            <div id="linearArrows"></div>
+            <div id="circularArrows"></div>
+        </div>
+        <div class="controls">
+            <label for="arcRadius">Arc Radius:</label>
+            <input type="range" id="arcRadius" min="50" max="200" value="150">
+            <label for="arrowWidth">Arrow Width:</label>
+            <input type="range" id="arrowWidth" min="10" max="50" value="30">
+            <label for="startAngle">Start Angle:</label>
+            <input type="range" id="startAngle" min="0" max="90" value="30">
+            <label for="endAngle">End Angle:</label>
+            <input type="range" id="endAngle" min="0" max="90" value="60">
+            <label for="arrowheadWidth">Arrowhead Width:</label>
+            <input type="range" id="arrowheadWidth" min="0.1" max="1" step="0.1" value="0.4">
+            <label for="arrowheadLength">Arrowhead Length:</label>
+            <input type="range" id="arrowheadLength" min="0.7" max="5" step="0.1" value="0.7">
+            <label for="fillColor">Fill Color:</label>
+            <input type="color" id="fillColor" value="#FF0000">
+            <label for="strokeColor">Border Color:</label>
+            <input type="color" id="strokeColor" value="#333333">
+        </div>
+    </div>
+
+    <script>
+        function generateArrows({
+            canvasSize = 400,
+            arcRadius = 100,
+            arrowWidth = 20,
+            startAngle = 30,
+            endAngle = 60,
+            arrowheadWidthFactor = 0.4,
+            strokeWidth = 2,
+            strokeColor = '#000000',
+            fillColor = '#FF0000',
+            arrowheadLengthFactor = 1,
+        }) {
+            const centerX = canvasSize / 2;
+            const centerY = canvasSize / 2;
+
+            const innerRadius = arcRadius - arrowWidth / 2;
+            const outerRadius = arcRadius + arrowWidth / 2;
+            const extensionLength = arrowheadWidthFactor * arrowWidth;
+            const innerExtendedRadius = innerRadius - extensionLength;
+            const outerExtendedRadius = outerRadius + extensionLength;
+
+            // Circular arrow functions
+            function calculatePoint(angle, radius) {
+                const angleRad = (90 + angle) * Math.PI / 180;
+                return [
+                    centerX + radius * Math.cos(angleRad),
+                    centerY - radius * Math.sin(angleRad)
+                ];
+            }
+
+            function calculateThirdPoint(x1, y1, x2, y2, clockwise, lengthFactor) {
+                const midX = (x1 + x2) / 2;
+                const midY = (y1 + y2) / 2;
+                const dx = x2 - x1;
+                const dy = y2 - y1;
+                const factor = clockwise ? -1 : 1;
+
+                // Calculate the default length (sqrt(2)/2 times the width)
+                const defaultLength = Math.sqrt(dx * dx + dy * dy) * Math.sqrt(2) / 2;
+
+                // Apply the length factor
+                const adjustedLength = defaultLength * lengthFactor;
+
+                // Calculate the new point
+                const newX = midX + factor * dy * adjustedLength / defaultLength / 2;
+                const newY = midY - factor * dx * adjustedLength / defaultLength / 2;
+
+                return [newX, newY];
+            }
+
+            function createArrowPath(startOuter, startInner, endInner, endOuter, endInnerExtended, endOuterExtended, thirdPoint, isRight) {
+                const largeArcFlag = Math.abs(endAngle - startAngle) > 180 ? 1 : 0;
+                const sweepFlag = isRight ? 1 : 0;
+                return `M ${startOuter[0]} ${startOuter[1]}
+                        A ${outerRadius} ${outerRadius} 0 ${largeArcFlag} ${sweepFlag} ${endOuter[0]} ${endOuter[1]}
+                        L ${endOuterExtended[0]} ${endOuterExtended[1]}
+                        L ${thirdPoint[0]} ${thirdPoint[1]}
+                        L ${endInnerExtended[0]} ${endInnerExtended[1]}
+                        L ${endInner[0]} ${endInner[1]}
+                        A ${innerRadius} ${innerRadius} 0 ${largeArcFlag} ${1 - sweepFlag} ${startInner[0]} ${startInner[1]}
+                        Z`;
+            }
+
+            // Calculate circular arrow points
+            const [leftStartOuterX, leftStartOuterY] = calculatePoint(startAngle, outerRadius);
+            const [leftStartInnerX, leftStartInnerY] = calculatePoint(startAngle, innerRadius);
+            const [leftEndInnerX, leftEndInnerY] = calculatePoint(endAngle, innerRadius);
+            const [leftEndOuterX, leftEndOuterY] = calculatePoint(endAngle, outerRadius);
+            const [leftEndInnerExtendedX, leftEndInnerExtendedY] = calculatePoint(endAngle, innerExtendedRadius);
+            const [leftEndOuterExtendedX, leftEndOuterExtendedY] = calculatePoint(endAngle, outerExtendedRadius);
+
+            const [rightStartOuterX, rightStartOuterY] = calculatePoint(-startAngle, outerRadius);
+            const [rightStartInnerX, rightStartInnerY] = calculatePoint(-startAngle, innerRadius);
+            const [rightEndInnerX, rightEndInnerY] = calculatePoint(-endAngle, innerRadius);
+            const [rightEndOuterX, rightEndOuterY] = calculatePoint(-endAngle, outerRadius);
+            const [rightEndInnerExtendedX, rightEndInnerExtendedY] = calculatePoint(-endAngle, innerExtendedRadius);
+            const [rightEndOuterExtendedX, rightEndOuterExtendedY] = calculatePoint(-endAngle, outerExtendedRadius);
+
+            const [leftThirdX, leftThirdY] = calculateThirdPoint(leftEndInnerExtendedX, leftEndInnerExtendedY, leftEndOuterExtendedX, leftEndOuterExtendedY, false, arrowheadLengthFactor);
+            const [rightThirdX, rightThirdY] = calculateThirdPoint(rightEndInnerExtendedX, rightEndInnerExtendedY, rightEndOuterExtendedX, rightEndOuterExtendedY, true, arrowheadLengthFactor);
+
+            // Create circular arrow paths
+            const leftCircularArrowPath = createArrowPath(
+                [leftStartOuterX, leftStartOuterY],
+                [leftStartInnerX, leftStartInnerY],
+                [leftEndInnerX, leftEndInnerY],
+                [leftEndOuterX, leftEndOuterY],
+                [leftEndInnerExtendedX, leftEndInnerExtendedY],
+                [leftEndOuterExtendedX, leftEndOuterExtendedY],
+                [leftThirdX, leftThirdY],
+                false
+            );
+
+            const rightCircularArrowPath = createArrowPath(
+                [rightStartOuterX, rightStartOuterY],
+                [rightStartInnerX, rightStartInnerY],
+                [rightEndInnerX, rightEndInnerY],
+                [rightEndOuterX, rightEndOuterY],
+                [rightEndInnerExtendedX, rightEndInnerExtendedY],
+                [rightEndOuterExtendedX, rightEndOuterExtendedY],
+                [rightThirdX, rightThirdY],
+                true
+            );
+
+            function calculateLinearPoint(x, y) {
+                return [centerX + x, y];
+            }
+
+            function createLinearArrowPath(startOuter, startInner, endInner, endOuter, endInnerExtended, endOuterExtended, thirdPoint) {
+                return `M ${startOuter[0]} ${startOuter[1]}
+            L ${endOuter[0]} ${endOuter[1]}
+            L ${endOuterExtended[0]} ${endOuterExtended[1]}
+            L ${thirdPoint[0]} ${thirdPoint[1]}
+            L ${endInnerExtended[0]} ${endInnerExtended[1]}
+            L ${endInner[0]} ${endInner[1]}
+            L ${startInner[0]} ${startInner[1]}
+            Z`;
+            }
+
+            // Calculate linear arrow points
+            const linearY = centerY - 50;
+            const linearStartX = arcRadius * Math.sin(startAngle * Math.PI / 180);
+            const linearEndX = arcRadius * Math.sin(endAngle * Math.PI / 180);
+
+            const [leftLinearStartOuterX, leftLinearStartOuterY] = calculateLinearPoint(-linearStartX, linearY - arrowWidth / 2);
+            const [leftLinearStartInnerX, leftLinearStartInnerY] = calculateLinearPoint(-linearStartX, linearY + arrowWidth / 2);
+            const [leftLinearEndInnerX, leftLinearEndInnerY] = calculateLinearPoint(-linearEndX, linearY + arrowWidth / 2);
+            const [leftLinearEndOuterX, leftLinearEndOuterY] = calculateLinearPoint(-linearEndX, linearY - arrowWidth / 2);
+            const [leftLinearEndInnerExtendedX, leftLinearEndInnerExtendedY] = calculateLinearPoint(-linearEndX, linearY + arrowWidth / 2 + extensionLength);
+            const [leftLinearEndOuterExtendedX, leftLinearEndOuterExtendedY] = calculateLinearPoint(-linearEndX, linearY - arrowWidth / 2 - extensionLength);
+
+            const [rightLinearStartOuterX, rightLinearStartOuterY] = calculateLinearPoint(linearStartX, linearY - arrowWidth / 2);
+            const [rightLinearStartInnerX, rightLinearStartInnerY] = calculateLinearPoint(linearStartX, linearY + arrowWidth / 2);
+            const [rightLinearEndInnerX, rightLinearEndInnerY] = calculateLinearPoint(linearEndX, linearY + arrowWidth / 2);
+            const [rightLinearEndOuterX, rightLinearEndOuterY] = calculateLinearPoint(linearEndX, linearY - arrowWidth / 2);
+            const [rightLinearEndInnerExtendedX, rightLinearEndInnerExtendedY] = calculateLinearPoint(linearEndX, linearY + arrowWidth / 2 + extensionLength);
+            const [rightLinearEndOuterExtendedX, rightLinearEndOuterExtendedY] = calculateLinearPoint(linearEndX, linearY - arrowWidth / 2 - extensionLength);
+
+            const [leftLinearThirdX, leftLinearThirdY] = calculateThirdPoint(leftLinearEndInnerExtendedX, leftLinearEndInnerExtendedY, leftLinearEndOuterExtendedX, leftLinearEndOuterExtendedY, false, arrowheadLengthFactor);
+            const [rightLinearThirdX, rightLinearThirdY] = calculateThirdPoint(rightLinearEndInnerExtendedX, rightLinearEndInnerExtendedY, rightLinearEndOuterExtendedX, rightLinearEndOuterExtendedY, true, arrowheadLengthFactor);
+
+            // Create linear arrow paths
+            const leftLinearArrowPath = createLinearArrowPath(
+                [leftLinearStartOuterX, leftLinearStartOuterY],
+                [leftLinearStartInnerX, leftLinearStartInnerY],
+                [leftLinearEndInnerX, leftLinearEndInnerY],
+                [leftLinearEndOuterX, leftLinearEndOuterY],
+                [leftLinearEndInnerExtendedX, leftLinearEndInnerExtendedY],
+                [leftLinearEndOuterExtendedX, leftLinearEndOuterExtendedY],
+                [leftLinearThirdX, leftLinearThirdY]
+            );
+
+            const rightLinearArrowPath = createLinearArrowPath(
+                [rightLinearStartOuterX, rightLinearStartOuterY],
+                [rightLinearStartInnerX, rightLinearStartInnerY],
+                [rightLinearEndInnerX, rightLinearEndInnerY],
+                [rightLinearEndOuterX, rightLinearEndOuterY],
+                [rightLinearEndInnerExtendedX, rightLinearEndInnerExtendedY],
+                [rightLinearEndOuterExtendedX, rightLinearEndOuterExtendedY],
+                [rightLinearThirdX, rightLinearThirdY]
+            );
+
+            const linearSvg = `
+        <svg width="${canvasSize}" height="${canvasSize / 2}" viewBox="0 0 ${canvasSize} ${canvasSize / 2}" xmlns="http://www.w3.org/2000/svg">
+            <line x1="${centerX - arcRadius}" y1="${linearY}" x2="${centerX + arcRadius}" y2="${linearY}" stroke="#CCCCCC" stroke-width="1" />
+            <path d="${leftLinearArrowPath}" fill="${fillColor}" stroke="${strokeColor}" stroke-width="${strokeWidth}" />
+            <path d="${rightLinearArrowPath}" fill="${fillColor}" stroke="${strokeColor}" stroke-width="${strokeWidth}" />
+        </svg>
+    `;
+
+    const circularSvg = `
+        <svg width="${canvasSize}" height="${canvasSize}" viewBox="0 0 ${canvasSize} ${canvasSize}" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="${centerX}" cy="${centerY}" r="${arcRadius}" fill="none" stroke="#CCCCCC" stroke-width="1" />
+            <path d="${leftCircularArrowPath}" fill="${fillColor}" stroke="${strokeColor}" stroke-width="${strokeWidth}" />
+            <path d="${rightCircularArrowPath}" fill="${fillColor}" stroke="${strokeColor}" stroke-width="${strokeWidth}" />
+        </svg>
+    `;
+
+    return { linearSvg, circularSvg };
+}
+function updateArrows() {
+    const arcRadius = parseInt(document.getElementById('arcRadius').value);
+    const arrowWidth = parseInt(document.getElementById('arrowWidth').value);
+    const startAngle = parseInt(document.getElementById('startAngle').value);
+    const endAngle = parseInt(document.getElementById('endAngle').value);
+    const arrowheadWidthFactor = parseFloat(document.getElementById('arrowheadWidth').value);
+    const fillColor = document.getElementById('fillColor').value;
+    const strokeColor = document.getElementById('strokeColor').value;
+    const arrowheadLengthFactor = parseFloat(document.getElementById('arrowheadLength').value);
+
+    const { linearSvg, circularSvg } = generateArrows({
+        canvasSize: 400,
+        arcRadius: arcRadius,
+        arrowWidth: arrowWidth,
+        startAngle: startAngle,
+        endAngle: endAngle,
+        arrowheadWidthFactor: arrowheadWidthFactor,
+        strokeWidth: 2,
+        strokeColor: strokeColor,
+        fillColor: fillColor,
+        arrowheadLengthFactor: arrowheadLengthFactor,
+    });
+
+    document.getElementById('linearArrows').innerHTML = linearSvg;
+    document.getElementById('circularArrows').innerHTML = circularSvg;
+}
+
+// Make sure to call updateArrows() initially and add event listeners
+updateArrows();
+
+// Add event listeners to all inputs
+document.querySelectorAll('input').forEach(input => {
+    input.addEventListener('input', updateArrows);
+});
+
+// Function to generate SVG for a single arrow
+function generateArrowSVG(d, fill, stroke) {
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+  svg.setAttribute("width", "100");
+  svg.setAttribute("height", "100");
+  svg.setAttribute("viewBox", "0 0 100 100");
+
+  const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  path.setAttribute("d", d);
+  path.setAttribute("fill", fill);
+  path.setAttribute("stroke", stroke);
+
+  svg.appendChild(path);
+  return svg;
+}
+
+// Function to download SVG
+function downloadSVG(svg, filename) {
+  const serializer = new XMLSerializer();
+  let source = serializer.serializeToString(svg);
+  
+  // Add namespace
+  if (!source.match(/^<svg[^>]+xmlns="http\:\/\/www\.w3\.org\/2000\/svg"/)) {
+    source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
+  }
+  
+  // Add XML declaration
+  source = '<?xml version="1.0" standalone="no"?>\r\n' + source;
+  
+  // Convert svg source to URI data scheme.
+  const url = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(source);
+  
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+// Add click event listeners to arrows
+function addArrowClickListeners() {
+  const arrowPaths = document.querySelectorAll("#linearArrows path, #circularArrows path");
+  arrowPaths.forEach((path, index) => {
+    path.style.cursor = "pointer";
+    path.addEventListener("click", () => {
+      const d = path.getAttribute("d");
+      const fill = path.getAttribute("fill");
+      const stroke = path.getAttribute("stroke");
+      const svg = generateArrowSVG(d, fill, stroke);
+      downloadSVG(svg, `arrow_${index + 1}.svg`);
+    });
+  });
+}
+
+// Call this function after your arrows are created
+addArrowClickListeners();
+    </script>
+</body>
+
+</html>
+
+// File: combine-files.js
+
+const fs = require('fs');
+const path = require('path');
+const { isDate } = require('util/types');
+
+// Function to recursively get all files in a directory
+function getAllFiles(dirPath, arrayOfFiles) {
+    const files = fs.readdirSync(dirPath);
+
+    arrayOfFiles = arrayOfFiles || [];
+
+    files.forEach(function(file) {
+        if (fs.statSync(dirPath + "/" + file).isDirectory()) {
+            arrayOfFiles = getAllFiles(dirPath + "/" + file, arrayOfFiles);
+        } else {
+            arrayOfFiles.push(path.join(dirPath, "/", file));
+        }
+    });
+
+    return arrayOfFiles;
+}
+
+// Function to combine all files
+function combineFiles(directoryPath, outputFileName) {
+    const allFiles = getAllFiles(directoryPath);
+    let combinedContent = '';
+
+    allFiles.forEach(file => {
+        const extname = path.extname(file);
+        if (['.html', '.css', '.js'].includes(extname)) {
+            const content = fs.readFileSync(file, 'utf8');
+            combinedContent += `\n\n// File: ${file}\n\n${content}`;
+        }
+    });
+
+    fs.writeFileSync(outputFileName, combinedContent);
+    console.log(`Combined file created: ${outputFileName}`);
+}
+
+// Usage
+const directoryPath = './'; // Current directory
+const currentDate = new Date();
+const formattedDate = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(currentDate.getDate()).padStart(2, '0')}`;
+const formattedTime = `${String(currentDate.getHours()).padStart(2, '0')}-${String(currentDate.getMinutes()).padStart(2, '0')}-${String(currentDate.getSeconds()).padStart(2, '0')}`;
+const outputFileName = `combined_code_${formattedDate}_${formattedTime}.txt`;
+combineFiles(directoryPath, outputFileName);
+
+
+
+// type into terminal "node combine-files.js"
+
+// File: config.js
+
+// config.js
+
+// Basic note array
+const notes = ['C', 'C♯/D♭', 'D', 'D♯/E♭', 'E', 'F', 'F♯/G♭', 'G', 'G♯/A♭', 'A', 'A♯/B♭', 'B'];
+
+const extendedNotes = [
+  'C3', 'C♯3/D♭3', 'D3', 'D♯3/E♭3', 'E3', 'F3', 'F♯3/G♭3', 'G3', 'G♯3/A♭3', 'A3', 'A♯3/B♭3', 'B3',
+  'C4', 'C♯4/D♭4', 'D4', 'D♯4/E♭4', 'E4', 'F4', 'F♯4/G♭4', 'G4', 'G♯4/A♭4', 'A4', 'A♯4/B♭4', 'B4'
+];
+
+const keyboardNotes = [
+  'C', 'C♯/D♭', 'D', 'D♯/E♭', 'E', 'F', 'F♯/G♭', 'G', 'G♯/A♭', 'A', 'A♯/B♭', 'B',
+  'C', 'C♯/D♭', 'D', 'D♯/E♭', 'E', 'F', 'F♯/G♭', 'G', 'G♯/A♭', 'A', 'A♯/B♭', 'B', 'C'
+];
+
+const layouts = {
+  chromatic: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+  fifths:    [0, 7, 2, 9, 4, 11, 6, 1, 8, 3, 10, 5],
+  fourths:   [0, 5, 10, 3, 8, 1, 6, 11, 4, 9, 2, 7]
+};
+
+// Function to get note display based on sharp/flat preference
+const getNoteDisplay = (note, useSharps) => {
+  if (note.includes('/')) {
+    return useSharps ? note.slice(0, 2) : note.slice(-2);
+  }
+  return note;
+};
+
+// Scales
+const scales = {
+  "Major Scale": [0, 2, 4, 5, 7, 9, 11],
+  "Natural Minor": [0, 2, 3, 5, 7, 8, 10],
+  "Harmonic Minor": [0, 2, 3, 5, 7, 8, 11],
+  "Melodic Minor": [0, 2, 3, 5, 7, 9, 11],
+  "Major Pentatonic": [0, 2, 4, 7, 9],
+  "Minor Pentatonic": [0, 3, 5, 7, 10],
+  "Blues": [0, 3, 5, 6, 7, 10],
+  "Chromatic": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+  "Whole Tone": [0, 2, 4, 6, 8, 10],
+};
+
+const exotics = {
+  "Harmonic Major": [0, 2, 4, 5, 7, 8, 11],
+  "Double Harmonic": [0, 1, 4, 5, 7, 8, 11],
+  "Prometheus": [0, 2, 4, 6, 9],
+  "Egyptian": [0, 2, 5, 7, 10],
+  "Hirajoshi": [0, 2, 3, 7, 8],
+  "Neapolitan Minor": [0, 1, 3, 5, 7, 8, 11],
+  "Neapolitan Major": [0, 1, 4, 5, 7, 9, 11],
+  "Arabian": [0, 2, 4, 5, 6, 8, 10],
+  "Balinese": [0, 1, 3, 7, 8],
+  "Charhargan": [0, 1, 4, 5, 6, 8, 10],
+  "Kurdish": [0, 2, 3, 7, 8, 10],
+  "Spanish": [0, 1, 4, 5, 7, 8, 10],
+  "Hungarian": [0, 2, 3, 6, 7, 8, 11],
+
+  "Diminished (Whole-Half)": [0, 2, 3, 5, 6, 8, 9, 11],
+  "Diminished (Half-Whole)": [0, 1, 3, 4, 6, 7, 9, 10],
+  "Augmented": [0, 3, 4, 7, 8, 11],
+  "Sixth Diminished (Bebop)": [0, 2, 4, 5, 7, 8, 9, 11],
+  "Dorian Bebop": [0, 2, 3, 4, 5, 7, 9, 10],
+  "Melodic Bebop": [0, 2, 3, 5, 7, 8, 9, 11],
+  "Harmonic Bebop": [0, 2, 3, 5, 7, 8, 10, 11],
+  "Dominant Bebop": [0, 2, 4, 5, 7, 9, 10, 11],
+  "Altered": [0, 1, 3, 4, 6, 8, 10]
+};
+
+const triads = {
+  "Major Triad": [0, 4, 7],
+  "Minor Triad": [0, 3, 7],
+  "Diminished Triad": [0, 3, 6],
+  "Augmented Triad": [0, 4, 8],
+  "Sus2": [0, 2, 7],
+  "Sus4": [0, 5, 7],
+};
+
+const extendeds = {
+  "Major 7th": [0, 4, 7, 11],
+  "Minor 7th": [0, 3, 7, 10],
+  "Dominant 7th": [0, 4, 7, 10],
+  "Diminished 7th": [0, 3, 6, 9],
+  "Half-Diminished 7th": [0, 3, 6, 10],
+  "Minor 13": [0, 3, 7, 10, 14, 17, 21],
+  "Major 13 (#11)": [0, 4, 7, 11, 14, 18, 21],
+  "Dominant 13": [0, 4, 7, 10, 14, 17, 21],
+  "Dominant 13 (b9)": [0, 4, 7, 10, 13, 17, 21],
+  "Dominant 13 (b9 #11)": [0, 4, 7, 10, 13, 18, 21]
+};
+
+const intervals = {
+  "1: min2<sup>nd</sup>/Maj7<sup>th</sup>": [0, 1],
+  "2: Maj2<sup>nd</sup>/min7<sup>th</sup>": [0, 2],
+  "3: min3<sup>rd</sup>/Maj6<sup>th</sup>": [0, 3],
+  "4: Maj3<sup>rd</sup>/min6<sup>th</sup>": [0, 4],
+  "5: Per4<sup>th</sup>/Per5<sup>th</sup>": [0, 5],
+  "6: TRITONE": [0, 6],
+};
+
+// Modes
+const modes = {
+  "Ionian": scales["Major"],
+  "Dorian": [0, 2, 3, 5, 7, 9, 10],
+  "Phrygian": [0, 1, 3, 5, 7, 8, 10],
+  "Lydian": [0, 2, 4, 6, 7, 9, 11],
+  "Mixolydian": [0, 2, 4, 5, 7, 9, 10],
+  "Aeolian": scales["Natural Minor"],
+  "Locrian": [0, 1, 3, 5, 6, 8, 10]
+};
+
+const regulars = {
+  "1: Chromatic": scales["Chromatic"],
+  "2: Whole Tone": scales["Whole Tone"],
+  "3: Diminished": extendeds["Diminished 7th"],
+  "4: Augmented": triads["Augmented Triad"],
+  "5: Fourths": layouts.fourths,
+  "6: Tritone": [0, 6],
+  "4,3: Thirds": [0, 4, 7, 11, 14, 18, 21, 25, 28, 32, 35, 39, 42, 46, 49, 53, 56, 60, 63, 67, 70, 74, 77, 81, 84]
+};
+
+
+// Note colors (ordered chromatically)
+const noteColors = {
+  'C': '#E25A5A',
+  'C♯/D♭': '#5AA1E2',
+  'D': '#E2E25A',
+  'D♯/E♭': '#9E5AE2',
+  'E': '#5AE25A',
+  'F': '#E25AA1',
+  'F♯/G♭': '#5AE2E2',
+  'G': '#E29E5A',
+  'G♯/A♭': '#5A5AE2',
+  'A': '#A1E25A',
+  'A♯/B♭': '#E25AE2',
+  'B': '#5AE29E'
+};
+
+// Animation settings
+const animationSettings = {
+  duration: 500, // milliseconds
+  easing: 'ease-in-out'
+};
+
+export { 
+  notes, 
+  keyboardNotes,
+  extendedNotes,
+  layouts, 
+  scales, 
+  triads, 
+  modes,
+  regulars,
+  intervals,
+  extendeds,
+  exotics,
+  noteColors, 
+  getNoteDisplay,
+  animationSettings
+};
+
+// File: index.html
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DodecaTone</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="resources/logo.ico" type="image/x-icon">
+</head>
+
+<body>
+    <header>
+        <h1><img src="resources/logo.ico" alt="Logo" class="title-icon"><u>  DodecaTone (4.0)</u></h1>
+    </header>
+
+    <div id="content-container">
+        <div id="options-container">
+            <div id="tonic-selector">
+                <label for="current-tonic"><b>TONIC:</b></label>
+                <div id="tonic-controls">
+                    <svg id="decrease-tonic" class="tonic-arrow curved-arrow" width="500" height="500"
+                        viewBox="80 30 300 300" xmlns="http://www.w3.org/2000/svg">
+                        <title>Shift TONIC Left</title>
+                        <path class="arrow-fill"
+                            d="M330.67 58.883A472.5 472.5 0 0 0 127.665 209.1l-23.64 -18.47 11.632 94.75 94.75 -11.635 -23.643 -18.47a397.5 397.5 0 0 1 170.782 -126.375Z"
+                            stroke="#333333" stroke-width="2" />
+                    </svg>
+                    <div id="tonic-display-container">
+                        <span id="current-tonic">C</span>
+                    </div>
+                    <svg id="increase-tonic" class="tonic-arrow curved-arrow" width="500" height="500"
+                        viewBox="80 30 300 300" xmlns="http://www.w3.org/2000/svg">
+                        <title>Shift TONIC Right</title>
+                        <path class="arrow-fill"
+                            d="M330.67 58.883A472.5 472.5 0 0 0 127.665 209.1l-23.64 -18.47 11.632 94.75 94.75 -11.635 -23.643 -18.47a397.5 397.5 0 0 1 170.782 -126.375Z"
+                            stroke="#333333" stroke-width="2" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <div id="keyboard-area">
+            <svg id="decrease-tonic-2" class="tonic-arrow straight-arrow" width="200" height="200"
+                viewBox="20 100 100 100" xmlns="http://www.w3.org/2000/svg">
+                <title>Shift TONIC Left</title>
+                <path class="arrow-fill"
+                    d="M 95.28418597154361 135 L 62.88612887243036 135 L 62.88612887243036 123 L 35.88612887243036 150 L 62.88612887243036 177 L 62.88612887243036 165 L 95.28418597154361 165Z"
+                    stroke="#333333" stroke-width="1"></path>
+            </svg>
+            <div id="pattern-select-container">
+                <div id="pattern-select" class="custom-select">
+                <div class="select-selected">Select a pattern</div>
+                <div class="select-items">
+                  <!-- This will be populated dynamically -->
+                </div>
+              </div>
+            </div>
+            <div id="keyboard-window">
+                
+                <div id="bracket-window">
+                    <svg id="shift-pattern-left" class="pattern-shift-arrow straight-arrow" width="200" height="100"
+                        viewBox="113 125 50 50" xmlns="http://www.w3.org/2000/svg">
+                        <title>Shift PATTERN Left</title>
+                        <path class="arrow-fill"
+                            d="M 161.5 145 L 133.31604390859823 145 L 133.31604390859823 141 L 108.11604390859823 150 L 133.31604390859823 159 L 133.31604390859823 155 L 161.5 155 Z"
+                            fill="#ffffff" stroke="#ffffff" stroke-width="2"></path>
+                    </svg>
+                    <div id="keys-play-button-container">
+                        <svg id="keys-play-pattern-button" width="40" height="40" viewBox="0 0 60 60" style="display: none;">
+                            <circle cx="30" cy="30" r="30" fill="#555555" />
+                            <path d="M25,20 L25,40 L40,30 Z" fill="white" />
+                        </svg>
+                    </div>
+                    <div id="bracket-svg-container"></div>
+                    <svg id="shift-pattern-right" class="pattern-shift-arrow straight-arrow" width="200" height="100"
+                        viewBox="113 125 50 50" xmlns="http://www.w3.org/2000/svg">
+                        <title>Shift PATTERN Right</title>
+                        <path class="arrow-fill"
+                            d="M 161.5 145 L 133.31604390859823 145 L 133.31604390859823 141 L 108.11604390859823 150 L 133.31604390859823 159 L 133.31604390859823 155 L 161.5 155 Z"
+                            fill="#ffffff" stroke="#ffffff" stroke-width="2"></path>
+                    </svg>
+                </div>
+
+                <div id="keyboard-container">
+                    <!-- Keyboard will be inserted here by JavaScript -->
+                </div>
+            </div>
+
+            <svg id="increase-tonic-2" class="tonic-arrow straight-arrow" width="200" height="200"
+                viewBox="20 100 100 100" xmlns="http://www.w3.org/2000/svg">
+                <title>Shift TONIC Right</title>
+                <path class="arrow-fill"
+                    d="M 95.28418597154361 135 L 62.88612887243036 135 L 62.88612887243036 123 L 35.88612887243036 150 L 62.88612887243036 177 L 62.88612887243036 165 L 95.28418597154361 165Z"
+                    stroke="#333333" stroke-width="1"></path>
+            </svg>
+
+        </div>
+
+        <div id="wheel-container" class="wheel">
+            <button id="prev-layout" class="layout-button">
+                <span class="button-text top">From</span>
+                <img src="resources/4ths-5ths.png" alt="Previous Layout">
+                <span class="button-text bottom">To</span>
+            </button>
+            <div id="polygon-window">
+                <!-- Wheel will be inserted here by JavaScript -->
+                <svg id="shift-pattern-left-curved" class="pattern-shift-arrow" width="200" height="200"
+                viewBox="107 120 70 70" xmlns="http://www.w3.org/2000/svg">
+                <title>Shift PATTERN Left</title>
+                <path class="arrow-fill"
+                    d="M 159.00000000000003 128.98591688967602 A 82 82 0 0 0 128.98591688967602 159 L 125.52181527453827 157 L 120.71604390859821 183.32384017536782 L 141.11027254265815 166 L 137.64617092752042 164 A 72 72 0 0 1 164 137.64617092752042 Z"
+                    fill="#ffffff" stroke="#ffffff" stroke-width="2"></path>
+            </svg>
+
+            <div id="play-button-container">
+                <svg id="play-pattern-button" width="40" height="40" viewBox="0 0 60 60" style="display: none;">
+                    <circle cx="30" cy="30" r="30" fill="#555555" />
+                    <title>PLAY PATTERN</title>
+                    <path d="M25,20 L25,40 L40,30 Z" fill="white" />
+                </svg>
+            </div>
+
+            <svg id="shift-pattern-right-curved" class="pattern-shift-arrow" width="200" height="200"
+                viewBox="107 120 70 70" xmlns="http://www.w3.org/2000/svg">
+                <title>Shift PATTERN Right</title>
+                <path class="arrow-fill"
+                    d="M 159.00000000000003 128.98591688967602 A 82 82 0 0 0 128.98591688967602 159 L 125.52181527453827 157 L 120.71604390859821 183.32384017536782 L 141.11027254265815 166 L 137.64617092752042 164 A 72 72 0 0 1 164 137.64617092752042 Z"
+                    fill="#ffffff" stroke="#ffffff" stroke-width="2"></path>
+            </svg>
+            </div>
+            
+
+            <button id="next-layout" class="layout-button">
+                <span class="button-text top">From</span>
+                <img src="resources/Chr-5ths.png" alt="Next Layout">
+                <span class="button-text bottom">To</span>
+            </button>
+        </div>
+    </div>
+
+    <div id="wheel-tonic-indicator"></div>
+    <div id="keyboard-tonic-indicator"></div>
+
+    <div id="toggles-panel">
+        <h3><u>Settings:</u></h3>
+        <div class="toggle-group">
+            <label for="toggle-sharps">Sharps:</label>
+            <label class="switch">
+                <input type="checkbox" id="toggle-sharps">
+                <span class="slider"></span>
+            </label>
+        </div>
+        <div class="toggle-group">
+            <label for="toggle-animate">Animation:</label>
+            <label class="switch">
+                <input type="checkbox" id="toggle-animate" checked>
+                <span class="slider"></span>
+            </label>
+        </div>
+        <div class="toggle-group">
+            <label for="toggle-colors">Colors:</label>
+            <label class="switch">
+                <input type="checkbox" id="toggle-colors" checked>
+                <span class="slider"></span>
+            </label>
+        </div>
+        <div class="toggle-group">
+            <label for="toggle-indicators">Indicators:</label>
+            <label class="switch">
+                <input type="checkbox" id="toggle-indicators">
+                <span class="slider"></span>
+            </label>
+        </div>
+        <div class="toggle-group">
+            <label for="toggle-autoplay">Autoplay:</label>
+            <label class="switch">
+                <input type="checkbox" id="toggle-autoplay" checked>
+                <span class="slider"></span>
+            </label>
+        </div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <script type="module" src="app.js"></script>
+</body>
+
+</html>
+
+// File: keyboard.js
+
+// keyboard.js
+
+import * as config from './config.js';
+
+export class Keyboard {
+    constructor(container, animate) {
+        this.currentTonic = 'C';
+        this.currentOctave = 4;
+        this.container = container;
+        this.window = container.parentElement; // This is the new keyboard-window element
+        this.animate = animate;
+        this.keyboardElement = document.createElement('div');
+        this.keyboardElement.className = 'keyboard';
+        this.keyElements = new Map();
+        this.keyWidth = 25; // Base width for black keys
+        this.keyWidths = { C: 1.5, D: 2, E: 1.5, F: 1.5, G: 2, A: 2, B: 1.5 };
+    }
+
+    initialize() {
+        this.container.appendChild(this.keyboardElement);
+        this.createKeys();
+        this.createArrow();
+        this.showArrow(false);
+        this.translateToTonic('C')
+    }
+
+    createKeys() {
+        let position = 0;
+        
+        // Extend the loop to include C5 (25 keys total)
+        for (let index = 0; index < 25; index++) {
+            const note = config.keyboardNotes[index % 12];
+            const keyElement = document.createElement('div');
+            const isBlackNote = note.includes('/');
+            
+            keyElement.className = `key ${isBlackNote ? 'black' : 'white'}`;
+            keyElement.dataset.noteId = index;
+    
+            // Calculate octave (3 for first 12, 4 for next 12, 5 for the last one)
+            const octave = Math.floor(index / 12) + 3;
+            keyElement.dataset.toneNote = this.formatToneNote(note, octave);
+    
+            // Set the width and position of the key
+            const width = this.keyWidth * (isBlackNote ? 1 : this.keyWidths[note.charAt(0)]);
+            keyElement.style.width = `${width}px`;
+            keyElement.style.left = `${position + (isBlackNote ? -this.keyWidth / 2 : 0)}px`;
+            
+            if (!isBlackNote) position += width;
+    
+            const noteDisplay = document.createElement('span');
+            noteDisplay.className = 'note-display';
+            noteDisplay.textContent = config.getNoteDisplay(note, false);
+    
+            keyElement.appendChild(noteDisplay);
+            this.keyElements.set(index, keyElement);
+            this.keyboardElement.appendChild(keyElement);
+        }
+    }
+
+    updateKeyState(noteId, state, useColors, animate) {
+        const keyElement = this.keyElements.get(noteId);
+        
+        if (keyElement) {
+            const isBlackNote = config.keyboardNotes[noteId].includes('/');
+            const noteDisplay = keyElement.querySelector('.note-display');
+            keyElement.classList.toggle('active', state.active);
+            noteDisplay.textContent = state.display;
+    
+            if (useColors) {
+                keyElement.style.backgroundColor = state.color;
+                noteDisplay.style.color = isBlackNote ? 'black' : 'white';
+                noteDisplay.style.fontWeight = 'bold';
+            } else {
+                keyElement.style.backgroundColor = isBlackNote ? '#262626' : '#D8D8D8';
+                noteDisplay.style.color = isBlackNote ? 'white' : 'black';
+                noteDisplay.style.fontWeight = 'normal';
+            }
+    
+            if (animate) {
+                keyElement.classList.toggle('active', state.active);
+            } else {
+                keyElement.classList.remove('active');
+            }
+    
+            this.arrowElement.style.opacity = '0';
+        }
+    }
+
+    updatePatternHighlight(playableToneNotes) {
+        console.log("Updating keyboard pattern highlight:", playableToneNotes);
+        
+        const hasPattern = playableToneNotes.length > 0;
+        this.keyboardElement.classList.toggle('pattern-active', hasPattern);
+        
+        this.keyElements.forEach((keyElement, noteId) => {
+            const inPattern = hasPattern && playableToneNotes.includes(keyElement.dataset.toneNote);
+            keyElement.classList.toggle('in-pattern', inPattern);
+            keyElement.style.pointerEvents = hasPattern ? (inPattern ? 'auto' : 'none') : 'auto';
+        });
+    }
+
+    // Add this helper method to the Keyboard class
+    formatToneNote(note, octave) {
+        if (note.includes('/')) {
+            return `${note.split('/')[0].replace('♯', '#')}${octave}`;
+        }
+        return `${note}${octave}`;
+    }
+
+    createArrow() {
+        const arrow = document.createElement('div');
+        arrow.className = 'keyboard-arrow';
+        arrow.innerHTML = '→';
+        arrow.style.cssText = `
+            position: absolute;
+            top: 60%;
+            transform: translateY(-50%);
+            font-size: 24px;
+            font-weight: bold;
+            color: #f0f0f0;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+            pointer-events: none;
+        `;
+        this.window.appendChild(arrow);
+        this.arrowElement = arrow;
+    
+        // Calculate initial position based on B4 key
+        const b4Key = this.keyElements.get(23); // B4 is at index 23
+        if (b4Key) {
+            const b4Rect = b4Key.getBoundingClientRect();
+            const windowRect = this.window.getBoundingClientRect();
+            this.arrowBasePosition = b4Rect.right - windowRect.left + 30; // 10px to the right of B4
+            this.arrowElement.style.left = `${this.arrowBasePosition}px`;
+        }
+    }
+
+    showArrow(show) {
+        if (this.arrowElement) {
+            this.arrowElement.style.opacity = show ? '1' : '0';
+        }
+    }
+
+    translateToTonic(newTonic, octave) {
+        this.currentTonic = newTonic;
+        this.currentOctave = octave;
+        const keyWidth = this.keyWidth;
+        const noteIndex = config.keyboardNotes.indexOf(newTonic);
+        
+        // Calculate offset: start at 11.5 keyWidths (for C4), then add 1 keyWidth per semitone
+        let offset = (noteIndex + 12.5) * keyWidth;
+    
+        // Adjust for octave
+        if (octave === 3) {
+            offset -= 12 * keyWidth; // Move one octave to the left
+        }
+    
+        // Center the tonic key
+        const centerOffset = (this.keyboardElement.clientWidth + 40) / 2; // Add 40px for arrow space
+        const translation = centerOffset - offset;
+    
+        if (this.animate) {
+            this.container.style.transition = 'transform 0.5s ease-in-out';
+        } else {
+            this.container.style.transition = 'none';
+        }
+    
+        this.container.style.transform = `translateX(${translation}px)`;
+
+        // Update arrow position
+        const currentTonicIndex = config.notes.indexOf(newTonic);
+        const keyDiff = currentTonicIndex - config.notes.indexOf('C'); // Difference from C
+        const arrowPosition = this.arrowBasePosition - (keyDiff * this.keyWidth);
+        this.arrowElement.style.left = `${arrowPosition + 37.5}px`;
+
+    }
+
+}
+
+
+// File: pattern.js
+
+// pattern.js
+import { playNoteForDuration } from './app.js';
+
+export class Pattern {
+    constructor(keyboard, wheel, animate) {
+        this.keyboard = keyboard;
+        this.wheel = wheel;
+        this.animate = animate;
+        this.currentPattern = [];
+        this.playButton = document.getElementById('play-pattern-button');
+        this.bracketVisualization = new BracketVisualization(this.bracketContainer);
+        this.currentRotation = 0;
+        this.currentTranslation = 0;
+    }
+
+    initialize() {
+        
+        this.createPatternSvg();
+        this.playButton.addEventListener('click', () => this.playPattern());
+
+        this.bracketContainer = document.getElementById('bracket-svg-container');
+        if (this.bracketContainer) {
+            this.bracketVisualization = new BracketVisualization(this.bracketContainer);
+        } else {
+            console.error("Bracket container not found");
+        }
+        document.getElementById('shift-pattern-left').addEventListener('click', () => this.shiftPattern('left'));
+        document.getElementById('shift-pattern-right').addEventListener('click', () => this.shiftPattern('right'));
+        document.getElementById('shift-pattern-left-curved').addEventListener('click', () => this.shiftPattern('left'));
+        document.getElementById('shift-pattern-right-curved').addEventListener('click', () => this.shiftPattern('right'));
+    }
+
+    updatePattern(patternNotes) {
+        this.currentPattern = patternNotes;
+        this.drawPatternPolygon();
+        this.bracketVisualization.updatePattern(patternNotes);
+    
+        const tonicIndex = this.wheel.config.notes.indexOf(this.wheel.currentTonic);
+        const updatedPatternNotes = patternNotes.map(interval => 
+            (interval + tonicIndex) % 12
+        );
+        this.wheel.updatePatternHighlight(updatedPatternNotes);
+        if (this.currentPattern.length > 0) {
+            this.playButton.style.display = "block";
+            console.log("play button visible");
+        } else {
+            this.playButton.style.display = "none";
+            console.log("play button INvisible");
+        }
+
+        const shiftLeftButton = document.getElementById('shift-pattern-left');
+        const shiftRightButton = document.getElementById('shift-pattern-right');
+    
+    if (this.currentPattern.length > 0) {
+        shiftLeftButton.style.display = 'block';
+        shiftRightButton.style.display = 'block';
+    } else {
+        shiftLeftButton.style.display = 'none';
+        shiftRightButton.style.display = 'none';
+    }
+}
+
+createPatternSvg() {
+    this.patternSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    this.patternSvg.setAttribute("width", "100%");
+    this.patternSvg.setAttribute("height", "100%");
+    this.patternSvg.setAttribute("viewBox", "-95 -95 190 190"); // Adjust these values as needed
+    this.patternSvg.style.position = "absolute";
+    this.patternSvg.style.top = "0";
+    this.patternSvg.style.left = "0";
+    
+    const polygonWindow = document.getElementById('polygon-window');
+    polygonWindow.appendChild(this.patternSvg);
+}
+    
+async animatePatternTransition(oldLayout, newLayout) {
+    if (!this.animate || this.currentPattern.length === 0) return;
+
+    const originalPolygon = this.patternSvg.querySelector('polygon');
+    originalPolygon.style.display = 'none';  // Hide the original polygon
+
+    const startPoints = this.calculatePolygonPoints(oldLayout);
+    const endPoints = this.calculatePolygonPoints(newLayout);
+
+    const tempPolygon = originalPolygon.cloneNode(true);
+    tempPolygon.style.display = ''; // Ensure the cloned polygon is visible
+    this.patternSvg.appendChild(tempPolygon);
+
+    const duration = 750; // milliseconds
+    const steps = 60; // For smoother animation
+
+    for (let i = 0; i <= steps; i++) {
+        const progress = i / steps;
+        const currentPoints = this.interpolatePoints(startPoints, endPoints, progress);
+        tempPolygon.setAttribute('points', currentPoints.join(' '));
+        await new Promise(resolve => setTimeout(resolve, duration / steps));
+    }
+
+    this.patternSvg.removeChild(tempPolygon);
+    await this.drawPatternPolygon(); // Update with the final position
+    originalPolygon.style.display = ''; // Show the original polygon again
+}
+
+calculatePolygonPoints(layout) {
+    const tonicIndex = this.wheel.config.notes.indexOf(this.wheel.currentTonic);
+    const polygonRadius = this.wheel.radius * 0.8;
+
+    // Calculate points for all 12 positions
+    const allPoints = Array(12).fill().map((_, i) => {
+        const noteIndex = (i + tonicIndex) % 12;
+        const notePosition = layout[noteIndex];
+        const angle = (notePosition * 30) * (Math.PI / 180) - Math.PI / 2;
+        const x = Math.cos(angle) * polygonRadius;
+        const y = Math.sin(angle) * polygonRadius;
+        return { x, y, index: i };
+    });
+
+    // Filter to only the points in our pattern
+    return this.currentPattern
+        .map(interval => allPoints.find(point => point.index === interval))
+        .filter(point => point !== undefined);
+}
+
+interpolatePoints(startPoints, endPoints, progress) {
+    return startPoints.map((start, index) => {
+        const end = endPoints[index];
+        const x = start.x + (end.x - start.x) * progress;
+        const y = start.y + (end.y - start.y) * progress;
+        return `${x},${y}`;
+    });
+}
+
+    drawPatternPolygon() {
+        this.patternSvg.innerHTML = ''; // Clear previous content
+
+        if (!this.currentPattern || this.currentPattern.length === 0) return;
+
+        console.log('Current Pattern:', this.currentPattern);
+        console.log('Current Tonic:', this.wheel.currentTonic);
+
+        const polygonRadius = this.wheel.radius * 0.8; // Adjust this factor as needed
+
+        const points = this.currentPattern.map(noteIndex => {
+            const actualNoteIndex = (noteIndex + this.wheel.config.notes.indexOf(this.wheel.currentTonic)) % 12;
+            const notePosition = this.wheel.notePositions.get(actualNoteIndex);
+            console.log(`Note ${actualNoteIndex}: Position ${notePosition}`);
+
+            const angle = (notePosition * 30) * (Math.PI / 180) - Math.PI / 2;
+            const x = Math.cos(angle) * polygonRadius;
+            const y = Math.sin(angle) * polygonRadius;
+            return `${x},${y}`;
+        }).join(' ');
+
+        // Draw the pattern polygon
+        const polygon = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+        polygon.setAttribute("points", points);
+        polygon.setAttribute("fill", "#222222");
+        polygon.setAttribute("stroke", "white");
+        polygon.setAttribute("stroke-width", "4");
+        this.patternSvg.appendChild(polygon);
+    }
+
+    async shiftPattern(direction) {
+        if (this.currentPattern.length < 2) {
+            console.log("Pattern is too short to shift");
+            return;
+        }
+    
+        let shiftAmount;
+        if (direction === 'right') {
+            shiftAmount = this.currentPattern[1] - this.currentPattern[0];
+        } else if (direction === 'left') {
+            shiftAmount = 12 - (this.currentPattern[this.currentPattern.length - 1] - this.currentPattern[0]);
+        } else {
+            console.error("Invalid shift direction");
+            return;
+        }
+    
+        console.log(`Shifting pattern ${direction} by ${shiftAmount} steps`);
+    
+        // Calculate the new pattern
+        const newPattern = this.currentPattern.map(interval => {
+            let newInterval = direction === 'right' 
+                ? (interval - shiftAmount + 12) % 12
+                : (interval + shiftAmount) % 12;
+            return newInterval;
+        });
+    
+        // Sort the new pattern
+        newPattern.sort((a, b) => a - b);
+    
+        console.log("Original pattern:", this.currentPattern);
+        console.log("New pattern:", newPattern);
+    
+        console.log("PATTERNNN ANIMATE:", this.animate)
+        // Animate the changes
+        if (this.animate) {
+            console.log("ANIMATING TRANSITION")
+            await Promise.all([
+                this.animatePolygon(direction, shiftAmount),
+                this.bracketVisualization.animateBracket(direction, shiftAmount)
+            ]);
+        }
+    
+        // Update the current pattern
+        this.currentPattern = newPattern;
+    
+        // Update visuals
+        this.updatePattern(this.currentPattern);
+        this.updateKeyboardHighlight();
+    }
+
+    getCurrentPattern() {
+        return this.currentPattern;
+    }
+    
+    updateKeyboardHighlight() {
+        const tonicIndex = this.wheel.config.notes.indexOf(this.wheel.currentTonic);
+        const playableToneNotes = this.currentPattern.map(interval => {
+            const noteIndex = (interval + tonicIndex) % 12;
+            const note = this.wheel.config.notes[noteIndex];
+            const octave = this.wheel.currentOctave + (noteIndex < tonicIndex ? 1 : 0);
+            return this.wheel.formatToneNote(note, octave);
+        });
+         // Add the top note (one octave above the tonic)
+    const topNote = this.wheel.formatToneNote(this.wheel.currentTonic, this.wheel.currentOctave + 1);
+    playableToneNotes.push(topNote);
+
+    this.keyboard.updatePatternHighlight(playableToneNotes);
+    }
+    
+    async animatePolygon(direction, shiftAmount) {
+        const tempPolygon = this.patternSvg.querySelector('polygon').cloneNode(true);
+        this.patternSvg.appendChild(tempPolygon);
+    
+        const originalPolygon = this.patternSvg.querySelector('polygon');
+        originalPolygon.style.opacity = '0';
+    
+        const duration = 450; // milliseconds
+        const steps = 60; // For smoother animation
+        const totalRotation = shiftAmount * 30; // 30 degrees per step
+        const rotationPerStep = totalRotation / steps;
+    
+        for (let i = 0; i <= steps; i++) {
+            const rotation = i * rotationPerStep * (direction === 'right' ? -1 : 1);
+            tempPolygon.setAttribute('transform', `rotate(${rotation})`);
+            await new Promise(resolve => setTimeout(resolve, duration / steps));
+        }
+    
+        this.patternSvg.removeChild(tempPolygon);
+        originalPolygon.style.opacity = '1';
+    }
+
+// PLAYBACK FUNCTIONS
+
+createPlayButton() {
+    const playButton = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    playButton.setAttribute("cx", "150");
+    playButton.setAttribute("cy", "150");
+    playButton.setAttribute("r", "20");
+    playButton.setAttribute("fill", "#f5f5f5");
+    playButton.style.cursor = "pointer";
+
+    const playIcon = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    playIcon.setAttribute("d", "M145,140 L145,160 L160,150 Z");
+    playIcon.setAttribute("fill", "white");
+
+    const buttonGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    buttonGroup.appendChild(playButton);
+    buttonGroup.appendChild(playIcon);
+    buttonGroup.style.display = "none";
+
+    buttonGroup.addEventListener("click", () => this.playPattern());
+
+    this.patternSvg.appendChild(buttonGroup);
+    this.playButtonGroup = buttonGroup;
+    console.log("play button created")
+}
+
+playPattern() {
+    const toneNotes = this.calculateToneNotes();
+    this.playToneNotes(toneNotes);
+}
+
+calculateToneNotes() {
+    const tonic = this.wheel.currentTonic;
+    const startingOctave = this.wheel.currentOctave;
+    const tonicIndex = this.wheel.config.notes.indexOf(tonic);
+
+    console.log(`Starting calculation for tonic: ${tonic}, octave: ${startingOctave}`);
+
+    let currentOctave = startingOctave;
+    let previousNoteIndex = tonicIndex;
+
+    const toneNotes = this.currentPattern.map((intervalFromTonic, patternIndex) => {
+        const noteIndex = (tonicIndex + intervalFromTonic) % 12;
+        const note = this.wheel.config.notes[noteIndex];
+        const isBlackNote = note.includes('/');
+        const baseTone = isBlackNote ? note.charAt(0) + '#' : note.charAt(0);
+
+        // Increment octave if we've wrapped around
+        if (noteIndex < previousNoteIndex && patternIndex > 0) {
+            currentOctave++;
+        }
+        previousNoteIndex = noteIndex;
+
+        const toneNote = `${baseTone}${currentOctave}`;
+        console.log(`Pattern index: ${patternIndex}, Note: ${note}, Tone note: ${toneNote}`);
+        return toneNote;
+    });
+
+    // Add the tonic an octave higher than the starting octave
+    const finalOctave = startingOctave + 1;
+    const isTonicBlackNote = tonic.includes('/');
+    const tonicBaseTone = isTonicBlackNote ? tonic.charAt(0) + '#' : tonic.charAt(0);
+    const finalToneNote = `${tonicBaseTone}${finalOctave}`;
+    toneNotes.push(finalToneNote);
+
+    console.log(`Final tone notes: ${toneNotes.join(', ')}`);
+    return toneNotes;
+}
+
+playToneNotes(toneNotes) {
+    let index = 0;
+    const playNextNote = () => {
+        if (index < toneNotes.length) {
+            playNoteForDuration(toneNotes[index], 350);
+            
+            // Animate the note on the wheel
+            if (index === toneNotes.length - 1) {
+                // For the last note, animate the tonic note element
+                const tonicIndex = this.wheel.config.notes.indexOf(this.wheel.currentTonic);
+                const tonicElement = this.wheel.noteElements.get(tonicIndex);
+                if (tonicElement) {
+                    this.wheel.animateNotePress(tonicElement, true);
+                    setTimeout(() => {
+                        this.wheel.animateNotePress(tonicElement, false);
+                    }, 350);
+                }
+            }
+            
+            setTimeout(() => {
+                index++;
+                playNextNote();
+            }, 450); // Wait a bit longer than the note duration
+        }
+    };
+    playNextNote();
+}
+
+}
+
+class BracketVisualization {
+    constructor(container) {
+        if (!container) {
+            console.error("No container provided for BracketVisualization");
+            return;
+        }
+        this.container = container;
+        this.svg = this.createSVG();
+        if (this.svg) {
+            this.patternGroup = this.createPatternGroup();
+            this.horizontalLine = this.createHorizontalLine();
+        }
+    }
+
+    createSVG() {
+        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svg.setAttribute("width", "325");
+        svg.setAttribute("height", "40");
+        this.container.appendChild(svg);
+        return svg;
+    }
+
+    createPatternGroup() {
+        const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        this.svg.appendChild(group);
+        return group;
+    }
+
+    createHorizontalLine() {
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        line.setAttribute("x1", "10.5");
+        line.setAttribute("y1", "15");
+        line.setAttribute("x2", "314.5");
+        line.setAttribute("y2", "15");
+        line.setAttribute("stroke", "white");
+        line.setAttribute("stroke-width", "4");
+        line.setAttribute("class", "horizontal-line");
+        line.setAttribute("display", "none"); // Initially hidden
+        this.patternGroup.appendChild(line);
+        return line;
+    }
+
+    updatePattern(pattern) {
+        this.patternGroup.innerHTML = '';
+        this.patternGroup.appendChild(this.horizontalLine);
+        
+        if (pattern.length > 0) {
+            this.horizontalLine.setAttribute("display", "inline"); // Show horizontal line
+            
+            pattern.forEach(noteIndex => {
+                this.createVerticalLine(noteIndex);
+            });
+            
+            // Add extra line for the octave
+            this.createVerticalLine(12);
+        } else {
+            this.horizontalLine.setAttribute("display", "none"); // Hide horizontal line
+        }
+    }
+
+    createVerticalLine(noteIndex) {
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        line.setAttribute("x1", 12.5 + noteIndex * 25);
+        line.setAttribute("y1", 15);
+        line.setAttribute("x2", 12.5 + noteIndex * 25);
+        line.setAttribute("y2", 35);
+        line.setAttribute("stroke", "white");
+        line.setAttribute("stroke-width", "4");
+        this.patternGroup.appendChild(line);
+    }
+
+    async animateBracket(direction, shiftAmount) {
+        const duration = 450; // milliseconds
+        const steps = 60; // For smoother animation
+        const totalShift = shiftAmount * 25; // 25 pixels per step
+        const shiftPerStep = totalShift / steps;
+
+        const tempGroup = this.patternGroup.cloneNode(true);
+        this.svg.appendChild(tempGroup);
+        this.patternGroup.style.opacity = '0';
+
+        for (let i = 0; i <= steps; i++) {
+            const shift = i * shiftPerStep * (direction === 'right' ? -1 : 1);
+            tempGroup.setAttribute('transform', `translate(${shift} 0)`);
+            tempGroup.setAttribute('easing', `ease-in-out`);
+            await new Promise(resolve => setTimeout(resolve, duration / steps));
+        }
+
+        this.svg.removeChild(tempGroup);
+        this.patternGroup.style.opacity = '1';
+    }
+}
+
+// File: styles.css
+
+:root {
+    --theme-color: #555555;
+    --svg-fill-color: #555555;
+    --svg-hover-color: #666666;
+    --svg-active-color: #777777;
+}
+
+/* General Styles */
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: #404040;
+    color: #f0f0f0;
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px;
+    position: relative;
+}
+
+header {
+    position: absolute;
+    top: 10px;
+    left: 20px;
+}
+
+h1 {
+    margin: 0;
+    font-size: 2em;
+}
+
+
+
+/* KEYBOARD STUFF*/
+#keyboard-area {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    position: relative;
+    margin-bottom: 10px;
+}
+
+#keyboard-window {
+    width: 81.5%;
+    overflow: hidden;
+    position: relative;
+    order: 1;
+    height: 200px; /* Increased to accommodate the taller bracket window */
+    margin: 5px;
+    padding: 10px 50px 10px 0px;
+    background-color: #333333;
+    border-radius: 5px;
+    border: 1px solid #2a2a2a;
+    box-shadow: 
+        inset 0 2px 4px rgba(0,0,0,0.5),
+        0 1px 0 rgba(255,255,255,0.1);
+  }
+
+  #keyboard-container {
+    width: 670px ;
+    height: 150px;
+    display: flex;
+    justify-content: center;
+    position: relative;
+    top: 50px; /* Pushed down to account for taller bracket window and margin */
+  }
+
+.keyboard {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 650px;
+    height: 100%;
+    justify-content: center;
+}
+
+.key {
+    position: absolute;
+    width: 40px;
+    height: 150px;
+    border: 2px solid #000;
+    box-sizing: border-box;
+    display: flex;
+    border-radius: 5px;
+    justify-content: center;
+    align-items: flex-end;
+    padding-bottom: 10px;
+    cursor: pointer;
+    transition: transform 0.1s ease, filter 0.1s ease;
+}
+
+.key.white {
+    background-color: #D8D8D8;
+    z-index: 1;
+}
+
+.key.black {
+    background-color: #262626;
+    height: 100px;
+    width: 20px;
+    z-index: 2;
+}
+
+.key.active {
+    transform: scale(0.95);
+    filter: brightness(1.6);
+}
+
+
+
+
+
+
+/* WHEEL STUFF */
+#wheel-container {
+    position: relative;
+    width: 300px;
+    height: 300px;
+    order: 3;
+    background-color: #333333;
+    border-radius: 50%;
+    padding: 15px;
+    margin-top: 15px;
+    border: 1px solid #2a2a2a;
+    box-shadow: 
+        inset 0 2px 4px rgba(0,0,0,0.5),
+        0 1px 0 rgba(255,255,255,0.1);
+    /* Remove any z-index here if present */
+}
+
+#wheel-svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 3; /* Highest z-index to be on top */
+}
+
+#wheel-container svg * {
+    visibility: visible !important;
+}
+
+.note circle {
+    stroke-width: 2;
+}
+
+.note text {
+    font-size: 14px;
+}
+
+wheel .note {
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.wheel .note circle {
+    transition: r 0.2s ease;
+}
+
+.pattern-active g:not(.in-pattern) circle {
+    filter: brightness(0.5);
+    stroke: black;
+    stroke-width: 2px;
+}
+
+.pattern-active g:not(.in-pattern) text {
+    opacity: 0.4;
+}
+
+.pattern-active g.in-pattern circle {
+    filter: brightness(1);
+    stroke: white;
+    stroke-width: 3px;
+}
+
+.pattern-active g.in-pattern text {
+    opacity: 1;
+}
+
+/* KEYS AND WHEEL STUFF*/
+.keyboard, .wheel {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+  }
+
+
+.note-display {
+    font-size: 12px;
+    color: #000;
+    position: absolute;
+    bottom: 5px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.key.black .note-display {
+    color: #fff;
+}
+
+.keyboard.pattern-active .key:not(.in-pattern) {
+    filter: brightness(0.5);
+}
+
+.keyboard.pattern-active .key.in-pattern {
+    border-color: white;
+    border-width: 3.5px;
+}
+
+.keyboard.pattern-active .key:not(.in-pattern) .note-display {
+    opacity: 0.5;
+}
+
+.keyboard.pattern-active .key.in-pattern .note-display {
+    opacity: 1;
+}
+
+
+
+
+
+/* PATTERNS STUFF */
+#bracket-window {
+    position: absolute;
+    top: 11px;
+    right: calc(50% - 307.5px); /* Move it half a keywidth (25px/2) to the left */
+    width: 325px; /* 13 keywidths (13 * 25px) */
+    height: 40px; /* Increased from 30px to 40px */
+    margin-bottom: 5px;
+    background-color: #222222; /* Temporary color for visibility */
+    overflow: hidden;
+    border-radius: 5px;
+    border: 1px solid #2a2a2a;
+    transition: 0.3s ease;
+    box-shadow: 
+        inset 0 2px 4px rgba(0,0,0,0.5),
+        0 1px 0 rgba(255,255,255,0.1);
+  }
+
+  #polygon-window {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 190px;  /* Adjust based on your wheel size */
+    height: 190px; /* Adjust based on your wheel size */
+    border-radius: 50%;
+    overflow: hidden;
+    background-color: #222222;
+    z-index: 4;
+    transition: 0.3s ease;
+    box-shadow: 
+        inset 0 2px 4px rgba(0,0,0,0.5),
+        0 1px 0 rgba(255,255,255,0.1);
+}
+  
+.pattern-active #bracket-window::after, .pattern-active #polygon-window::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
+  
+  .pattern-active #bracket-window:hover::after, .pattern-active #polygon-window:hover::after {
+    opacity: 1;
+  }
+
+/* CONTROLS STUFF */
+#options-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 80%;
+    height: 90px;
+    margin: 10px, 0px;
+    position: relative;
+    order: 2;
+  }
+
+
+  /* ARROWS */
+  /* TONIC ARROWS */
+  #tonic-selector {
+    position: absolute;
+    width: 85px;
+    height: 85px;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: 10px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #555555;
+    border: solid 2px white;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2), 
+                0 -4px 6px rgba(255,255,255,0.1) inset;
+}
+
+    #tonic-selector label {
+        position: absolute;
+        top: 5px;
+    }
+
+.tonic-arrow {
+    filter: drop-shadow(0 2px 2px rgba(0,0,0,0.2));
+    transition: fill 0.3s ease, transform 0.3s ease;
+    cursor: pointer;
+    position: absolute;
+    top: 50%;
+}
+
+.tonic-arrow .arrow-fill {
+    fill: var(--svg-fill-color);
+    transition: fill 0.3s ease;
+  }
+  
+  .tonic-arrow:hover .arrow-fill {
+    fill: var(--svg-hover-color);
+  }
+  
+  .tonic-arrow:active .arrow-fill {
+    fill: var(--svg-active-color);
+  }
+
+.curved-arrow {
+    width: 150px;
+    height: 150px;
+}
+
+.straight-arrow {
+    width: 115px;
+    height: 115px;
+}
+
+#decrease-tonic {
+    position: absolute;
+    left: -170px;
+    transform: translateY(-20%);
+}
+
+#decrease-tonic:hover {
+    filter: drop-shadow(0 4px 4px rgba(0,0,0,0.3));
+    transform: translateY(-23%);
+}
+
+#decrease-tonic:active {
+    transform: translateY(-19%);
+}
+
+#increase-tonic {
+    right: -170px;
+    transform: translateY(-20%) scaleX(-1);
+}
+
+#increase-tonic:hover {
+    filter: drop-shadow(0 4px 4px rgba(0,0,0,0.3));
+    transform: translateY(-23%) scaleX(-1);
+}
+
+#increase-tonic:active {
+    transform: translateY(-19%) scaleX(-1);
+}
+
+#tonic-display-container {
+    width: 50px;
+    text-align: center;
+    margin: 15px 10px 5px;
+}
+
+#current-tonic {
+    position: relative;
+    font-size: 47px;
+    font-weight: bold;
+    text-align: center;
+    top: 5px;
+}
+
+
+
+#decrease-tonic-2,
+#increase-tonic-2 {
+    position: absolute;
+    top: 75px;
+    fill: var(--svg-fill-color);
+    transition: fill 0.3s ease, transform 0.3s ease;
+    cursor: pointer;
+}
+
+#decrease-tonic-2 {
+    left: -50px;
+    transform: translateY(0);
+}
+
+#increase-tonic-2 {
+    right: -50px;
+    transform: scaleX(-1) translateY(0);
+}
+
+#decrease-tonic-2:hover,
+#increase-tonic-2:hover {
+    filter: drop-shadow(0 4px 4px rgba(0,0,0,0.3));
+    fill: var(--svg-hover-color);
+}
+
+#decrease-tonic-2:hover {
+    transform: translateY(-3%);
+}
+
+#increase-tonic-2:hover {
+    transform: scaleX(-1) translateY(-3%);
+}
+
+#decrease-tonic-2:active,
+#increase-tonic-2:active {
+    fill: var(--svg-active-color);
+}
+
+#decrease-tonic-2:active {
+    transform: translateY(1%);
+}
+
+#increase-tonic-2:active {
+    transform: scaleX(-1) translateY(1%);
+}
+
+.select-group, #tonic-selector {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.select-group {
+    margin: 0 100px; /* Adjust spacing as needed */
+    width: 250px;
+  }
+
+  
+select {
+    background-color: var(--theme-color);
+    border-radius: 5px;
+    border: 2px solid #000;
+}
+
+/* Form Elements */
+select, button {
+    padding: 5px 10px;
+    margin: 3px;
+    cursor: pointer;
+}
+
+input[type="checkbox"] {
+    margin-right: 0;
+}
+
+/* Content Container */
+#content-container, #main-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 800px;
+}
+  
+  .pattern-shift-arrow {
+    width: 20px; /* Adjust based on your image size */
+    height: 12px; /* Adjust based on your image size */
+}
+
+#pattern-select {
+    color: #fafafa;
+    position: absolute;
+    left: 30px;
+    top: 11px;
+    font-size: 18px;
+}
+
+  
+#keyboard-area, #wheel-container {
+    position: relative;
+  }
+  
+  .pattern-shift-arrow {
+    position: absolute;
+    cursor: pointer;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 6;
+  }
+  
+  .pattern-active .pattern-shift-arrow {
+    opacity: 0;
+    pointer-events: auto;
+  }
+  
+  .pattern-active #bracket-window:hover .pattern-shift-arrow,
+  .pattern-active #polygon-window:hover .pattern-shift-arrow {
+    opacity: 0.8;
+  }
+  
+  #shift-pattern-left, #shift-pattern-right {
+    top: 5px; /* Adjust as needed */
+    width: 40px;
+    height: 30px;
+  }
+  
+  #shift-pattern-left {
+    left: 10px;
+  }
+  
+  #shift-pattern-right {
+    right: 10px;
+    transform: scaleX(-1);
+  }
+  
+   
+  #shift-pattern-left-curved {
+    top: 40%;
+    left: 30px;
+    transform: translateY(-50%);
+    width: 50px;
+    height: 50px;
+  }
+  
+  #shift-pattern-right-curved {
+    top: 40%;
+    right: 30px;
+    transform: translateY(-50%) scaleX(-1);
+    width: 50px;
+    height: 50px;
+  }
+  
+  /* Hover effects */
+  #shift-pattern-left:hover {
+    transform: scale(1.1);
+  } 
+  
+  #shift-pattern-left-curved:hover {
+    transform: translateY(-50%) scale(1.1);
+  }
+  
+  #shift-pattern-right:hover {
+    transform: scaleX(-1) scale(1.1);
+  }
+  
+  #shift-pattern-right-curved:hover {
+    transform: translateY(-50%) scaleX(-1) scale(1.1);
+  }
+  
+
+
+.layout-button {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 100px;  /* Increased width to accommodate text */
+    height: 120px; /* Increased height to accommodate text */
+    padding: 5px;
+    border: none;
+    background: #555;  /* Dark background color */
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2), 
+                0 -2px 4px rgba(255,255,255,0.1) inset;
+    transition: all 0.3s ease;
+}
+
+.layout-button:hover {
+    background: #666;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3), 
+                0 -2px 4px rgba(255,255,255,0.2) inset;
+    transform: translateY(-52%);  /* Slight lift on hover */
+}
+
+.layout-button:active {
+    box-shadow: 0 1px 2px rgba(0,0,0,0.2), 
+                0 -1px 2px rgba(255,255,255,0.1) inset;
+    transform: translateY(-49%);  /* Slight press effect */
+}
+
+.layout-button img {
+    width: 90%;
+    height: 90%;
+    object-fit: contain;
+}
+
+.button-text {
+    font-size: 10px;
+    color: #ddd;
+    text-transform: uppercase;
+}
+
+.button-text.top {
+    font-weight: normal;
+}
+
+.button-text.bottom {
+    font-weight: bold;
+    font-size: 12px;
+}
+
+#prev-layout {
+    left: -200px;
+}
+
+#next-layout {
+    right: -200px;
+}
+
+
+
+#play-button-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 5; /* Above everything else */
+}
+  
+  #play-pattern-button {
+    cursor: pointer;
+    transition: transform 0.1s ease-in-out;
+    opacity: 80%;
+  }
+  
+  #play-pattern-button:hover {
+    transform: scale(1.1);
+  }
+
+  
+
+
+
+/* Tonic Indicators*/
+#wheel-tonic-indicator, #keyboard-tonic-indicator {
+    position: absolute;
+    pointer-events: none;
+    z-index: 20;
+}
+#wheel-tonic-indicator {
+    width: 40px;
+    height: 40px;
+    border: solid '#E25A5A';
+    border-radius: 50%;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3));
+}
+#keyboard-tonic-indicator {
+    width: 30px;
+    height: 10px;
+    background-color: '#E25A5A';
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3));
+}
+
+
+/* TOGGLES STUFF */
+#toggles-panel {
+    position: absolute;
+    top: 70px;
+    left: 20px;
+    width: 170px;
+    padding: 10px;
+    background-color: #696969;
+    color: #f0f0f0;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+#toggles-panel h3 {
+    margin-top: 0;
+    font-size: 2em;
+    margin-block-start: 0em;
+    margin-block-end: 0.5em;
+}
+
+.toggle-group {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.toggle-group label {
+    display: block;
+    margin-top: 2px;
+    font-size: 1.2em;
+}
+
+#toggle-debug {
+    margin-top: 10px;
+    width: 100%;
+}
+
+/* Hide default checkbox */
+.toggle-group input[type="checkbox"] {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+/* Create a custom slider */
+.slider {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 30px;
+    top: 5px;
+    cursor: pointer;
+    background-color: #ccc;
+    border-radius: 20px;
+    transition: 0.2s;
+}
+
+.slider:before {
+    content: "";
+    position: absolute;
+    height: 26px;
+    width: 26px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    border-radius: 50%;
+    transition: 0.4s;
+}
+
+/* Checked state */
+.toggle-group input:checked + .slider {
+    background-color: #437ad9;
+}
+
+.toggle-group input:checked + .slider:before {
+    transform: translateX(20px);
+}
+
+/* Hover effect */
+.slider:hover {
+    background-color: #9bb1d7;
+}
+
+
+ /* body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 50%;
+    width: 1px;
+    height: 100%;
+    background: red;
+    z-index: 9999;
+  }  */
+
+  #pattern-select-container {
+    position: absolute;
+    /* Adjust these values to position it correctly */
+    top: 6px;
+    left: 55px;
+    z-index: 1000; /* Ensure it's above other elements */
+  }
+
+  .custom-select {
+    position: relative;
+    display: inline-block;
+    width: 230px;
+  }
+  
+  .select-selected {
+    background-color: #444;
+    color: #fff;
+    padding: 8px 16px;
+    border: 1px solid #666;
+    cursor: pointer;
+    border-radius: 5px;
+
+  }
+  
+  .select-items {
+    display: none;
+    position: absolute;
+    background-color: #444;
+    min-width: 200px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+    cursor: pointer;
+    border-radius: 5px;
+  }
+  
+  .select-item {
+    color: #fff;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    position: relative;
+  }
+  
+  .submenu {
+    display: none;
+    position: absolute;
+    left: 100%;
+    top: 0;
+    background-color: #444;
+    min-width: 200px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    cursor: pointer;
+    border-radius: 5px;
+  }
+  
+  .select-item:hover .submenu {
+    display: block;
+  }
+  
+  .select-subitem {
+    color: #fff;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+  }
+  
+  .select-item:hover, .select-subitem:hover {
+    background-color: #555;
+  }
+
+  .select-item::after {
+    content: '▶';
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .select-item.none-option::after {
+    content: ''; /* Ensures no arrow is shown for the [NONE] option */
+}
+
+  .select-selected::after {
+    content: '▼';
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  
+  .select-item, .select-subitem {
+    position: relative;
+    padding-right: 25px; /* Make room for the arrow */
+  }
+
+// File: tonicIndicators.js
+
+import { useColors } from './app.js';
+
+export class TonicIndicators {
+    constructor(wheelContainer, keyboardWindow) {
+        this.wheelContainer = wheelContainer;
+        this.keyboardWindow = keyboardWindow;
+        this.indicatorColor = useColors ? 'white' : '#E25A5A';
+        
+        this.wheelIndicator = this.createWheelIndicator();
+        this.keyboardIndicator = this.createKeyboardIndicator();
+
+        this.wheelYOffset = 4.5;
+        this.keyboardYOffset = 58;
+
+        this.positionIndicators();
+        this.visible = false;
+    }
+
+    createWheelIndicator() {
+        const indicator = document.getElementById('wheel-tonic-indicator') || document.createElement('div');
+        indicator.id = 'wheel-tonic-indicator';
+        indicator.style.position = 'absolute';
+        indicator.style.width = '46px';
+        indicator.style.height = '46px';
+        indicator.style.border = `8px solid ${this.indicatorColor}`;
+        indicator.style.borderRadius = '50%';
+        indicator.style.pointerEvents = 'none';
+        this.wheelContainer.appendChild(indicator);
+        return indicator;
+    }
+
+    createKeyboardIndicator() {
+        const indicator = document.getElementById('keyboard-tonic-indicator') || document.createElement('div');
+        indicator.id = 'keyboard-tonic-indicator';
+        indicator.style.position = 'absolute';
+        indicator.style.width = '33px';
+        indicator.style.height = '57px'; // Adjust based on your key height
+        indicator.style.borderTop = `8px solid ${this.indicatorColor}`;
+        indicator.style.borderLeft = `8px solid ${this.indicatorColor}`;
+        indicator.style.borderRight = `8px solid ${this.indicatorColor}`;
+        indicator.style.borderBottom = '1px solid transparent';
+        indicator.style.borderRadius = '5px'
+        indicator.style.backgroundColor = 'transparent';
+        indicator.style.pointerEvents = 'none';
+        indicator.style.boxSizing = 'border-box';
+        this.keyboardWindow.appendChild(indicator);
+        return indicator;
+    }
+
+    positionIndicators() {
+        this.positionWheelIndicator();
+        this.positionKeyboardIndicator();
+    }
+
+    positionWheelIndicator() {
+        this.wheelIndicator.style.left = '50%';
+        this.wheelIndicator.style.transform = 'translateX(-50%)';
+        this.wheelIndicator.style.top = `${this.wheelYOffset}px`;
+    }
+    
+    positionKeyboardIndicator() {
+        this.keyboardIndicator.style.left = 'calc(50% - 5px)';
+        this.keyboardIndicator.style.transform = 'translateX(-50%)';
+        this.keyboardIndicator.style.top = `${this.keyboardYOffset}px`;
+    }
+
+    updateIndicatorColor() {
+        this.indicatorColor = useColors ? 'white' : '#E54444';
+        this.wheelIndicator.style.borderColor = this.indicatorColor;
+        this.keyboardIndicator.style.borderTopColor = this.indicatorColor;
+        this.keyboardIndicator.style.borderLeftColor = this.indicatorColor;
+        this.keyboardIndicator.style.borderRightColor = this.indicatorColor;
+    }
+
+    toggleVisibility() {
+        this.visible = !this.visible;
+        const display = this.visible ? 'none' : 'block';
+        this.wheelIndicator.style.display = display;
+        this.keyboardIndicator.style.display = display;
+        if (this.visible) {
+            this.updateIndicatorColor();
+        }
+    }
+}
+
+// File: wheel.js
+
+// wheel.js
+
+import * as config from './config.js';
+
+export class Wheel {
+    constructor(container, animate) {
+        this.currentTonic = 'C'
+        this.currentLayout = 'chromatic';
+        this.currentOctave = 4;
+        this.container = container;
+        this.animate = animate;
+        this.config = config;
+        this.svg = null;
+        this.notesGroup = null;
+        this.patternGroup = null;
+        this.radius = 118;
+        this.noteElements = new Map(); // Store note elements with their ids
+        this.notePositions = new Map(); // Map note IDs to their current positions
+
+        this.animationParams = {
+            scale: 1.05,
+            brightness: 1.6,
+            originalRadius: 25,
+            duration: 200 // milliseconds
+        };
+    }
+
+    initialize() {
+        this.createSVG();
+        this.createNotes();
+    }
+
+
+// CREATIONS (SVG, Notes, Temp)
+    createSVG() {
+        this.svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        this.svg.setAttribute("width", 300);
+        this.svg.setAttribute("height", 300);
+        this.svg.setAttribute("viewBox", "-150 -150 300 300");
+        this.svg.setAttribute("z-index", "5");
+        this.svg.setAttribute("id", "wheel-svg");
+        
+        const background = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        background.setAttribute("x", "-150");
+        background.setAttribute("y", "-150");
+        background.setAttribute("width", "300");
+        background.setAttribute("height", "300");
+        background.setAttribute("fill", "#00000000");
+        this.svg.appendChild(background);
+
+        this.notesGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        this.patternGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        
+        this.svg.appendChild(this.patternGroup);
+        this.svg.appendChild(this.notesGroup);
+        
+        
+        this.container.appendChild(this.svg);
+    }
+
+    createNotes() {
+        const fragment = document.createDocumentFragment();
+        
+        // CREATE SVGS
+        config.notes.forEach((note, noteId) => {
+            const noteGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+            noteGroup.dataset.noteId = noteId;
+            noteGroup.style.cursor = "pointer";
+            noteGroup.style.zIndex = "5";
+    
+            const noteCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            noteCircle.setAttribute("r", "25");
+            noteCircle.setAttribute("stroke", "black");
+            noteCircle.setAttribute("stroke-width", "2");
+            
+            const noteText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            noteText.setAttribute("text-anchor", "middle");
+            noteText.setAttribute("dominant-baseline", "central");
+            
+            noteGroup.append(noteCircle, noteText);
+            
+
+    
+
+            // SET INITIAL PROPERTIES
+            this.notePositions.set(noteId, noteId);
+            this.noteElements.set(noteId, noteGroup);
+    
+            // Calculate toneNote
+            const isBlackNote = note.includes('/');
+            const baseTone = isBlackNote ? note.charAt(0) + '#' : note.charAt(0);
+            const toneNote = `${baseTone}${this.currentOctave}`;
+            noteGroup.dataset.toneNote = toneNote;
+    
+            fragment.appendChild(noteGroup);
+    
+            // Set initial state
+            const initialState = {
+                display: config.getNoteDisplay(note, false),
+                color: isBlackNote ? 'black' : 'white',
+                active: false,
+                inPattern: false
+            };
+            
+            this.updateNoteState(noteId, initialState, false, false);
+        });
+    
+        this.notesGroup.appendChild(fragment);
+    
+        this.notePositions.forEach((_, noteId) => {
+            this.updateNotePosition(noteId);
+        });
+    }
+
+
+// UPDATES (Position, State, ToneNotes, Tonic, Layout)
+    updateNotePosition(noteId) {
+        const noteElement = this.noteElements.get(noteId);
+        const position = this.notePositions.get(noteId);
+        const angle = position * (Math.PI / 6) - Math.PI / 2;
+        const x = Math.cos(angle) * this.radius;
+        const y = Math.sin(angle) * this.radius;
+        
+        noteElement.setAttribute("transform", `translate(${x}, ${y})`);
+    }
+    
+    updateNoteState(noteId, state, useColors, animate, octave) {
+        const noteElement = this.noteElements.get(noteId);
+        if (noteElement) {
+            const noteCircle = noteElement.querySelector('circle');
+            const noteText = noteElement.querySelector('text');
+            const note = this.config.notes[noteId];
+            const isBlackNote = note.includes('/');
+            
+            noteCircle.setAttribute('fill', state.color);
+            noteText.textContent = state.display;
+    
+            noteText.setAttribute('fill', useColors ? (isBlackNote ? 'black' : 'white') : (isBlackNote ? 'white' : 'black'));
+            noteText.setAttribute('font-weight', useColors ? 'bold' : 'normal');
+    
+            // Preserve the current octave
+            const currentOctave = noteElement.dataset.toneNote ? noteElement.dataset.toneNote.slice(-1) : this.currentOctave;
+            const baseTone = isBlackNote ? note.split('/')[0].replace('♯', '#') : note;
+            const toneNote = `${baseTone}${currentOctave}`;
+            noteElement.dataset.toneNote = toneNote;
+    
+            if (animate) {
+                this.animateNotePress(noteElement, state.active);
+            }
+            
+            noteElement.classList.toggle('active', state.active);
+        }
+    }
+
+    updateToneNotes() {
+        const tonicIndex = this.config.notes.indexOf(this.currentTonic);
+        
+        this.noteElements.forEach((noteElement, noteId) => {
+            const note = this.config.notes[noteId];
+            const isBlackNote = note.includes('/');
+            const baseTone = isBlackNote ? note.charAt(0) + '#' : note.charAt(0);
+            
+            // Calculate the octave
+            let octave = this.currentOctave;
+            if (noteId < tonicIndex) {
+                octave++;
+            }
+    
+            const toneNote = `${baseTone}${octave}`;
+            noteElement.dataset.toneNote = toneNote;
+        });
+    }
+
+    formatToneNote(note, octave) {
+        if (note.includes('/')) {
+            return `${note.split('/')[0].replace('♯', '#')}${octave}`;
+        }
+        return `${note}${octave}`;
+    }
+
+    async rotateTonic(newTonic, newOctave) {
+        const oldTonicIndex = config.notes.indexOf(this.currentTonic);
+        const newTonicIndex = config.notes.indexOf(newTonic);
+        let shift;
+        const isIncreasing = (newTonicIndex - oldTonicIndex + 12) % 12 <= 6;
+    
+        if (this.currentLayout === 'chromatic') {
+            shift = (oldTonicIndex - newTonicIndex + 12) % 12;
+        } else if (this.currentLayout === 'fifths') {
+            shift = ((oldTonicIndex - newTonicIndex) * 7 + 12) % 12;
+        } else if (this.currentLayout === 'fourths') {
+            shift = ((oldTonicIndex - newTonicIndex) * 5 + 12) % 12;
+        }
+    
+        const oldPositions = new Map(this.notePositions);
+        const newPositions = new Map();
+    
+        this.notePositions.forEach((position, noteId) => {
+            const newPosition = (position + shift + 12) % 12;
+            newPositions.set(noteId, newPosition);
+        });
+    
+        await this.animateTonicChange(oldPositions, newPositions, isIncreasing);
+    
+        // Update the actual positions
+        this.notePositions = newPositions;
+        this.notePositions.forEach((position, noteId) => {
+            this.updateNotePosition(noteId);
+        });
+    
+        this.currentTonic = newTonic;
+        this.currentOctave = newOctave;
+        this.updateToneNotes();
+
+        // Recalculate and update pattern highlights
+        if (this.pattern && this.pattern.currentPattern.length > 0) {
+            const newTonicIndex = this.config.notes.indexOf(newTonic);
+            const updatedPatternNotes = this.pattern.currentPattern.map(interval => 
+                (interval + newTonicIndex) % 12
+            );
+            this.updatePatternHighlight(updatedPatternNotes);
+    }
+}
+    
+async switchLayout(newLayout) {
+    if (newLayout === this.currentLayout) return;
+
+    console.log(`Switching from ${this.currentLayout} to ${newLayout}`);
+    console.log(`Current tonic: ${this.currentTonic}`);
+
+    const oldPositions = new Map(this.notePositions);
+    const newPositions = new Map();
+
+    const tonicIndex = config.notes.indexOf(this.currentTonic);
+    const tonicOldPosition = this.notePositions.get(tonicIndex);
+    const tonicNewPosition = config.layouts[newLayout][tonicIndex];
+
+    const shift = (tonicOldPosition - tonicNewPosition + 12) % 12;
+
+    config.notes.forEach((_, i) => {
+        const layoutPosition = config.layouts[newLayout][i];
+        const newPosition = (layoutPosition + shift) % 12;
+        newPositions.set(i, newPosition);
+    });
+
+    
+
+    // Update the actual positions
+    this.notePositions = newPositions;
+    this.notePositions.forEach((position, noteId) => {
+        this.updateNotePosition(noteId);
+    });
+
+    await Promise.all([
+        this.animateLayoutSwitch(oldPositions, newPositions),
+        this.pattern ? this.pattern.animatePatternTransition(this.config.layouts[this.currentLayout], this.config.layouts[newLayout]) : Promise.resolve()
+    ]);
+
+    this.currentLayout = newLayout;
+    console.log("After switching layout, new positions:", Object.fromEntries(this.notePositions));
+}
+
+    updatePatternHighlight(patternNotes) {
+        console.log("Updating pattern highlights:", patternNotes);
+        
+        const hasPattern = patternNotes.length > 0;
+        this.container.classList.toggle('pattern-active', hasPattern);
+        
+        this.noteElements.forEach((noteElement, noteId) => {
+            const inPattern = hasPattern && patternNotes.includes(noteId);
+            noteElement.classList.toggle('in-pattern', inPattern);
+            noteElement.style.pointerEvents = hasPattern ? (inPattern ? 'auto' : 'none') : 'auto';
+            console.log(`Note ${noteId}: ${inPattern ? 'in pattern' : 'not in pattern'}`);
+        });
+    }
+
+// ANIMATIONS (Press, Tonic, Layout, Fourths)
+    animateNotePress(noteElement, isActive) {
+        const noteCircle = noteElement.querySelector('circle');
+        const { scale, brightness, originalRadius, duration } = this.animationParams;
+    
+        // Get the current transform (which should be the translation)
+        const currentTransform = noteElement.getAttribute('transform') || '';
+    
+        if (isActive) {
+            noteElement.animate([
+                { transform: `${currentTransform} scale(1)`, filter: 'brightness(1)' },
+                { transform: `${currentTransform} scale(${scale})`, filter: `brightness(${brightness})` }
+            ], { duration, fill: 'forwards' });
+            noteCircle.animate([
+                { r: originalRadius },
+                { r: originalRadius * scale }
+            ], { duration, fill: 'forwards' });
+        } else {
+            noteElement.animate([
+                { transform: `${currentTransform} scale(${scale})`, filter: `brightness(${brightness})` },
+                { transform: `${currentTransform} scale(1)`, filter: 'brightness(1)' }
+            ], { duration, fill: 'forwards' });
+            noteCircle.animate([
+                { r: originalRadius * scale },
+                { r: originalRadius }
+            ], { duration, fill: 'forwards' });
+        }
+    }
+
+    createTemporaryElements() {
+        const tempGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        this.noteElements.forEach((noteElement, noteId) => {
+            const tempElement = noteElement.cloneNode(true);
+            tempElement.id = `temp-${noteId}`;
+            tempGroup.appendChild(tempElement);
+        });
+        return tempGroup;
+    }
+
+    animateTonicChange(oldPositions, newPositions, isIncreasing) {
+        if (!this.animate) return Promise.resolve();
+    
+        // Hide real elements
+        this.notesGroup.style.opacity = '0';
+    
+        const tempGroup = this.createTemporaryElements();
+        this.svg.appendChild(tempGroup);
+    
+        const isFifthsLayout = this.currentLayout === 'fifths';
+        const isFourthsLayout = this.currentLayout === 'fourths';
+        let rotationAngle;
+    
+        if (isFifthsLayout) {
+            rotationAngle = 210;
+        } else if (isFourthsLayout) {
+            rotationAngle = 150;
+        } else {
+            rotationAngle = 30;
+        }
+    
+        const animations = Array.from(tempGroup.children).map((tempElement, index) => {
+            const oldPos = oldPositions.get(index);
+            const newPos = newPositions.get(index);
+            
+            const steps = 60; // More steps for smoother animation
+            const frames = [];
+    
+            for (let i = 0; i <= steps; i++) {
+                const progress = i / steps;
+                let currentAngle;
+                
+                if (isFifthsLayout) {
+                    currentAngle = (oldPos * 30 + (isIncreasing ? -1 : 1) * progress * rotationAngle + 360) % 360;
+                } else if (isFourthsLayout) {
+                    currentAngle = (oldPos * 30 + (isIncreasing ? -1 : 1) * progress * rotationAngle + 360) % 360;
+                } else {
+                    let direction = newPos - oldPos;
+                    if (Math.abs(direction) > 6) {
+                        direction = direction > 0 ? direction - 12 : direction + 12;
+                    }
+                    currentAngle = ((oldPos + direction * progress) * 30 + 360) % 360;
+                }
+    
+                const radians = (currentAngle - 90) * (Math.PI / 180);
+                const x = Math.cos(radians) * this.radius;
+                const y = Math.sin(radians) * this.radius;
+                frames.push({ transform: `translate(${x}px, ${y}px)` });
+            }
+    
+            tempElement.setAttribute("transform", frames[0].transform);
+    
+            return tempElement.animate(frames, {
+                duration: 400,
+                easing: 'ease-in-out',
+                fill: 'forwards'
+            }).finished;
+        });
+    
+        return Promise.all(animations).then(() => {
+            this.svg.removeChild(tempGroup);
+            // Show real elements
+            this.notesGroup.style.opacity = '1';
+        });
+    }
+    
+    animateLayoutSwitch(oldPositions, newPositions) {
+        if (!this.animate) return Promise.resolve();
+    
+        // Create a new div for our temporary elements
+        const tempContainer = document.createElement('div');
+        tempContainer.style.position = 'absolute';
+        tempContainer.style.top = '0';
+        tempContainer.style.left = '0';
+        tempContainer.style.width = '100%';
+        tempContainer.style.height = '100%';
+        tempContainer.style.zIndex = '1000'; // Ensure it's above other elements
+    
+        // Create a new SVG inside this div
+        const tempSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        tempSvg.setAttribute("width", "100%");
+        tempSvg.setAttribute("height", "100%");
+        tempSvg.setAttribute("viewBox", "-150 -150 300 300");
+        
+        tempContainer.appendChild(tempSvg);
+    
+        // Create temporary elements
+        const tempGroup = this.createTemporaryElements();
+        tempSvg.appendChild(tempGroup);
+    
+        // Add the temporary container to the wheel container
+        this.container.appendChild(tempContainer);
+    
+        // Hide real elements
+        this.notesGroup.style.opacity = '0';
+    
+        const animations = Array.from(tempGroup.children).map((tempElement, index) => {
+            const oldPos = oldPositions.get(index);
+            const newPos = newPositions.get(index);
+            const oldAngle = oldPos * (Math.PI / 6) - Math.PI / 2;
+            const newAngle = newPos * (Math.PI / 6) - Math.PI / 2;
+            const oldX = Math.cos(oldAngle) * this.radius;
+            const oldY = Math.sin(oldAngle) * this.radius;
+            const newX = Math.cos(newAngle) * this.radius;
+            const newY = Math.sin(newAngle) * this.radius;
+    
+            tempElement.setAttribute("transform", `translate(${oldX}, ${oldY})`);
+    
+            return tempElement.animate([
+                { transform: `translate(${oldX}px, ${oldY}px)` },
+                { transform: `translate(${newX}px, ${newY}px)` }
+            ], {
+                duration: 750,
+                fill: 'forwards'
+            }).finished;
+        });
+    
+        return Promise.all(animations).then(() => {
+            // Remove the temporary container
+            this.container.removeChild(tempContainer);
+    
+            // Update positions of real elements
+            this.notePositions.forEach((position, noteId) => {
+                this.updateNotePosition(noteId);
+            });
+    
+            // Show real elements
+            this.notesGroup.style.opacity = '1';
+        });
+    }
+
+   
+}

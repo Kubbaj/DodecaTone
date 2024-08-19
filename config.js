@@ -13,18 +13,18 @@ const keyboardNotes = [
   'C', 'C♯/D♭', 'D', 'D♯/E♭', 'E', 'F', 'F♯/G♭', 'G', 'G♯/A♭', 'A', 'A♯/B♭', 'B', 'C'
 ];
 
-const layouts = {
-  chromatic: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
-  fifths:    [0, 7, 2, 9, 4, 11, 6, 1, 8, 3, 10, 5],
-  fourths:   [0, 5, 10, 3, 8, 1, 6, 11, 4, 9, 2, 7]
-};
-
 // Function to get note display based on sharp/flat preference
 const getNoteDisplay = (note, useSharps) => {
   if (note.includes('/')) {
     return useSharps ? note.slice(0, 2) : note.slice(-2);
   }
   return note;
+};
+
+const layouts = {
+  chromatic: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+  fifths:    [0, 7, 2, 9, 4, 11, 6, 1, 8, 3, 10, 5],
+  fourths:   [0, 5, 10, 3, 8, 1, 6, 11, 4, 9, 2, 7]
 };
 
 // Scales
@@ -38,11 +38,14 @@ const scales = {
   "Blues": [0, 3, 5, 6, 7, 10],
   "Chromatic": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
   "Whole Tone": [0, 2, 4, 6, 8, 10],
+  "Harmonic Major": [0, 2, 4, 5, 7, 8, 11],
+  "Double Harmonic": [0, 1, 4, 5, 7, 8, 11],
+  "Diminished (Whole-Half)": [0, 2, 3, 5, 6, 8, 9, 11],
+  "Diminished (Half-Whole)": [0, 1, 3, 4, 6, 7, 9, 10],
 };
 
 const exotics = {
-  "Harmonic Major": [0, 2, 4, 5, 7, 8, 11],
-  "Double Harmonic": [0, 1, 4, 5, 7, 8, 11],
+
   "Prometheus": [0, 2, 4, 6, 9],
   "Egyptian": [0, 2, 5, 7, 10],
   "Hirajoshi": [0, 2, 3, 7, 8],
@@ -55,8 +58,7 @@ const exotics = {
   "Spanish": [0, 1, 4, 5, 7, 8, 10],
   "Hungarian": [0, 2, 3, 6, 7, 8, 11],
 
-  "Diminished (Whole-Half)": [0, 2, 3, 5, 6, 8, 9, 11],
-  "Diminished (Half-Whole)": [0, 1, 3, 4, 6, 7, 9, 10],
+ 
   "Augmented": [0, 3, 4, 7, 8, 11],
   "Sixth Diminished (Bebop)": [0, 2, 4, 5, 7, 8, 9, 11],
   "Dorian Bebop": [0, 2, 3, 4, 5, 7, 9, 10],
@@ -73,12 +75,13 @@ const triads = {
   "Augmented Triad": [0, 4, 8],
   "Sus2": [0, 2, 7],
   "Sus4": [0, 5, 7],
-};
-
-const extendeds = {
   "Major 7th": [0, 4, 7, 11],
   "Minor 7th": [0, 3, 7, 10],
   "Dominant 7th": [0, 4, 7, 10],
+};
+
+const extendeds = {
+  
   "Diminished 7th": [0, 3, 6, 9],
   "Half-Diminished 7th": [0, 3, 6, 10],
   "Minor 13": [0, 3, 7, 10, 14, 17, 21],

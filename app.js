@@ -381,9 +381,17 @@ function getNoteState(note, isActive = false) {
 // PLAYBACK
 
 function keepAudioContextAlive() {
-    const silentOscillator = new Tone.Oscillator().start();
-    silentOscillator.volume.value = -Infinity;  // Make it silent
-    silentOscillator.toDestination();
+    const pingInterval = 15000; // 15 seconds
+
+    setInterval(() => {
+        if (Tone.context.state !== 'running') {
+            Tone.context.resume();
+        }
+        const pingOsc = new Tone.Oscillator().toDestination();
+        pingOsc.volume.value = -Infinity;  // Make it silent
+        pingOsc.start();
+        pingOsc.stop('+0.001');  // Stop after 1ms
+    }, pingInterval);
 }
 
 function getToneNote(note, octave) {
@@ -396,6 +404,7 @@ async function playNote(toneNote) {
     if (Tone.context.state !== 'running') {
         await Tone.start();
     }
+    await Tone.context.resume();
     synth.triggerAttack(toneNote);
     console.log("starting", toneNote);
     updateNoteState(toneNote, true, currentOctave);
@@ -405,6 +414,7 @@ async function stopNote(toneNote) {
     if (Tone.context.state !== 'running') {
         await Tone.start();
     }
+    await Tone.context.resume();
     synth.triggerRelease(toneNote);
     console.log("stopping", toneNote);
     updateNoteState(toneNote, false, currentOctave);
@@ -434,11 +444,11 @@ function updateNoteState(toneNote, isActive) {
     }
 }
 
-function playNoteForDuration(toneNote, duration = 250) {
+async function playNoteForDuration(toneNote, duration = 250) {
     try {
-        playNote(toneNote);
-        setTimeout(() => {
-            stopNote(toneNote);
+        await playNote(toneNote);
+        setTimeout(async () => {
+            await stopNote(toneNote);
         }, duration);
     } catch (error) {
         console.error(`Error playing note ${toneNote}:`, error);
@@ -455,6 +465,21 @@ document.addEventListener('DOMContentLoaded', () => {
     updateTonicDisplay();
     updateLayoutButtons();
     populatePatternMenu();
+
+    const startAudioButton = document.createElement('button');
+    startAudioButton.textContent = 'Start Audio';
+    startAudioButton.style.position = 'fixed';
+    startAudioButton.style.top = '10px';
+    startAudioButton.style.left = '10px';
+    startAudioButton.style.zIndex = '1000';
+    document.body.appendChild(startAudioButton);
+
+    startAudioButton.addEventListener('click', async () => {
+        await Tone.start();
+        keepAudioContextAlive();
+        console.log('Audio is ready');
+        startAudioButton.remove();
+    });
 
   const customSelect = document.querySelector('.custom-select');
   const selectSelected = customSelect.querySelector('.select-selected');
@@ -492,7 +517,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('keydown', handleKeyboardShortcuts);
 
     
-    // PLAYBACK
+    // MANUAL PLAYBACK
 
     function handleNotePlay(element) {
         if (element && element.hasAttribute('data-tone-note')) {
