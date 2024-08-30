@@ -1,5 +1,106 @@
 // config.js
 
+// config.js (basic data and helper functions)
+
+const NOTE_C = 'C'
+const NOTE_CSharp = 'C#'
+const NOTE_DFlat = 'Db'
+
+// //NOTE DATA
+// export const sharpNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+// export const flatNames = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
+
+// export const noteNames = sharpNames;
+
+// export const allTonics = [...noteNames.map(note => `${note}3`), ...noteNames.map(note => `${note}4`)];
+
+// export const allNotes = Array.from({ length: 4 }, (_, i) => noteNames.map(note => `${note}${i + 3}`)).flat();
+
+// export const noteWidths = [1.5, 1, 2, 1, 1.5, 1.5, 1, 2, 1, 2, 1, 1.5]
+
+// //VISUAL DATA
+// export const b = '#000000';
+// export const w = '#FFFFFF';
+
+// export const rainbowColors = ['#E25A5A','#5AA1E2','#E2E25A','#9E5AE2','#5AE25A','#E25AA1','#5AE2E2','#E29E5A','#5A5AE2','#A1E25A','#E25AE2','#5AE29E'];
+// export const bwColors = [w, b, w, b, w, w, b, w, b, w, b, w];
+
+// //PATTERN + LAYOUT DATA
+// export const regulars = {
+//   one:    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+//   two:    [0, 2, 4, 6, 8, 10],
+//   three:  [0, 3, 6, 9],
+//   four:   [0, 4, 8],
+//   five:   [0, 5, 10, 3, 8, 1, 6, 11, 4, 9, 2, 7],
+//   six:    [0,6],
+//   seven:  [0, 7, 2, 9, 4, 11, 6, 1, 8, 3, 10, 5],
+//   eight:  [0, 8, 4],
+//   nine:   [0, 9, 6, 3],
+//   ten:    [0, 10, 8, 6, 4, 2],
+//   eleven: [0, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
+// }
+
+// export const scales = {
+//   major: [0, 2, 4, 5, 7, 9, 11],
+//   minor: [0, 2, 3, 5, 7, 8, 10],
+//   harmMinor: [0, 2, 3, 5, 7, 8, 11],
+//   melMinor: [0, 2, 3, 5, 7, 9, 11],
+//   majPent: [0, 2, 4, 7, 9],
+//   minPent: [0, 3, 5, 7, 10],
+//   blues: [0, 3, 5, 6, 7, 10],
+//   chromatic: regulars.one,
+//   wholeTone: regulars.two,
+//   dimWH: [0, 2, 3, 5, 6, 8, 9, 11],
+//   dimHW: [0, 1, 3, 4, 6, 7, 9, 10],
+//   diminished: [0, 2, 3, 5, 6, 8, 9, 11],
+//   augmented: [0, 3, 4, 7, 8, 11],
+//   sixthDim: [0, 2, 4, 5, 7, 8, 9, 11]
+// };
+
+// export const exoticScales ={
+//   harmonicMajor: [0, 2, 4, 5, 7, 8, 11],
+//   doubleHarmonic: [0, 1, 4, 5, 7, 8, 11],
+//   prometheus: [0, 2, 4, 6, 9],
+//   egyptian: [0, 2, 5, 7, 10],
+//   hirajoshi: [0, 2, 3, 7, 8],
+//   neapolitanMinor: [0, 1, 3, 5, 7, 8, 11],
+//   neapolitanMajor: [0, 1, 4, 5, 7, 9, 11],
+//   arabian: [0, 2, 4, 5, 6, 8, 10],
+//   balinese: [0, 1, 3, 7, 8],
+//   charhargan: [0, 1, 4, 5, 6, 8, 10],
+//   kurdish: [0, 2, 3, 7, 8, 10],
+//   spanish: [0, 1, 4, 5, 7, 8, 10],
+//   gypsy: [0, 1, 4, 5, 7, 8, 10],
+//   hungarian: [0, 2, 3, 6, 7, 8, 11]
+// };
+
+// export const triads = {
+//   major: [0, 4, 7],
+//   minor: [0, 3, 7],
+//   sus2: [0, 2, 7],
+//   sus4: [0, 5, 7],
+//   diminished: [0, 3, 6],
+//   augmented: regulars.four
+// };
+
+// export const extChords = {
+//   major7: [0, 4, 7, 11],
+//   minor7: [0, 3, 7, 10],
+//   dominant7: [0, 4, 7, 10],
+//   diminished7: regulars.three,
+//   halfDiminished7: [0, 3, 6, 10],
+//   minor13: [0, 3, 7, 10, 14, 17, 21],
+//   major13sh11: [0, 4, 7, 11, 14, 18, 21],
+//   dom13: [0, 4, 7, 10, 14, 17, 21]
+// };
+
+// export const layouts = {
+//   chromatic: regulars.one,
+//   fifths: regulars.seven,
+//   fourths: regulars.five
+// }
+
+
 // Basic note array
 const notes = ['C', 'C♯/D♭', 'D', 'D♯/E♭', 'E', 'F', 'F♯/G♭', 'G', 'G♯/A♭', 'A', 'A♯/B♭', 'B'];
 
