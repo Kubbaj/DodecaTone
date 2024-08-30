@@ -13,13 +13,13 @@ export class Wheel {
         this.svg = null;
         this.notesGroup = null;
         this.patternGroup = null;
-        this.radius = 120;
+        this.radius = 118;
         this.noteElements = new Map(); // Store note elements with their ids
         this.notePositions = new Map(); // Map note IDs to their current positions
 
         this.animationParams = {
-            scale: 1.15,
-            brightness: 1.5,
+            scale: 1.05,
+            brightness: 1.6,
             originalRadius: 25,
             duration: 200 // milliseconds
         };
@@ -37,20 +37,23 @@ export class Wheel {
         this.svg.setAttribute("width", 300);
         this.svg.setAttribute("height", 300);
         this.svg.setAttribute("viewBox", "-150 -150 300 300");
+        this.svg.setAttribute("z-index", "5");
+        this.svg.setAttribute("id", "wheel-svg");
         
         const background = document.createElementNS("http://www.w3.org/2000/svg", "rect");
         background.setAttribute("x", "-150");
         background.setAttribute("y", "-150");
         background.setAttribute("width", "300");
         background.setAttribute("height", "300");
-        background.setAttribute("fill", "#444444");
+        background.setAttribute("fill", "#00000000");
         this.svg.appendChild(background);
 
         this.notesGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
         this.patternGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
         
-        this.svg.appendChild(this.notesGroup);
         this.svg.appendChild(this.patternGroup);
+        this.svg.appendChild(this.notesGroup);
+        
         
         this.container.appendChild(this.svg);
     }
@@ -63,6 +66,7 @@ export class Wheel {
             const noteGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
             noteGroup.dataset.noteId = noteId;
             noteGroup.style.cursor = "pointer";
+            noteGroup.style.zIndex = "5";
     
             const noteCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
             noteCircle.setAttribute("r", "25");
@@ -74,6 +78,8 @@ export class Wheel {
             noteText.setAttribute("dominant-baseline", "central");
             
             noteGroup.append(noteCircle, noteText);
+            
+
     
 
             // SET INITIAL PROPERTIES
@@ -216,56 +222,54 @@ export class Wheel {
     }
 }
     
-    async switchLayout(newLayout) {
-        if (newLayout === this.currentLayout) return;
-    
-        console.log(`Switching from ${this.currentLayout} to ${newLayout}`);
-        console.log(`Current tonic: ${this.currentTonic}`);
-    
-        if ((this.currentLayout === 'chromatic' && newLayout === 'fourths') ||
-            (this.currentLayout === 'fourths' && newLayout === 'chromatic')) {
-            // First switch to fifths, then to the desired layout
-            await this.switchLayout('fifths');
-            return this.switchLayout(newLayout);
-        }
-    
-        const oldPositions = new Map(this.notePositions);
-        const newPositions = new Map();
-    
-        const tonicIndex = config.notes.indexOf(this.currentTonic);
-        const tonicOldPosition = this.notePositions.get(tonicIndex);
-        const tonicNewPosition = config.layouts[newLayout][tonicIndex];
-    
-        const shift = (tonicOldPosition - tonicNewPosition + 12) % 12;
-    
-        config.notes.forEach((_, i) => {
-            const layoutPosition = config.layouts[newLayout][i];
-            const newPosition = (layoutPosition + shift) % 12;
-            newPositions.set(i, newPosition);
-        });
-    
-        await this.animateLayoutSwitch(oldPositions, newPositions);
-    
-        // Update the actual positions
-        this.notePositions = newPositions;
-        this.notePositions.forEach((position, noteId) => {
-            this.updateNotePosition(noteId);
-        });
-    
-        this.currentLayout = newLayout;
-        console.log("After switching layout, new positions:", Object.fromEntries(this.notePositions));
+async switchLayout(newLayout) {
+    if (newLayout === this.currentLayout) return;
 
-        if (this.pattern) this.pattern.drawPatternPolygon();
-    }
+    console.log(`Switching from ${this.currentLayout} to ${newLayout}`);
+    console.log(`Current tonic: ${this.currentTonic}`);
+
+    const oldPositions = new Map(this.notePositions);
+    const newPositions = new Map();
+
+    const tonicIndex = config.notes.indexOf(this.currentTonic);
+    const tonicOldPosition = this.notePositions.get(tonicIndex);
+    const tonicNewPosition = config.layouts[newLayout][tonicIndex];
+
+    const shift = (tonicOldPosition - tonicNewPosition + 12) % 12;
+
+    config.notes.forEach((_, i) => {
+        const layoutPosition = config.layouts[newLayout][i];
+        const newPosition = (layoutPosition + shift) % 12;
+        newPositions.set(i, newPosition);
+    });
+
+    
+
+    // Update the actual positions
+    this.notePositions = newPositions;
+    this.notePositions.forEach((position, noteId) => {
+        this.updateNotePosition(noteId);
+    });
+
+    await Promise.all([
+        this.animateLayoutSwitch(oldPositions, newPositions),
+        this.pattern ? this.pattern.animatePatternTransition(this.config.layouts[this.currentLayout], this.config.layouts[newLayout]) : Promise.resolve()
+    ]);
+
+    this.currentLayout = newLayout;
+    console.log("After switching layout, new positions:", Object.fromEntries(this.notePositions));
+}
 
     updatePatternHighlight(patternNotes) {
         console.log("Updating pattern highlights:", patternNotes);
         
-        this.container.classList.toggle('pattern-active', patternNotes.length > 0);
+        const hasPattern = patternNotes.length > 0;
+        this.container.classList.toggle('pattern-active', hasPattern);
         
         this.noteElements.forEach((noteElement, noteId) => {
-            const inPattern = patternNotes.includes(noteId);
+            const inPattern = hasPattern && patternNotes.includes(noteId);
             noteElement.classList.toggle('in-pattern', inPattern);
+            noteElement.style.pointerEvents = hasPattern ? (inPattern ? 'auto' : 'none') : 'auto';
             console.log(`Note ${noteId}: ${inPattern ? 'in pattern' : 'not in pattern'}`);
         });
     }
@@ -378,16 +382,32 @@ export class Wheel {
     animateLayoutSwitch(oldPositions, newPositions) {
         if (!this.animate) return Promise.resolve();
     
-        if ((this.currentLayout === 'fifths' && this.nextLayout === 'fourths') ||
-            (this.currentLayout === 'fourths' && this.nextLayout === 'fifths')) {
-            return this.animateFifthsFourthsSwitch(oldPositions, newPositions);
-        }
+        // Create a new div for our temporary elements
+        const tempContainer = document.createElement('div');
+        tempContainer.style.position = 'absolute';
+        tempContainer.style.top = '0';
+        tempContainer.style.left = '0';
+        tempContainer.style.width = '100%';
+        tempContainer.style.height = '100%';
+        tempContainer.style.zIndex = '1000'; // Ensure it's above other elements
+    
+        // Create a new SVG inside this div
+        const tempSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        tempSvg.setAttribute("width", "100%");
+        tempSvg.setAttribute("height", "100%");
+        tempSvg.setAttribute("viewBox", "-150 -150 300 300");
+        
+        tempContainer.appendChild(tempSvg);
+    
+        // Create temporary elements
+        const tempGroup = this.createTemporaryElements();
+        tempSvg.appendChild(tempGroup);
+    
+        // Add the temporary container to the wheel container
+        this.container.appendChild(tempContainer);
     
         // Hide real elements
         this.notesGroup.style.opacity = '0';
-    
-        const tempGroup = this.createTemporaryElements();
-        this.svg.appendChild(tempGroup);
     
         const animations = Array.from(tempGroup.children).map((tempElement, index) => {
             const oldPos = oldPositions.get(index);
@@ -405,63 +425,24 @@ export class Wheel {
                 { transform: `translate(${oldX}px, ${oldY}px)` },
                 { transform: `translate(${newX}px, ${newY}px)` }
             ], {
-                duration: 500,
-                easing: 'ease-in-out',
+                duration: 750,
                 fill: 'forwards'
             }).finished;
         });
     
         return Promise.all(animations).then(() => {
-            this.svg.removeChild(tempGroup);
+            // Remove the temporary container
+            this.container.removeChild(tempContainer);
+    
+            // Update positions of real elements
+            this.notePositions.forEach((position, noteId) => {
+                this.updateNotePosition(noteId);
+            });
+    
             // Show real elements
             this.notesGroup.style.opacity = '1';
         });
     }
 
-    animateFifthsFourthsSwitch(oldPositions, newPositions) {
-        if (!this.animate) return Promise.resolve();
-    
-        // Hide real elements
-        this.notesGroup.style.opacity = '0';
-    
-        const tempGroup = this.createTemporaryElements();
-        this.svg.appendChild(tempGroup);
-    
-        const tonicIndex = config.notes.indexOf(this.currentTonic);
-        const tritoneIndex = (tonicIndex + 6) % 12;
-    
-        const animations = Array.from(tempGroup.children).map((tempElement, index) => {
-            const oldPos = oldPositions.get(index);
-            const newPos = newPositions.get(index);
-    
-            // If it's the tonic or tritone, don't move
-            if (index === tonicIndex || index === tritoneIndex) {
-                return Promise.resolve();
-            }
-    
-            const oldAngle = oldPos * (Math.PI / 6) - Math.PI / 2;
-            const newAngle = newPos * (Math.PI / 6) - Math.PI / 2;
-            const oldX = Math.cos(oldAngle) * this.radius;
-            const oldY = Math.sin(oldAngle) * this.radius;
-            const newX = Math.cos(newAngle) * this.radius;
-            const newY = Math.sin(newAngle) * this.radius;
-    
-            tempElement.setAttribute("transform", `translate(${oldX}, ${oldY})`);
-    
-            return tempElement.animate([
-                { transform: `translate(${oldX}px, ${oldY}px)` },
-                { transform: `translate(${newX}px, ${newY}px)` }
-            ], {
-                duration: 500,
-                easing: 'ease-in-out',
-                fill: 'forwards'
-            }).finished;
-        });
-    
-        return Promise.all(animations).then(() => {
-            this.svg.removeChild(tempGroup);
-            // Show real elements
-            this.notesGroup.style.opacity = '1';
-        });
-    }
+   
 }

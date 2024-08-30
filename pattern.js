@@ -26,6 +26,8 @@ export class Pattern {
         }
         document.getElementById('shift-pattern-left').addEventListener('click', () => this.shiftPattern('left'));
         document.getElementById('shift-pattern-right').addEventListener('click', () => this.shiftPattern('right'));
+        document.getElementById('shift-pattern-left-curved').addEventListener('click', () => this.shiftPattern('left'));
+        document.getElementById('shift-pattern-right-curved').addEventListener('click', () => this.shiftPattern('right'));
     }
 
     updatePattern(patternNotes) {
@@ -47,7 +49,7 @@ export class Pattern {
         }
 
         const shiftLeftButton = document.getElementById('shift-pattern-left');
-    const shiftRightButton = document.getElementById('shift-pattern-right');
+        const shiftRightButton = document.getElementById('shift-pattern-right');
     
     if (this.currentPattern.length > 0) {
         shiftLeftButton.style.display = 'block';
@@ -58,23 +60,80 @@ export class Pattern {
     }
 }
 
-    createPatternSvg() {
-        if (!this.wheel.svg) {
-            console.error("Wheel SVG not yet created");
-            return;
-        }
-        this.patternSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-        this.patternSvg.setAttribute("width", "300");
-        this.patternSvg.setAttribute("height", "300");
-        this.patternSvg.setAttribute("viewBox", "0 0 300 300");
-        this.patternSvg.style.position = "absolute";
-        this.patternSvg.style.top = "0";
-        this.patternSvg.style.left = "0";
-        this.patternSvg.style.overflow = "visible";
-        this.patternSvg.style.pointerEvents = "none";
-        this.wheel.svg.appendChild(this.patternSvg);
-        this.wheel.svg.insertBefore(this.patternSvg, this.wheel.notesGroup);
+createPatternSvg() {
+    this.patternSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    this.patternSvg.setAttribute("width", "100%");
+    this.patternSvg.setAttribute("height", "100%");
+    this.patternSvg.setAttribute("viewBox", "-95 -95 190 190"); // Adjust these values as needed
+    this.patternSvg.style.position = "absolute";
+    this.patternSvg.style.top = "0";
+    this.patternSvg.style.left = "0";
+    
+    const polygonWindow = document.getElementById('polygon-window');
+    polygonWindow.appendChild(this.patternSvg);
+}
+    
+async animatePatternTransition(oldLayout, newLayout) {
+    if (!this.currentPattern.length) return;
+
+    if (!this.animate) {
+        // Instantly update the polygon without animation
+        this.drawPatternPolygon();
+        return;
     }
+
+    const originalPolygon = this.patternSvg.querySelector('polygon');
+    originalPolygon.style.display = 'none';  // Hide the original polygon
+
+    const startPoints = this.calculatePolygonPoints(oldLayout);
+    const endPoints = this.calculatePolygonPoints(newLayout);
+
+    const tempPolygon = originalPolygon.cloneNode(true);
+    tempPolygon.style.display = ''; // Ensure the cloned polygon is visible
+    this.patternSvg.appendChild(tempPolygon);
+
+    const duration = 750; // milliseconds
+    const steps = 60; // For smoother animation
+
+    for (let i = 0; i <= steps; i++) {
+        const progress = i / steps;
+        const currentPoints = this.interpolatePoints(startPoints, endPoints, progress);
+        tempPolygon.setAttribute('points', currentPoints.join(' '));
+        await new Promise(resolve => setTimeout(resolve, duration / steps));
+    }
+
+    this.patternSvg.removeChild(tempPolygon);
+    await this.drawPatternPolygon(); // Update with the final position
+    originalPolygon.style.display = ''; // Show the original polygon again
+}
+
+calculatePolygonPoints(layout) {
+    const tonicIndex = this.wheel.config.notes.indexOf(this.wheel.currentTonic);
+    const polygonRadius = this.wheel.radius * 0.8;
+
+    // Calculate points for all 12 positions
+    const allPoints = Array(12).fill().map((_, i) => {
+        const notePosition = layout[i];
+        const angle = (notePosition * 30) * (Math.PI / 180) - Math.PI / 2;
+        const x = Math.cos(angle) * polygonRadius;
+        const y = Math.sin(angle) * polygonRadius;
+        return { x, y, index: i };
+    });
+
+    // Filter to only the points in our pattern
+    return this.currentPattern
+        .map(interval => allPoints.find(point => point.index === interval))
+        .filter(point => point !== undefined);
+}
+
+interpolatePoints(startPoints, endPoints, progress) {
+    return startPoints.map((start, index) => {
+        const end = endPoints[index];
+        const x = start.x + (end.x - start.x) * progress;
+        const y = start.y + (end.y - start.y) * progress;
+        return `${x},${y}`;
+    });
+}
 
     drawPatternPolygon() {
         this.patternSvg.innerHTML = ''; // Clear previous content
@@ -84,7 +143,7 @@ export class Pattern {
         console.log('Current Pattern:', this.currentPattern);
         console.log('Current Tonic:', this.wheel.currentTonic);
 
-        const polygonRadius = this.wheel.radius * 0.83; // Adjust this factor as needed
+        const polygonRadius = this.wheel.radius * 0.8; // Adjust this factor as needed
 
         const points = this.currentPattern.map(noteIndex => {
             const actualNoteIndex = (noteIndex + this.wheel.config.notes.indexOf(this.wheel.currentTonic)) % 12;
@@ -100,7 +159,7 @@ export class Pattern {
         // Draw the pattern polygon
         const polygon = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
         polygon.setAttribute("points", points);
-        polygon.setAttribute("fill", "rgba(230, 230, 230, 0.3)");
+        polygon.setAttribute("fill", "#222222");
         polygon.setAttribute("stroke", "white");
         polygon.setAttribute("stroke-width", "4");
         this.patternSvg.appendChild(polygon);
@@ -174,28 +233,39 @@ export class Pattern {
 
     this.keyboard.updatePatternHighlight(playableToneNotes);
     }
+
+    getRotationAngleForLayout() {
+        switch (this.wheel.currentLayout) {
+            case 'fifths':
+                return -150;
+            case 'fourths':
+                return 150;
+            default: // chromatic
+                return 30;
+        }
+    }
     
     async animatePolygon(direction, shiftAmount) {
-        const tempPolygon = this.patternSvg.querySelector('polygon').cloneNode(true);
-        this.patternSvg.appendChild(tempPolygon);
-    
-        const originalPolygon = this.patternSvg.querySelector('polygon');
-        originalPolygon.style.opacity = '0';
-    
-        const duration = 450; // milliseconds
-        const steps = 60; // For smoother animation
-        const totalRotation = shiftAmount * 30; // 30 degrees per step
-        const rotationPerStep = totalRotation / steps;
-    
-        for (let i = 0; i <= steps; i++) {
-            const rotation = i * rotationPerStep * (direction === 'right' ? -1 : 1);
-            tempPolygon.setAttribute('transform', `rotate(${rotation})`);
-            await new Promise(resolve => setTimeout(resolve, duration / steps));
-        }
-    
-        this.patternSvg.removeChild(tempPolygon);
-        originalPolygon.style.opacity = '1';
+    const tempPolygon = this.patternSvg.querySelector('polygon').cloneNode(true);
+    this.patternSvg.appendChild(tempPolygon);
+
+    const originalPolygon = this.patternSvg.querySelector('polygon');
+    originalPolygon.style.opacity = '0';
+
+    const duration = 450; // milliseconds
+    const steps = 60; // For smoother animation
+    const rotationPerStep = this.getRotationAngleForLayout();
+    const totalRotation = (shiftAmount * rotationPerStep) % 360;
+
+    for (let i = 0; i <= steps; i++) {
+        const rotation = i * (totalRotation / steps) * (direction === 'right' ? -1 : 1);
+        tempPolygon.setAttribute('transform', `rotate(${rotation})`);
+        await new Promise(resolve => setTimeout(resolve, duration / steps));
     }
+
+    this.patternSvg.removeChild(tempPolygon);
+    originalPolygon.style.opacity = '1';
+}
 
 // PLAYBACK FUNCTIONS
 
@@ -380,6 +450,7 @@ class BracketVisualization {
         for (let i = 0; i <= steps; i++) {
             const shift = i * shiftPerStep * (direction === 'right' ? -1 : 1);
             tempGroup.setAttribute('transform', `translate(${shift} 0)`);
+            tempGroup.setAttribute('easing', `ease-in-out`);
             await new Promise(resolve => setTimeout(resolve, duration / steps));
         }
 

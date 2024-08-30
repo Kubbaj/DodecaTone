@@ -1,14 +1,21 @@
+:root {
+    --theme-color: #555555;
+    --svg-fill-color: #555555;
+    --svg-hover-color: #666666;
+    --svg-active-color: #777777;
+}
+
 /* General Styles */
 body {
-    font-family: Arial, sans-serif;
-    background-color: #444444;
+    font-family: 'Roboto', sans-serif;
+    background-color: #404040;
     color: #f0f0f0;
     margin: 0;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 20px;
+    padding: 10px;
     position: relative;
 }
 
@@ -20,153 +27,55 @@ header {
 
 h1 {
     margin: 0;
-    font-size: 1.5em;
+    font-size: 2em;
 }
 
-/* Options Container */
-#options-container {
+
+
+/* KEYBOARD STUFF*/
+#keyboard-area {
     display: flex;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
     width: 100%;
+    position: relative;
+    margin-bottom: 10px;
+}
+
+#keyboard-window {
+    width: 81.5%;
+    overflow: hidden;
     position: relative;
     order: 1;
-  }
-  
-  .side-options {
-    flex: 1;
-    display: flex;
-    align-items: center;
-  }
-  
-  .left {
-    justify-content: flex-end;
-  }
-  
-  .right {
-    justify-content: flex-start;
-  }
-  
-  #tonic-selector {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 130px; /* Adjust as needed */
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-  }
-  
-  #tonic-display-container {
-    width: 50px; /* Adjust as needed */
-    text-align: center;
-    margin: 0 10px;
-  }
-  
-  .select-group {
-    margin: 0 100px; /* Adjust spacing as needed */
-    width: 250px;
-  }
-
-#current-tonic {
-    font-size: 18px;
-    font-weight: bold;
-}
-
-#decrease-tonic,
-#increase-tonic {
-    font-size: 16px;
-    padding: 5px 10px;
-    flex-shrink: 0; /* Prevent buttons from shrinking */
-}
-
-/* Form Elements */
-select, button {
-    padding: 5px 10px;
-    margin: 5px;
-}
-
-input[type="checkbox"] {
-    margin-right: 0;
-}
-
-/* Content Container */
-#content-container, #main-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-    max-width: 800px;
-}
-
-/* Keyboard Container */
-#bracket-window {
-    position: absolute;
-    top: 0;
-    right: calc(50% - 12.5px - 300px); /* Move it half a keywidth (25px/2) to the left */
-    width: 325px; /* 13 keywidths (13 * 25px) */
-    height: 40px; /* Increased from 30px to 40px */
-    margin-bottom: 5px;
-    background-color: #333333; /* Temporary color for visibility */
-    overflow: hidden;
-    border-radius: 5px;
-  }
-
-
-  
-  #keyboard-window {
-    width: 80%;
-    overflow: hidden;
-    position: relative;
     height: 200px; /* Increased to accommodate the taller bracket window */
-    margin-top: 30px;
-    padding-right: 40px;
+    margin: 5px;
+    padding: 10px 50px 10px 0px;
+    background-color: #333333;
+    border-radius: 5px;
+    border: 1px solid #2a2a2a;
+    box-shadow: 
+        inset 0 2px 4px rgba(0,0,0,0.5),
+        0 1px 0 rgba(255,255,255,0.1);
   }
-  
+
   #keyboard-container {
-    width: calc(650px + 40px);
+    width: 670px ;
     height: 150px;
     display: flex;
     justify-content: center;
-    order: 2;
     position: relative;
-    top: 45px; /* Pushed down to account for taller bracket window and margin */
+    top: 50px; /* Pushed down to account for taller bracket window and margin */
   }
+
 .keyboard {
-    position: absolute; /* Change to absolute */
-    left: 0; /* Add this */
-    top: 0; /* Add this */
-    width: 650px; /* Set explicit width */
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 650px;
     height: 100%;
     justify-content: center;
 }
 
-.shift-pattern-button {
-    position: absolute;
-    top: 7px; /* Adjust as needed to align with the bracket window */
-    background-color: #555;
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 18px; /* Reduced size */
-    height: 18px; /* Reduced size */
-    font-size: 12px; /* Reduced font size */
-    line-height: 1; /* Center text vertically */
-    padding: 0;
-    cursor: pointer;
-    display: none;
-    z-index: 10; /* Ensure buttons are above other elements */
-}
-
-#shift-pattern-left {
-    left: 300px; /* Half of keyboard-window width minus half of bracket-window width minus button width and some padding */
-}
-
-#shift-pattern-right {
-    right: 0px;
-}
-
-/* Key Styles */
 .key {
     position: absolute;
     width: 40px;
@@ -179,99 +88,56 @@ input[type="checkbox"] {
     align-items: flex-end;
     padding-bottom: 10px;
     cursor: pointer;
+    transition: transform 0.1s ease, filter 0.1s ease;
 }
 
 .key.white {
-    background-color: #fff;
+    background-color: #D8D8D8;
     z-index: 1;
 }
 
 .key.black {
-    background-color: black;
+    background-color: #262626;
     height: 100px;
     width: 20px;
     z-index: 2;
 }
 
-.note-display {
-    font-size: 12px;
-    color: #000;
-    position: absolute;
-    bottom: 5px;
-    left: 50%;
-    transform: translateX(-50%);
-}
-
-.key.black .note-display {
-    color: #fff;
-}
-
-.keyboard.pattern-active .key:not(.in-pattern) {
-    filter: brightness(0.5);
-}
-
-.keyboard.pattern-active .key.in-pattern {
-    border-color: white;
-    border-width: 3px;
-}
-
-.keyboard.pattern-active .key:not(.in-pattern) .note-display {
-    opacity: 0.5;
-}
-
-.keyboard.pattern-active .key.in-pattern .note-display {
-    opacity: 1;
-}
-
-/* Animation Styles */
-.key {
-    transition: transform 0.1s ease, filter 0.1s ease;
-}
-
 .key.active {
-    transform: scale(0.9);
-    filter: brightness(1.5);
+    transform: scale(0.95);
+    filter: brightness(1.6);
 }
 
-.key.colored, .note.colored {
-    transition: none;
-}
 
-.key.colored.active {
-    filter: brightness(1.5);
-}
 
-/* Wheel Container */
+
+
+
+/* WHEEL STUFF */
 #wheel-container {
+    position: relative;
     width: 300px;
     height: 300px;
-    margin-bottom: 20px;
     order: 3;
+    background-color: #333333;
+    border-radius: 50%;
+    padding: 15px;
+    margin-top: 15px;
+    border: 1px solid #2a2a2a;
+    box-shadow: 
+        inset 0 2px 4px rgba(0,0,0,0.5),
+        0 1px 0 rgba(255,255,255,0.1);
+    /* Remove any z-index here if present */
 }
 
-#wheel-container svg {
+#wheel-svg {
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
-    transform-box: fill-box;
+    z-index: 3; /* Highest z-index to be on top */
 }
-
-#play-button-container {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, 276%);
-    z-index: 10;
-  }
-  
-  #play-pattern-button {
-    cursor: pointer;
-    transition: transform 0.1s ease-in-out;
-    opacity: 70%;
-  }
-  
-  #play-pattern-button:hover {
-    transform: scale(1.1);
-  }
 
 #wheel-container svg * {
     visibility: visible !important;
@@ -312,11 +178,479 @@ wheel .note {
 .pattern-active g.in-pattern text {
     opacity: 1;
 }
+
+/* KEYS AND WHEEL STUFF*/
+.keyboard, .wheel {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+  }
+
+
+.note-display {
+    font-size: 12px;
+    color: #000;
+    position: absolute;
+    bottom: 5px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.key.black .note-display {
+    color: #fff;
+}
+
+.keyboard.pattern-active .key:not(.in-pattern) {
+    filter: brightness(0.5);
+}
+
+.keyboard.pattern-active .key.in-pattern {
+    border-color: white;
+    border-width: 3.5px;
+}
+
+.keyboard.pattern-active .key:not(.in-pattern) .note-display {
+    opacity: 0.5;
+}
+
+.keyboard.pattern-active .key.in-pattern .note-display {
+    opacity: 1;
+}
+
+
+
+
+
+/* PATTERNS STUFF */
+#bracket-window {
+    position: absolute;
+    top: 11px;
+    right: calc(50% - 307.5px); /* Move it half a keywidth (25px/2) to the left */
+    width: 325px; /* 13 keywidths (13 * 25px) */
+    height: 40px; /* Increased from 30px to 40px */
+    margin-bottom: 5px;
+    background-color: #222222; /* Temporary color for visibility */
+    overflow: hidden;
+    border-radius: 5px;
+    border: 1px solid #2a2a2a;
+    transition: 0.3s ease;
+    box-shadow: 
+        inset 0 2px 4px rgba(0,0,0,0.5),
+        0 1px 0 rgba(255,255,255,0.1);
+  }
+
+  #polygon-window {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 190px;  /* Adjust based on your wheel size */
+    height: 190px; /* Adjust based on your wheel size */
+    border-radius: 50%;
+    overflow: hidden;
+    background-color: #222222;
+    z-index: 4;
+    transition: 0.3s ease;
+    box-shadow: 
+        inset 0 2px 4px rgba(0,0,0,0.5),
+        0 1px 0 rgba(255,255,255,0.1);
+}
+  
+.pattern-active #bracket-window::after, .pattern-active #polygon-window::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
+  
+  .pattern-active #bracket-window:hover::after, .pattern-active #polygon-window:hover::after {
+    opacity: 1;
+  }
+
+/* CONTROLS STUFF */
+#options-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 80%;
+    height: 90px;
+    margin: 10px, 0px;
+    position: relative;
+    order: 2;
+  }
+
+
+  /* ARROWS */
+  /* TONIC ARROWS */
+  #tonic-selector {
+    position: absolute;
+    width: 85px;
+    height: 85px;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: 10px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #555555;
+    border: solid 2px white;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2), 
+                0 -4px 6px rgba(255,255,255,0.1) inset;
+}
+
+    #tonic-selector label {
+        position: absolute;
+        top: 5px;
+    }
+
+.tonic-arrow {
+    filter: drop-shadow(0 2px 2px rgba(0,0,0,0.2));
+    transition: fill 0.3s ease, transform 0.3s ease;
+    cursor: pointer;
+    position: absolute;
+    top: 50%;
+}
+
+.tonic-arrow .arrow-fill {
+    fill: var(--svg-fill-color);
+    transition: fill 0.3s ease;
+  }
+  
+  .tonic-arrow:hover .arrow-fill {
+    fill: var(--svg-hover-color);
+  }
+  
+  .tonic-arrow:active .arrow-fill {
+    fill: var(--svg-active-color);
+  }
+
+.curved-arrow {
+    width: 150px;
+    height: 150px;
+}
+
+.straight-arrow {
+    width: 115px;
+    height: 115px;
+}
+
+#decrease-tonic {
+    position: absolute;
+    left: -170px;
+    transform: translateY(-20%);
+}
+
+#decrease-tonic:hover {
+    filter: drop-shadow(0 4px 4px rgba(0,0,0,0.3));
+    transform: translateY(-23%);
+}
+
+#decrease-tonic:active {
+    transform: translateY(-19%);
+}
+
+#increase-tonic {
+    right: -170px;
+    transform: translateY(-20%) scaleX(-1);
+}
+
+#increase-tonic:hover {
+    filter: drop-shadow(0 4px 4px rgba(0,0,0,0.3));
+    transform: translateY(-23%) scaleX(-1);
+}
+
+#increase-tonic:active {
+    transform: translateY(-19%) scaleX(-1);
+}
+
+#tonic-display-container {
+    width: 50px;
+    text-align: center;
+    margin: 15px 10px 5px;
+}
+
+#current-tonic {
+    position: relative;
+    font-size: 47px;
+    font-weight: bold;
+    text-align: center;
+    top: 5px;
+}
+
+
+
+#decrease-tonic-2,
+#increase-tonic-2 {
+    position: absolute;
+    top: 75px;
+    fill: var(--svg-fill-color);
+    transition: fill 0.3s ease, transform 0.3s ease;
+    cursor: pointer;
+}
+
+#decrease-tonic-2 {
+    left: -50px;
+    transform: translateY(0);
+}
+
+#increase-tonic-2 {
+    right: -50px;
+    transform: scaleX(-1) translateY(0);
+}
+
+#decrease-tonic-2:hover,
+#increase-tonic-2:hover {
+    filter: drop-shadow(0 4px 4px rgba(0,0,0,0.3));
+    fill: var(--svg-hover-color);
+}
+
+#decrease-tonic-2:hover {
+    transform: translateY(-3%);
+}
+
+#increase-tonic-2:hover {
+    transform: scaleX(-1) translateY(-3%);
+}
+
+#decrease-tonic-2:active,
+#increase-tonic-2:active {
+    fill: var(--svg-active-color);
+}
+
+#decrease-tonic-2:active {
+    transform: translateY(1%);
+}
+
+#increase-tonic-2:active {
+    transform: scaleX(-1) translateY(1%);
+}
+
+.select-group, #tonic-selector {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.select-group {
+    margin: 0 100px; /* Adjust spacing as needed */
+    width: 250px;
+  }
+
+  
+select {
+    background-color: var(--theme-color);
+    border-radius: 5px;
+    border: 2px solid #000;
+}
+
+/* Form Elements */
+select, button {
+    padding: 5px 10px;
+    margin: 3px;
+    cursor: pointer;
+}
+
+input[type="checkbox"] {
+    margin-right: 0;
+}
+
+/* Content Container */
+#content-container, #main-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 800px;
+}
+  
+  .pattern-shift-arrow {
+    width: 20px; /* Adjust based on your image size */
+    height: 12px; /* Adjust based on your image size */
+}
+
+#pattern-select {
+    color: #fafafa;
+    position: absolute;
+    left: 30px;
+    top: 11px;
+    font-size: 18px;
+}
+
+  
+#keyboard-area, #wheel-container {
+    position: relative;
+  }
+  
+  .pattern-shift-arrow {
+    position: absolute;
+    cursor: pointer;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 6;
+  }
+  
+  .pattern-active .pattern-shift-arrow {
+    opacity: 0;
+    pointer-events: auto;
+  }
+  
+  .pattern-active #bracket-window:hover .pattern-shift-arrow,
+  .pattern-active #polygon-window:hover .pattern-shift-arrow {
+    opacity: 0.8;
+  }
+  
+  #shift-pattern-left, #shift-pattern-right {
+    top: 5px; /* Adjust as needed */
+    width: 40px;
+    height: 30px;
+  }
+  
+  #shift-pattern-left {
+    left: 10px;
+  }
+  
+  #shift-pattern-right {
+    right: 10px;
+    transform: scaleX(-1);
+  }
+  
+   
+  #shift-pattern-left-curved {
+    top: 40%;
+    left: 30px;
+    transform: translateY(-50%);
+    width: 50px;
+    height: 50px;
+  }
+  
+  #shift-pattern-right-curved {
+    top: 40%;
+    right: 30px;
+    transform: translateY(-50%) scaleX(-1);
+    width: 50px;
+    height: 50px;
+  }
+  
+  /* Hover effects */
+  #shift-pattern-left:hover {
+    transform: scale(1.1);
+  } 
+  
+  #shift-pattern-left-curved:hover {
+    transform: translateY(-50%) scale(1.1);
+  }
+  
+  #shift-pattern-right:hover {
+    transform: scaleX(-1) scale(1.1);
+  }
+  
+  #shift-pattern-right-curved:hover {
+    transform: translateY(-50%) scaleX(-1) scale(1.1);
+  }
+  
+
+
+.layout-button {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 100px;  /* Increased width to accommodate text */
+    height: 120px; /* Increased height to accommodate text */
+    padding: 5px;
+    border: none;
+    background: #555;  /* Dark background color */
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2), 
+                0 -2px 4px rgba(255,255,255,0.1) inset;
+    transition: all 0.3s ease;
+}
+
+.layout-button:hover {
+    background: #666;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3), 
+                0 -2px 4px rgba(255,255,255,0.2) inset;
+    transform: translateY(-52%);  /* Slight lift on hover */
+}
+
+.layout-button:active {
+    box-shadow: 0 1px 2px rgba(0,0,0,0.2), 
+                0 -1px 2px rgba(255,255,255,0.1) inset;
+    transform: translateY(-49%);  /* Slight press effect */
+}
+
+.layout-button img {
+    width: 90%;
+    height: 90%;
+    object-fit: contain;
+}
+
+.button-text {
+    font-size: 10px;
+    color: #ddd;
+    text-transform: uppercase;
+}
+
+.button-text.top {
+    font-weight: normal;
+}
+
+.button-text.bottom {
+    font-weight: bold;
+    font-size: 12px;
+}
+
+#prev-layout {
+    left: -200px;
+}
+
+#next-layout {
+    right: -200px;
+}
+
+
+
+#play-button-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 5; /* Above everything else */
+}
+  
+  #play-pattern-button {
+    cursor: pointer;
+    transition: transform 0.1s ease-in-out;
+    opacity: 80%;
+  }
+  
+  #play-pattern-button:hover {
+    transform: scale(1.1);
+  }
+
+  
+
+
+
 /* Tonic Indicators*/
 #wheel-tonic-indicator, #keyboard-tonic-indicator {
     position: absolute;
     pointer-events: none;
-    z-index: 10;
+    z-index: 20;
 }
 #wheel-tonic-indicator {
     width: 40px;
@@ -326,6 +660,7 @@ wheel .note {
     top: 0;
     left: 50%;
     transform: translateX(-50%);
+    filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3));
 }
 #keyboard-tonic-indicator {
     width: 30px;
@@ -334,43 +669,92 @@ wheel .note {
     top: -10px;
     left: 50%;
     transform: translateX(-50%);
+    filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3));
 }
 
 
-
-
-/* Toggles Panel */
+/* TOGGLES STUFF */
 #toggles-panel {
     position: absolute;
-    top: 350px;
-    right: 20px;
-    width: 200px;
+    top: 70px;
+    left: 20px;
+    width: 170px;
     padding: 10px;
-    background-color: #555555;
+    background-color: #696969;
     color: #f0f0f0;
     border-radius: 5px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
 }
 
 #toggles-panel h3 {
     margin-top: 0;
+    font-size: 2em;
+    margin-block-start: 0em;
+    margin-block-end: 0.5em;
 }
 
 .toggle-group {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 10px;
+    margin-bottom: 5px;
 }
 
 .toggle-group label {
     display: block;
-    margin-bottom: 5px;
+    margin-top: 2px;
+    font-size: 1.2em;
 }
 
 #toggle-debug {
     margin-top: 10px;
     width: 100%;
+}
+
+/* Hide default checkbox */
+.toggle-group input[type="checkbox"] {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+/* Create a custom slider */
+.slider {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 30px;
+    top: 5px;
+    cursor: pointer;
+    background-color: #ccc;
+    border-radius: 20px;
+    transition: 0.2s;
+}
+
+.slider:before {
+    content: "";
+    position: absolute;
+    height: 26px;
+    width: 26px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    border-radius: 50%;
+    transition: 0.4s;
+}
+
+/* Checked state */
+.toggle-group input:checked + .slider {
+    background-color: #437ad9;
+}
+
+.toggle-group input:checked + .slider:before {
+    transform: translateX(20px);
+}
+
+/* Hover effect */
+.slider:hover {
+    background-color: #9bb1d7;
 }
 
 
@@ -384,3 +768,98 @@ wheel .note {
     background: red;
     z-index: 9999;
   }  */
+
+  #pattern-select-container {
+    position: absolute;
+    /* Adjust these values to position it correctly */
+    top: 6px;
+    left: 55px;
+    z-index: 1000; /* Ensure it's above other elements */
+  }
+
+  .custom-select {
+    position: relative;
+    display: inline-block;
+    width: 230px;
+  }
+  
+  .select-selected {
+    background-color: #444;
+    color: #fff;
+    padding: 8px 16px;
+    border: 1px solid #666;
+    cursor: pointer;
+    border-radius: 5px;
+
+  }
+  
+  .select-items {
+    display: none;
+    position: absolute;
+    background-color: #444;
+    min-width: 200px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+    cursor: pointer;
+    border-radius: 5px;
+  }
+  
+  .select-item {
+    color: #fff;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    position: relative;
+  }
+  
+  .submenu {
+    display: none;
+    position: absolute;
+    left: 100%;
+    top: 0;
+    background-color: #444;
+    min-width: 200px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    cursor: pointer;
+    border-radius: 5px;
+  }
+  
+  .select-item:hover .submenu {
+    display: block;
+  }
+  
+  .select-subitem {
+    color: #fff;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+  }
+  
+  .select-item:hover, .select-subitem:hover {
+    background-color: #555;
+  }
+
+  .select-item::after {
+    content: '▶';
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .select-item.none-option::after {
+    content: ''; /* Ensures no arrow is shown for the [NONE] option */
+}
+
+  .select-selected::after {
+    content: '▼';
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  
+  .select-item, .select-subitem {
+    position: relative;
+    padding-right: 25px; /* Make room for the arrow */
+  }

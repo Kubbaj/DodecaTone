@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Circular and Linear Arrows</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f3f3f3;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: rgb(214, 214, 214);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        #arrowContainer {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        #linearArrows {
+            margin-bottom: 20px;
+        }
+        #circularArrows {
+            max-width: 100%;
+            height: auto;
+        }
+        .controls {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 10px;
+            align-items: center;
+            width: 100%;
+        }
+        label {
+            font-weight: bold;
+        }
+        input[type="range"] {
+            width: 100%;
+        }
+        input[type="color"] {
+            width: 50px;
+            height: 30px;
+        }
+        
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="arrowContainer">
+            <div id="linearArrows"></div>
+            <div id="circularArrows"></div>
+        </div>
+        <div class="controls">
+            <label for="arcRadius">Arc Radius:</label>
+            <input type="range" id="arcRadius" min="50" max="200" value="150">
+            <label for="arrowWidth">Arrow Width:</label>
+            <input type="range" id="arrowWidth" min="10" max="50" value="30">
+            <label for="startAngle">Start Angle:</label>
+            <input type="range" id="startAngle" min="0" max="90" value="30">
+            <label for="endAngle">End Angle:</label>
+            <input type="range" id="endAngle" min="0" max="90" value="60">
+            <label for="arrowheadWidth">Arrowhead Width:</label>
+            <input type="range" id="arrowheadWidth" min="0.1" max="1" step="0.1" value="0.4">
+            <label for="arrowheadLength">Arrowhead Length:</label>
+            <input type="range" id="arrowheadLength" min="0.7" max="5" step="0.1" value="0.7">
+            <label for="fillColor">Fill Color:</label>
+            <input type="color" id="fillColor" value="#FF0000">
+            <label for="strokeColor">Border Color:</label>
+            <input type="color" id="strokeColor" value="#333333">
+        </div>
+    </div>
+
+    <script>
+        function generateArrows({
+            canvasSize = 400,
+            arcRadius = 100,
+            arrowWidth = 20,
+            startAngle = 30,
+            endAngle = 60,
+            arrowheadWidthFactor = 0.4,
+            strokeWidth = 2,
+            strokeColor = '#000000',
+            fillColor = '#FF0000',
+            arrowheadLengthFactor = 1,
+        }) {
+            const centerX = canvasSize / 2;
+            const centerY = canvasSize / 2;
+
+            const innerRadius = arcRadius - arrowWidth / 2;
+            const outerRadius = arcRadius + arrowWidth / 2;
+            const extensionLength = arrowheadWidthFactor * arrowWidth;
+            const innerExtendedRadius = innerRadius - extensionLength;
+            const outerExtendedRadius = outerRadius + extensionLength;
+
+            // Circular arrow functions
+            function calculatePoint(angle, radius) {
+                const angleRad = (90 + angle) * Math.PI / 180;
+                return [
+                    centerX + radius * Math.cos(angleRad),
+                    centerY - radius * Math.sin(angleRad)
+                ];
+            }
+
+            function calculateThirdPoint(x1, y1, x2, y2, clockwise, lengthFactor) {
+                const midX = (x1 + x2) / 2;
+                const midY = (y1 + y2) / 2;
+                const dx = x2 - x1;
+                const dy = y2 - y1;
+                const factor = clockwise ? -1 : 1;
+
+                // Calculate the default length (sqrt(2)/2 times the width)
+                const defaultLength = Math.sqrt(dx * dx + dy * dy) * Math.sqrt(2) / 2;
+
+                // Apply the length factor
+                const adjustedLength = defaultLength * lengthFactor;
+
+                // Calculate the new point
+                const newX = midX + factor * dy * adjustedLength / defaultLength / 2;
+                const newY = midY - factor * dx * adjustedLength / defaultLength / 2;
+
+                return [newX, newY];
+            }
+
+            function createArrowPath(startOuter, startInner, endInner, endOuter, endInnerExtended, endOuterExtended, thirdPoint, isRight) {
+                const largeArcFlag = Math.abs(endAngle - startAngle) > 180 ? 1 : 0;
+                const sweepFlag = isRight ? 1 : 0;
+                return `M ${startOuter[0]} ${startOuter[1]}
+                        A ${outerRadius} ${outerRadius} 0 ${largeArcFlag} ${sweepFlag} ${endOuter[0]} ${endOuter[1]}
+                        L ${endOuterExtended[0]} ${endOuterExtended[1]}
+                        L ${thirdPoint[0]} ${thirdPoint[1]}
+                        L ${endInnerExtended[0]} ${endInnerExtended[1]}
+                        L ${endInner[0]} ${endInner[1]}
+                        A ${innerRadius} ${innerRadius} 0 ${largeArcFlag} ${1 - sweepFlag} ${startInner[0]} ${startInner[1]}
+                        Z`;
+            }
+
+            // Calculate circular arrow points
+            const [leftStartOuterX, leftStartOuterY] = calculatePoint(startAngle, outerRadius);
+            const [leftStartInnerX, leftStartInnerY] = calculatePoint(startAngle, innerRadius);
+            const [leftEndInnerX, leftEndInnerY] = calculatePoint(endAngle, innerRadius);
+            const [leftEndOuterX, leftEndOuterY] = calculatePoint(endAngle, outerRadius);
+            const [leftEndInnerExtendedX, leftEndInnerExtendedY] = calculatePoint(endAngle, innerExtendedRadius);
+            const [leftEndOuterExtendedX, leftEndOuterExtendedY] = calculatePoint(endAngle, outerExtendedRadius);
+
+            const [rightStartOuterX, rightStartOuterY] = calculatePoint(-startAngle, outerRadius);
+            const [rightStartInnerX, rightStartInnerY] = calculatePoint(-startAngle, innerRadius);
+            const [rightEndInnerX, rightEndInnerY] = calculatePoint(-endAngle, innerRadius);
+            const [rightEndOuterX, rightEndOuterY] = calculatePoint(-endAngle, outerRadius);
+            const [rightEndInnerExtendedX, rightEndInnerExtendedY] = calculatePoint(-endAngle, innerExtendedRadius);
+            const [rightEndOuterExtendedX, rightEndOuterExtendedY] = calculatePoint(-endAngle, outerExtendedRadius);
+
+            const [leftThirdX, leftThirdY] = calculateThirdPoint(leftEndInnerExtendedX, leftEndInnerExtendedY, leftEndOuterExtendedX, leftEndOuterExtendedY, false, arrowheadLengthFactor);
+            const [rightThirdX, rightThirdY] = calculateThirdPoint(rightEndInnerExtendedX, rightEndInnerExtendedY, rightEndOuterExtendedX, rightEndOuterExtendedY, true, arrowheadLengthFactor);
+
+            // Create circular arrow paths
+            const leftCircularArrowPath = createArrowPath(
+                [leftStartOuterX, leftStartOuterY],
+                [leftStartInnerX, leftStartInnerY],
+                [leftEndInnerX, leftEndInnerY],
+                [leftEndOuterX, leftEndOuterY],
+                [leftEndInnerExtendedX, leftEndInnerExtendedY],
+                [leftEndOuterExtendedX, leftEndOuterExtendedY],
+                [leftThirdX, leftThirdY],
+                false
+            );
+
+            const rightCircularArrowPath = createArrowPath(
+                [rightStartOuterX, rightStartOuterY],
+                [rightStartInnerX, rightStartInnerY],
+                [rightEndInnerX, rightEndInnerY],
+                [rightEndOuterX, rightEndOuterY],
+                [rightEndInnerExtendedX, rightEndInnerExtendedY],
+                [rightEndOuterExtendedX, rightEndOuterExtendedY],
+                [rightThirdX, rightThirdY],
+                true
+            );
+
+            function calculateLinearPoint(x, y) {
+                return [centerX + x, y];
+            }
+
+            function createLinearArrowPath(startOuter, startInner, endInner, endOuter, endInnerExtended, endOuterExtended, thirdPoint) {
+                return `M ${startOuter[0]} ${startOuter[1]}
+            L ${endOuter[0]} ${endOuter[1]}
+            L ${endOuterExtended[0]} ${endOuterExtended[1]}
+            L ${thirdPoint[0]} ${thirdPoint[1]}
+            L ${endInnerExtended[0]} ${endInnerExtended[1]}
+            L ${endInner[0]} ${endInner[1]}
+            L ${startInner[0]} ${startInner[1]}
+            Z`;
+            }
+
+            // Calculate linear arrow points
+            const linearY = centerY - 50;
+            const linearStartX = arcRadius * Math.sin(startAngle * Math.PI / 180);
+            const linearEndX = arcRadius * Math.sin(endAngle * Math.PI / 180);
+
+            const [leftLinearStartOuterX, leftLinearStartOuterY] = calculateLinearPoint(-linearStartX, linearY - arrowWidth / 2);
+            const [leftLinearStartInnerX, leftLinearStartInnerY] = calculateLinearPoint(-linearStartX, linearY + arrowWidth / 2);
+            const [leftLinearEndInnerX, leftLinearEndInnerY] = calculateLinearPoint(-linearEndX, linearY + arrowWidth / 2);
+            const [leftLinearEndOuterX, leftLinearEndOuterY] = calculateLinearPoint(-linearEndX, linearY - arrowWidth / 2);
+            const [leftLinearEndInnerExtendedX, leftLinearEndInnerExtendedY] = calculateLinearPoint(-linearEndX, linearY + arrowWidth / 2 + extensionLength);
+            const [leftLinearEndOuterExtendedX, leftLinearEndOuterExtendedY] = calculateLinearPoint(-linearEndX, linearY - arrowWidth / 2 - extensionLength);
+
+            const [rightLinearStartOuterX, rightLinearStartOuterY] = calculateLinearPoint(linearStartX, linearY - arrowWidth / 2);
+            const [rightLinearStartInnerX, rightLinearStartInnerY] = calculateLinearPoint(linearStartX, linearY + arrowWidth / 2);
+            const [rightLinearEndInnerX, rightLinearEndInnerY] = calculateLinearPoint(linearEndX, linearY + arrowWidth / 2);
+            const [rightLinearEndOuterX, rightLinearEndOuterY] = calculateLinearPoint(linearEndX, linearY - arrowWidth / 2);
+            const [rightLinearEndInnerExtendedX, rightLinearEndInnerExtendedY] = calculateLinearPoint(linearEndX, linearY + arrowWidth / 2 + extensionLength);
+            const [rightLinearEndOuterExtendedX, rightLinearEndOuterExtendedY] = calculateLinearPoint(linearEndX, linearY - arrowWidth / 2 - extensionLength);
+
+            const [leftLinearThirdX, leftLinearThirdY] = calculateThirdPoint(leftLinearEndInnerExtendedX, leftLinearEndInnerExtendedY, leftLinearEndOuterExtendedX, leftLinearEndOuterExtendedY, false, arrowheadLengthFactor);
+            const [rightLinearThirdX, rightLinearThirdY] = calculateThirdPoint(rightLinearEndInnerExtendedX, rightLinearEndInnerExtendedY, rightLinearEndOuterExtendedX, rightLinearEndOuterExtendedY, true, arrowheadLengthFactor);
+
+            // Create linear arrow paths
+            const leftLinearArrowPath = createLinearArrowPath(
+                [leftLinearStartOuterX, leftLinearStartOuterY],
+                [leftLinearStartInnerX, leftLinearStartInnerY],
+                [leftLinearEndInnerX, leftLinearEndInnerY],
+                [leftLinearEndOuterX, leftLinearEndOuterY],
+                [leftLinearEndInnerExtendedX, leftLinearEndInnerExtendedY],
+                [leftLinearEndOuterExtendedX, leftLinearEndOuterExtendedY],
+                [leftLinearThirdX, leftLinearThirdY]
+            );
+
+            const rightLinearArrowPath = createLinearArrowPath(
+                [rightLinearStartOuterX, rightLinearStartOuterY],
+                [rightLinearStartInnerX, rightLinearStartInnerY],
+                [rightLinearEndInnerX, rightLinearEndInnerY],
+                [rightLinearEndOuterX, rightLinearEndOuterY],
+                [rightLinearEndInnerExtendedX, rightLinearEndInnerExtendedY],
+                [rightLinearEndOuterExtendedX, rightLinearEndOuterExtendedY],
+                [rightLinearThirdX, rightLinearThirdY]
+            );
+
+            const linearSvg = `
+        <svg width="${canvasSize}" height="${canvasSize / 2}" viewBox="0 0 ${canvasSize} ${canvasSize / 2}" xmlns="http://www.w3.org/2000/svg">
+            <line x1="${centerX - arcRadius}" y1="${linearY}" x2="${centerX + arcRadius}" y2="${linearY}" stroke="#CCCCCC" stroke-width="1" />
+            <path d="${leftLinearArrowPath}" fill="${fillColor}" stroke="${strokeColor}" stroke-width="${strokeWidth}" />
+            <path d="${rightLinearArrowPath}" fill="${fillColor}" stroke="${strokeColor}" stroke-width="${strokeWidth}" />
+        </svg>
+    `;
+
+    const circularSvg = `
+        <svg width="${canvasSize}" height="${canvasSize}" viewBox="0 0 ${canvasSize} ${canvasSize}" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="${centerX}" cy="${centerY}" r="${arcRadius}" fill="none" stroke="#CCCCCC" stroke-width="1" />
+            <path d="${leftCircularArrowPath}" fill="${fillColor}" stroke="${strokeColor}" stroke-width="${strokeWidth}" />
+            <path d="${rightCircularArrowPath}" fill="${fillColor}" stroke="${strokeColor}" stroke-width="${strokeWidth}" />
+        </svg>
+    `;
+
+    return { linearSvg, circularSvg };
+}
+function updateArrows() {
+    const arcRadius = parseInt(document.getElementById('arcRadius').value);
+    const arrowWidth = parseInt(document.getElementById('arrowWidth').value);
+    const startAngle = parseInt(document.getElementById('startAngle').value);
+    const endAngle = parseInt(document.getElementById('endAngle').value);
+    const arrowheadWidthFactor = parseFloat(document.getElementById('arrowheadWidth').value);
+    const fillColor = document.getElementById('fillColor').value;
+    const strokeColor = document.getElementById('strokeColor').value;
+    const arrowheadLengthFactor = parseFloat(document.getElementById('arrowheadLength').value);
+
+    const { linearSvg, circularSvg } = generateArrows({
+        canvasSize: 400,
+        arcRadius: arcRadius,
+        arrowWidth: arrowWidth,
+        startAngle: startAngle,
+        endAngle: endAngle,
+        arrowheadWidthFactor: arrowheadWidthFactor,
+        strokeWidth: 2,
+        strokeColor: strokeColor,
+        fillColor: fillColor,
+        arrowheadLengthFactor: arrowheadLengthFactor,
+    });
+
+    document.getElementById('linearArrows').innerHTML = linearSvg;
+    document.getElementById('circularArrows').innerHTML = circularSvg;
+}
+
+// Make sure to call updateArrows() initially and add event listeners
+updateArrows();
+
+// Add event listeners to all inputs
+document.querySelectorAll('input').forEach(input => {
+    input.addEventListener('input', updateArrows);
+});
+
+// Function to generate SVG for a single arrow
+function generateArrowSVG(d, fill, stroke) {
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+  svg.setAttribute("width", "100");
+  svg.setAttribute("height", "100");
+  svg.setAttribute("viewBox", "0 0 100 100");
+
+  const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  path.setAttribute("d", d);
+  path.setAttribute("fill", fill);
+  path.setAttribute("stroke", stroke);
+
+  svg.appendChild(path);
+  return svg;
+}
+
+// Function to download SVG
+function downloadSVG(svg, filename) {
+  const serializer = new XMLSerializer();
+  let source = serializer.serializeToString(svg);
+  
+  // Add namespace
+  if (!source.match(/^<svg[^>]+xmlns="http\:\/\/www\.w3\.org\/2000\/svg"/)) {
+    source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
+  }
+  
+  // Add XML declaration
+  source = '<?xml version="1.0" standalone="no"?>\r\n' + source;
+  
+  // Convert svg source to URI data scheme.
+  const url = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(source);
+  
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+// Add click event listeners to arrows
+function addArrowClickListeners() {
+  const arrowPaths = document.querySelectorAll("#linearArrows path, #circularArrows path");
+  arrowPaths.forEach((path, index) => {
+    path.style.cursor = "pointer";
+    path.addEventListener("click", () => {
+      const d = path.getAttribute("d");
+      const fill = path.getAttribute("fill");
+      const stroke = path.getAttribute("stroke");
+      const svg = generateArrowSVG(d, fill, stroke);
+      downloadSVG(svg, `arrow_${index + 1}.svg`);
+    });
+  });
+}
+
+// Call this function after your arrows are created
+addArrowClickListeners();
+    </script>
+</body>
+
+</html>

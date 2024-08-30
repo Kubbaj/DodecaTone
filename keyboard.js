@@ -27,36 +27,34 @@ export class Keyboard {
     createKeys() {
         let position = 0;
         
-        config.keyboardNotes.forEach((note, index) => {
+        // Extend the loop to include C5 (25 keys total)
+        for (let index = 0; index < 25; index++) {
+            const note = config.keyboardNotes[index % 12];
             const keyElement = document.createElement('div');
             const isBlackNote = note.includes('/');
             
             keyElement.className = `key ${isBlackNote ? 'black' : 'white'}`;
             keyElement.dataset.noteId = index;
     
-            // Calculate toneNote
-            const octave = index < 12 ? 3 : 4;
+            // Calculate octave (3 for first 12, 4 for next 12, 5 for the last one)
+            const octave = Math.floor(index / 12) + 3;
             keyElement.dataset.toneNote = this.formatToneNote(note, octave);
-
-            // Calculate toneNote
-            const baseTone = isBlackNote ? note.charAt(0) + '#' : note.charAt(0);
-            keyElement.dataset.toneNote = `${baseTone}${index < 12 ? 3 : 4}`;
-
+    
             // Set the width and position of the key
             const width = this.keyWidth * (isBlackNote ? 1 : this.keyWidths[note.charAt(0)]);
             keyElement.style.width = `${width}px`;
             keyElement.style.left = `${position + (isBlackNote ? -this.keyWidth / 2 : 0)}px`;
             
             if (!isBlackNote) position += width;
-
+    
             const noteDisplay = document.createElement('span');
             noteDisplay.className = 'note-display';
             noteDisplay.textContent = config.getNoteDisplay(note, false);
-
+    
             keyElement.appendChild(noteDisplay);
             this.keyElements.set(index, keyElement);
             this.keyboardElement.appendChild(keyElement);
-        });
+        }
     }
 
     updateKeyState(noteId, state, useColors, animate) {
@@ -73,7 +71,7 @@ export class Keyboard {
                 noteDisplay.style.color = isBlackNote ? 'black' : 'white';
                 noteDisplay.style.fontWeight = 'bold';
             } else {
-                keyElement.style.backgroundColor = isBlackNote ? 'black' : 'white';
+                keyElement.style.backgroundColor = isBlackNote ? '#262626' : '#D8D8D8';
                 noteDisplay.style.color = isBlackNote ? 'white' : 'black';
                 noteDisplay.style.fontWeight = 'normal';
             }
@@ -91,11 +89,13 @@ export class Keyboard {
     updatePatternHighlight(playableToneNotes) {
         console.log("Updating keyboard pattern highlight:", playableToneNotes);
         
-        this.keyboardElement.classList.toggle('pattern-active', playableToneNotes.length > 0);
+        const hasPattern = playableToneNotes.length > 0;
+        this.keyboardElement.classList.toggle('pattern-active', hasPattern);
         
         this.keyElements.forEach((keyElement, noteId) => {
-            const inPattern = playableToneNotes.includes(keyElement.dataset.toneNote);
+            const inPattern = hasPattern && playableToneNotes.includes(keyElement.dataset.toneNote);
             keyElement.classList.toggle('in-pattern', inPattern);
+            keyElement.style.pointerEvents = hasPattern ? (inPattern ? 'auto' : 'none') : 'auto';
         });
     }
 
@@ -113,7 +113,7 @@ export class Keyboard {
         arrow.innerHTML = '→';
         arrow.style.cssText = `
             position: absolute;
-            top: 50%;
+            top: 60%;
             transform: translateY(-50%);
             font-size: 24px;
             font-weight: bold;
@@ -148,7 +148,7 @@ export class Keyboard {
         const noteIndex = config.keyboardNotes.indexOf(newTonic);
         
         // Calculate offset: start at 11.5 keyWidths (for C4), then add 1 keyWidth per semitone
-        let offset = (noteIndex + 12.75) * keyWidth;
+        let offset = (noteIndex + 12.5) * keyWidth;
     
         // Adjust for octave
         if (octave === 3) {
@@ -171,7 +171,7 @@ export class Keyboard {
         const currentTonicIndex = config.notes.indexOf(newTonic);
         const keyDiff = currentTonicIndex - config.notes.indexOf('C'); // Difference from C
         const arrowPosition = this.arrowBasePosition - (keyDiff * this.keyWidth);
-        this.arrowElement.style.left = `${arrowPosition}px`;
+        this.arrowElement.style.left = `${arrowPosition + 37.5}px`;
 
     }
 

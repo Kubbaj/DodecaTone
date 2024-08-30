@@ -9,8 +9,8 @@ export class TonicIndicators {
         this.wheelIndicator = this.createWheelIndicator();
         this.keyboardIndicator = this.createKeyboardIndicator();
 
-        this.wheelYOffset = 351;
-        this.keyboardYOffset = 44;
+        this.wheelYOffset = 4.5;
+        this.keyboardYOffset = 58;
 
         this.positionIndicators();
         this.visible = false;
@@ -20,9 +20,9 @@ export class TonicIndicators {
         const indicator = document.getElementById('wheel-tonic-indicator') || document.createElement('div');
         indicator.id = 'wheel-tonic-indicator';
         indicator.style.position = 'absolute';
-        indicator.style.width = '42px';
-        indicator.style.height = '42px';
-        indicator.style.border = `7px solid ${this.indicatorColor}`;
+        indicator.style.width = '46px';
+        indicator.style.height = '46px';
+        indicator.style.border = `8px solid ${this.indicatorColor}`;
         indicator.style.borderRadius = '50%';
         indicator.style.pointerEvents = 'none';
         this.wheelContainer.appendChild(indicator);
@@ -33,12 +33,12 @@ export class TonicIndicators {
         const indicator = document.getElementById('keyboard-tonic-indicator') || document.createElement('div');
         indicator.id = 'keyboard-tonic-indicator';
         indicator.style.position = 'absolute';
-        indicator.style.width = '31px';
-        indicator.style.height = '50px'; // Adjust based on your key height
-        indicator.style.borderTop = `7px solid ${this.indicatorColor}`;
-        indicator.style.borderLeft = `7px solid ${this.indicatorColor}`;
-        indicator.style.borderRight = `7px solid ${this.indicatorColor}`;
-        indicator.style.borderBottom = '7px solid transparent';
+        indicator.style.width = '33px';
+        indicator.style.height = '57px'; // Adjust based on your key height
+        indicator.style.borderTop = `8px solid ${this.indicatorColor}`;
+        indicator.style.borderLeft = `8px solid ${this.indicatorColor}`;
+        indicator.style.borderRight = `8px solid ${this.indicatorColor}`;
+        indicator.style.borderBottom = '1px solid transparent';
         indicator.style.borderRadius = '5px'
         indicator.style.backgroundColor = 'transparent';
         indicator.style.pointerEvents = 'none';
@@ -59,7 +59,7 @@ export class TonicIndicators {
     }
     
     positionKeyboardIndicator() {
-        this.keyboardIndicator.style.left = 'calc(50% - 0.5px)';
+        this.keyboardIndicator.style.left = 'calc(50% - 5px)';
         this.keyboardIndicator.style.transform = 'translateX(-50%)';
         this.keyboardIndicator.style.top = `${this.keyboardYOffset}px`;
     }
