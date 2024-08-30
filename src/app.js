@@ -305,7 +305,7 @@ function updateLayoutButtons() {
     
     if (transitions.prev) {
         prevButton.style.display = 'flex';
-        prevButton.querySelector('img').src = `resources/${icons.prev}`;
+        prevButton.querySelector('img').src = `../resources/${icons.prev}`;
         prevButton.querySelector('.top').textContent = 'change to';
         prevButton.querySelector('.bottom').textContent = transitions.prev;
         prevButton.onclick = () => updateLayout(transitions.prev);
@@ -315,7 +315,7 @@ function updateLayoutButtons() {
     
     if (transitions.next) {
         nextButton.style.display = 'flex';
-        nextButton.querySelector('img').src = `resources/${icons.next}`;
+        nextButton.querySelector('img').src = `../resources/${icons.next}`;
         nextButton.querySelector('.top').textContent = 'change to';
         nextButton.querySelector('.bottom').textContent = transitions.next;
         nextButton.onclick = () => updateLayout(transitions.next);
