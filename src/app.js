@@ -18,7 +18,7 @@ let currentLayout = 'chromatic';
 let currentPattern = 'none';
 let currentTonic = 'C';
 let useSharps = false;
-let useColors = false;
+let useColors = true;
 let animate = false;
 let currentlyPlayingNote = null;
 let currentTonicDisplay = 'C';
@@ -44,7 +44,7 @@ const layoutIcons = {
 const wheelContainer = document.getElementById('wheel-container');
 const keyboardWindow = document.getElementById('keyboard-window');
 const tonicIndicators = new TonicIndicators(wheelContainer, keyboardWindow, useColors);
-tonicIndicators.toggleVisibility(false);
+tonicIndicators.toggleVisibility(true);
 
 const wheel = new Wheel(wheelContainer, animate);
 const keyboardContainer = document.getElementById('keyboard-container');
@@ -512,6 +512,7 @@ document.addEventListener('DOMContentLoaded', () => {
     toggleColors();
     toggleAnimation();
     initTonicPicker();
+    toggleIndicators();
     updateTonicDisplay();
     updateLayoutButtons();
     populatePatternMenu();

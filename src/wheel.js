@@ -305,6 +305,7 @@ async switchLayout(newLayout) {
 
     createTemporaryElements() {
         const tempGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        tempGroup.style.zIndex = "1000"; // Lower than the indicators
         this.noteElements.forEach((noteElement, noteId) => {
             const tempElement = noteElement.cloneNode(true);
             tempElement.id = `temp-${noteId}`;

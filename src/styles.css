@@ -648,9 +648,9 @@ input[type="checkbox"] {
 
 /* Tonic Indicators*/
 #wheel-tonic-indicator, #keyboard-tonic-indicator {
-    position: absolute;
+    position: fixed;
     pointer-events: none;
-    z-index: 20;
+    z-index: 9999;
 }
 #wheel-tonic-indicator {
     width: 40px;
