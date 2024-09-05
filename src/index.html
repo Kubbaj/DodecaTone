@@ -21,7 +21,7 @@
                 <label for="current-tonic"><b>TONIC:</b></label>
                 <div id="tonic-controls">
                     <svg id="decrease-tonic" class="tonic-arrow curved-arrow" width="500" height="500"
-                        viewBox="80 30 300 300" xmlns="http://www.w3.org/2000/svg">
+                        viewBox="80 30 300 300" xmlns="http://www.w3.org/2000/svg" data-arrow-type="tonic-left">
                         <title>Shift TONIC Left</title>
                         <path class="arrow-fill"
                             d="M330.67 58.883A472.5 472.5 0 0 0 127.665 209.1l-23.64 -18.47 11.632 94.75 94.75 -11.635 -23.643 -18.47a397.5 397.5 0 0 1 170.782 -126.375Z"
@@ -31,7 +31,7 @@
                         <span id="current-tonic">C</span>
                     </div>
                     <svg id="increase-tonic" class="tonic-arrow curved-arrow" width="500" height="500"
-                        viewBox="80 30 300 300" xmlns="http://www.w3.org/2000/svg">
+                        viewBox="80 30 300 300" xmlns="http://www.w3.org/2000/svg" data-arrow-type="tonic-right">
                         <title>Shift TONIC Right</title>
                         <path class="arrow-fill"
                             d="M330.67 58.883A472.5 472.5 0 0 0 127.665 209.1l-23.64 -18.47 11.632 94.75 94.75 -11.635 -23.643 -18.47a397.5 397.5 0 0 1 170.782 -126.375Z"
@@ -43,7 +43,7 @@
 
         <div id="keyboard-area">
             <svg id="decrease-tonic-2" class="tonic-arrow straight-arrow" width="200" height="200"
-                viewBox="20 100 100 100" xmlns="http://www.w3.org/2000/svg">
+                viewBox="20 100 100 100" xmlns="http://www.w3.org/2000/svg" data-arrow-type="tonic-left">
                 <title>Shift TONIC Left</title>
                 <path class="arrow-fill"
                     d="M 95.28418597154361 135 L 62.88612887243036 135 L 62.88612887243036 123 L 35.88612887243036 150 L 62.88612887243036 177 L 62.88612887243036 165 L 95.28418597154361 165Z"
@@ -61,7 +61,7 @@
                 
                 <div id="bracket-window">
                     <svg id="shift-pattern-left" class="pattern-shift-arrow straight-arrow" width="200" height="100"
-                        viewBox="113 125 50 50" xmlns="http://www.w3.org/2000/svg">
+                        viewBox="113 125 50 50" xmlns="http://www.w3.org/2000/svg" data-arrow-type="pattern-left">
                         <title>Shift PATTERN Left</title>
                         <path class="arrow-fill"
                             d="M 161.5 145 L 133.31604390859823 145 L 133.31604390859823 141 L 108.11604390859823 150 L 133.31604390859823 159 L 133.31604390859823 155 L 161.5 155 Z"
@@ -75,7 +75,7 @@
                     </div>
                     <div id="bracket-svg-container"></div>
                     <svg id="shift-pattern-right" class="pattern-shift-arrow straight-arrow" width="200" height="100"
-                        viewBox="113 125 50 50" xmlns="http://www.w3.org/2000/svg">
+                        viewBox="113 125 50 50" xmlns="http://www.w3.org/2000/svg" data-arrow-type="pattern-right">
                         <title>Shift PATTERN Right</title>
                         <path class="arrow-fill"
                             d="M 161.5 145 L 133.31604390859823 145 L 133.31604390859823 141 L 108.11604390859823 150 L 133.31604390859823 159 L 133.31604390859823 155 L 161.5 155 Z"
@@ -89,7 +89,7 @@
             </div>
 
             <svg id="increase-tonic-2" class="tonic-arrow straight-arrow" width="200" height="200"
-                viewBox="20 100 100 100" xmlns="http://www.w3.org/2000/svg">
+                viewBox="20 100 100 100" xmlns="http://www.w3.org/2000/svg" data-arrow-type="tonic-right">
                 <title>Shift TONIC Right</title>
                 <path class="arrow-fill"
                     d="M 95.28418597154361 135 L 62.88612887243036 135 L 62.88612887243036 123 L 35.88612887243036 150 L 62.88612887243036 177 L 62.88612887243036 165 L 95.28418597154361 165Z"
@@ -106,8 +106,8 @@
             </button>
             <div id="polygon-window">
                 <!-- Wheel will be inserted here by JavaScript -->
-                <svg id="shift-pattern-left-curved" class="pattern-shift-arrow" width="200" height="200"
-                viewBox="107 120 70 70" xmlns="http://www.w3.org/2000/svg">
+                <svg id="shift-pattern-left-curved" class="pattern-shift-arrow curved-arrow" width="200" height="200"
+                viewBox="107 120 70 70" xmlns="http://www.w3.org/2000/svg" data-arrow-type="pattern-left">
                 <title>Shift PATTERN Left</title>
                 <path class="arrow-fill"
                     d="M 159.00000000000003 128.98591688967602 A 82 82 0 0 0 128.98591688967602 159 L 125.52181527453827 157 L 120.71604390859821 183.32384017536782 L 141.11027254265815 166 L 137.64617092752042 164 A 72 72 0 0 1 164 137.64617092752042 Z"
@@ -122,8 +122,8 @@
                 </svg>
             </div>
 
-            <svg id="shift-pattern-right-curved" class="pattern-shift-arrow" width="200" height="200"
-                viewBox="107 120 70 70" xmlns="http://www.w3.org/2000/svg">
+            <svg id="shift-pattern-right-curved" class="pattern-shift-arrow curved-arrow" width="200" height="200"
+                viewBox="107 120 70 70" xmlns="http://www.w3.org/2000/svg" data-arrow-type="pattern-right">
                 <title>Shift PATTERN Right</title>
                 <path class="arrow-fill"
                     d="M 159.00000000000003 128.98591688967602 A 82 82 0 0 0 128.98591688967602 159 L 125.52181527453827 157 L 120.71604390859821 183.32384017536782 L 141.11027254265815 166 L 137.64617092752042 164 A 72 72 0 0 1 164 137.64617092752042 Z"
@@ -180,6 +180,14 @@
                 <span class="slider"></span>
             </label>
         </div>
+        <!-- Replace the existing toggle-container with this -->
+<div class="toggle-group">
+    <label for="toggle-arrow-direction">Reverse arrows:</label>
+    <label class="switch">
+        <input type="checkbox" id="toggle-arrow-direction" checked>
+        <span class="slider"></span>
+    </label>
+</div>
     </div>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>

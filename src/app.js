@@ -26,6 +26,7 @@ let autoplayTonic = true;
 let currentOctave = 4;
 let isMouseDown = false;
 let lastPlayedNote = null;
+let reverseArrowDirection = true;
 
 const layoutTransitions = {
     chromatic: { next: 'fifths', prev: 'fourths' },
@@ -115,7 +116,7 @@ function initTonicPicker() {
 function changeTonic(direction) {
     const currentIndex = config.notes.indexOf(currentTonic);
     let newIndex;
-    if (direction === 'increase') {
+    if ((!reverseArrowDirection && direction === 'increase') || (reverseArrowDirection && direction === 'decrease')) {
         newIndex = (currentIndex + 1) % config.notes.length;
     } else {
         newIndex = (currentIndex - 1 + config.notes.length) % config.notes.length;
@@ -170,10 +171,10 @@ function changePattern(direction) {
     const currentIndex = getCurrentPatternIndex();
     let newIndex;
 
-    if (direction === 'next') {
-        newIndex = (currentIndex - 1) % allPatterns.length;
+    if ((!reverseArrowDirection && direction === 'next') || (reverseArrowDirection && direction === 'previous')) {
+        newIndex = (currentIndex + 1) % allPatterns.length;
     } else {
-        newIndex = (currentIndex + 1 + allPatterns.length) % allPatterns.length;
+        newIndex = (currentIndex - 1 + allPatterns.length) % allPatterns.length;
     }
 
     const newPattern = allPatterns[newIndex];
@@ -354,7 +355,56 @@ function toggleAutoplay() {
     autoplayTonic = !autoplayTonic;
 }
 
+function toggleArrowDirection() {
+    reverseArrowDirection = document.getElementById('toggle-arrow-direction').checked;
+    updateArrowTooltips();
+    // Any other necessary updates
+}
 
+function updateArrowTooltips() {
+    console.log("Updating arrow tooltips. reverseArrowDirection:", reverseArrowDirection);
+    const arrows = document.querySelectorAll('.tonic-arrow, .pattern-shift-arrow');
+    console.log("Found arrows:", arrows.length);
+    arrows.forEach(arrow => {
+        const arrowType = arrow.dataset.arrowType;
+        const title = arrow.querySelector('title');
+        console.log("Arrow:", arrowType, "Title element:", title);
+        if (title) {
+            let newText;
+            if (reverseArrowDirection) {
+                switch (arrowType) {
+                    case 'tonic-left':
+                        newText = arrow.classList.contains('curved-arrow') ? 'Shift WHEEL Left' : 'Shift KEYBOARD Left';
+                        break;
+                    case 'tonic-right':
+                        newText = arrow.classList.contains('curved-arrow') ? 'Shift WHEEL Right' : 'Shift KEYBOARD Right';
+                        break;
+                    case 'pattern-left':
+                        newText = arrow.classList.contains('curved-arrow') ? 'Shift POLYGON Left' : 'Shift BRACKET Left';
+                        break;
+                    case 'pattern-right':
+                        newText = arrow.classList.contains('curved-arrow') ? 'Shift POLYGON Right' : 'Shift BRACKET Right';
+                        break;
+                }
+            } else {
+                switch (arrowType) {
+                    case 'tonic-left':
+                    case 'pattern-left':
+                        newText = `Shift START-POINT Left`;
+                        break;
+                    case 'tonic-right':
+                    case 'pattern-right':
+                        newText = `Shift START-POINT Right`;
+                        break;
+                }
+            }
+            console.log("Setting new text:", newText);
+            title.textContent = newText;
+        } else {
+            console.log("No title element found for this arrow");
+        }
+    });
+}
 
 function updateAllNoteStates() {
     config.keyboardNotes.forEach((note, noteId) => {
@@ -466,6 +516,9 @@ document.addEventListener('DOMContentLoaded', () => {
     updateLayoutButtons();
     populatePatternMenu();
 
+    document.getElementById('toggle-arrow-direction').checked = reverseArrowDirection;
+    updateArrowTooltips();
+
     const startAudioButton = document.createElement('button');
     startAudioButton.textContent = 'Start Audio';
     startAudioButton.style.position = 'fixed';
@@ -513,6 +566,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('toggle-colors').addEventListener('change', toggleColors);
     document.getElementById('toggle-indicators').addEventListener('change', toggleIndicators);
     document.getElementById('toggle-autoplay').addEventListener('change', toggleAutoplay);
+    document.getElementById('toggle-arrow-direction').addEventListener('change', toggleArrowDirection);
     document.getElementById('pattern-select').addEventListener('change', (e) => updatePattern(e.target.value));
     document.addEventListener('keydown', handleKeyboardShortcuts);
 
@@ -667,4 +721,4 @@ function handleKeyboardShortcuts(event) {
             }
         }
 }
-export { playNote, stopNote, useColors, playNoteForDuration };
+export { playNote, stopNote, useColors, playNoteForDuration, reverseArrowDirection };

@@ -1,5 +1,5 @@
 // pattern.js
-import { playNoteForDuration } from './app.js';
+import { playNoteForDuration, reverseArrowDirection } from './app.js';
 
 export class Pattern {
     constructor(keyboard, wheel, animate) {
@@ -172,20 +172,20 @@ interpolatePoints(startPoints, endPoints, progress) {
         }
     
         let shiftAmount;
-        if (direction === 'right') {
+        // Reverse the direction if reverseArrowDirection is true
+        const effectiveDirection = reverseArrowDirection ? (direction === 'right' ? 'left' : 'right') : direction;
+
+        if (effectiveDirection === 'right') {
             shiftAmount = this.currentPattern[1] - this.currentPattern[0];
-        } else if (direction === 'left') {
-            shiftAmount = 12 - (this.currentPattern[this.currentPattern.length - 1] - this.currentPattern[0]);
         } else {
-            console.error("Invalid shift direction");
-            return;
+            shiftAmount = 12 - (this.currentPattern[this.currentPattern.length - 1] - this.currentPattern[0]);
         }
     
-        console.log(`Shifting pattern ${direction} by ${shiftAmount} steps`);
+        console.log(`Shifting pattern ${effectiveDirection} by ${shiftAmount} steps`);
     
         // Calculate the new pattern
         const newPattern = this.currentPattern.map(interval => {
-            let newInterval = direction === 'right' 
+            let newInterval = effectiveDirection === 'right' 
                 ? (interval - shiftAmount + 12) % 12
                 : (interval + shiftAmount) % 12;
             return newInterval;
@@ -202,8 +202,8 @@ interpolatePoints(startPoints, endPoints, progress) {
         if (this.animate) {
             console.log("ANIMATING TRANSITION")
             await Promise.all([
-                this.animatePolygon(direction, shiftAmount),
-                this.bracketVisualization.animateBracket(direction, shiftAmount)
+                this.animatePolygon(effectiveDirection, shiftAmount),
+                this.bracketVisualization.animateBracket(effectiveDirection, shiftAmount)
             ]);
         }
     
