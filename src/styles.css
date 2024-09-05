@@ -650,7 +650,7 @@ input[type="checkbox"] {
 #wheel-tonic-indicator, #keyboard-tonic-indicator {
     position: fixed;
     pointer-events: none;
-    z-index: 9999;
+    z-index: 8000;
 }
 #wheel-tonic-indicator {
     width: 40px;
@@ -774,7 +774,7 @@ input[type="checkbox"] {
     /* Adjust these values to position it correctly */
     top: 6px;
     left: 55px;
-    z-index: 1000; /* Ensure it's above other elements */
+    z-index: 9000; /* Ensure it's above other elements */
   }
 
   .custom-select {
