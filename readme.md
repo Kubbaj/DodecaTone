@@ -1,44 +1,57 @@
-Ok so it's coming along really nicely in terms of features and lack of bugs!
-
-There's a few major ones left to add though, which might prove troublesome...
-
- 1. Rotating Patterns (Modes) [CHECK]
-    This shouldn't be super difficult to add, but might conflict with the next one:
- 2. Keyboard Brackets [CHECK]
-    These might be difficult to get right in the first place,
-    but I'll also have to think of a good approach to integrate them with the rotating patterns,
-    since they should slide along to match the rotation, but will need to "wrap" as well, so they point at the correct notes.
-    Maybe I'll need to integrate a new "window" for the bracket, like the keys have...
- 3. Keyboard Shortcuts [CHECK]
-    Arrows should change the tonic, and letters should map to the piano.
-    Spacebar should probably play the pattern, and maybe some other shortcuts for changing layout or pattern
+BUGS TO FIX:
+ - STICKY NOTES:
+   when cycling through tonics too quickly, some note-press animations don't complete properly...
+ - PLAYBACK TIMEOUT:
+   when audio is triggered after not having been for some (surprisingly short) period, there's a delay before it kicks back in again (@__drewface fixed this but i havent been able to implement it for some reason...)
+ - MULTI-OCTAVE HANDLING:
+   various bugs occur when a pattern is chosen that extends beyond a single octave
+   (pattern shifting breaks, and playback gets piercingly high for larger patterns, also the final note is still only 1oct above the tonic bc we trigger it manually)
+ - LAYOUT CHANGE DE-SYNC
+   when a pattern is selected and the layout is changed, both the notes and the polygon smoothly animate between them, but are occasionally out-of-sync with each other...
 
 
-And then some finishing aesthetic touches:
- 1. Reverse the note-play animation to brighten instead of dimming [CHECK]
- 2. Dim unincluded notes when a pattern is selected [CHECK]
- 3. Round UI corners and harmonize dark-mode theme [CHECK]
- 4. Pick a nicer font to use globally [CHECK - ROBOTO]
- 5. Change checkboxes to switches and skin appropriately [CHECK]
- 6. Possibly make the wheel elements bigger, and tweak border width on both wheel and keys [CHECK]
- 7. Deal with double-border issue on keys [IGNORED LOL]
- 8. Add gradient on edges of keyboard-window
- 9. Pick softer "black" and "white" [CHECK]
- 10. Possibly change the layout picker to a carousel like the tonic one? [CHECK]
- 11. Move options labels to center above their pickers, give them their own spaces/more prominence [FULLY REARRANGED]
- 12. Improve tonic indicators. Add to element groups, maybe highlight note?
+FEATURES TO ADD ASAP:
+ - MOBILE OPTIMISATION:
+   implement dynamic layout for small screens, and allow touch inputs (w/o mouse hovering)
+ - UPGRADED PATTERN PICKER:
+   a fully visual grid of patterns, with various layout options and advanced toggles (based on PatternCalc)
+ - EXPANDED COLOURING CHOICES
+   choose between colour-coded NOTES, INTERVALS or PATTERNS (perhaps multiple??)
+   (also potentially set a custom pallette for each)
+ - DYNAMIC PATTERN NAMING
+   named modes of a scale should be declared (Major Scale[-3] (Aeolian))
+ - CUSTOM PATTERN CREATION
+   pick a selection of notes and a custom name to add to your menu
+ - ALTERNATE SOUNDFONTS
+   pick between basic waves (sine, square, triangle) or instruments (piano, guitar, flute) (potentially upload custom soundfont as well??)
+ - DYNAMIC SHIFTING
+   allow arrows to shift by 4ths/5ths when layout is changed
+ - ALTERNATE INPUTS
+   add keyboard playback + eventually MIDI playback as well (and display shapes?)
+ - INTERVAL LABELS
+   text labels on each interval of the brackets and polygons
+ - OCTAVE LABELLING
+   extra circle/line denoting octave AND/OR numbers incl. in note labels
+ - DOUBLE BRACKET / CONJOINED TONIC+PATTERN LABEL
+   move pattern picker next to tonic label so you get "C Harmonic Minor" in one space (allows room for 2oct bracket above keys too, maybe toggleable?)
 
 
-And then there's a whole list of QoL updates I could make, but that I might wait until I have a developer on board for...
+*BIG* FEATURES TO WORK TOWARDS ADDING:
 
- 1. MIDI input
- 2. Better pattern menu (full grid arrangement)
- 3. Tutorial/Progressive element introduction
- 4. Alternate playback soundfonts
- 5. Custom pattern creation
- 6. Custom colour pallets / alternate themes
- 7. Other instrument visualisations (guitar tabs, wind instrument fingerings)
- 8. Separate tonic changers for wheel/keys (can change by 4ths/5ths)
+ - #ARTICLES/WIKI#
+   for each pattern, an article on its construction, historical usage & cultural significance. w/ links to songs that use it + exercises to practice it (could initially just link to wikipedia if an article exists...)
+
+ - #TUTORIAL/LESSONS#
+   walkthrough of basic app features on startup, plus custom, interactive lessons in intermediate-advanced theory concepts accessible from menu
+
+ - #ADDITIONAL VISUALISATIONS#
+   to complement (or replace) keyboard/wheel. things like guitar tabs & standard notation
+
+ - #PROGRESSIONS/SONGS#
+   something like ultimate guitar or other chord apps
+
+ - #ALTERNATE WHEEL CONFIGS#
+   based on certain patterns, OR entirely different tuning systems...
 
 
 
