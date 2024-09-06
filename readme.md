@@ -2,8 +2,7 @@ BUGS TO FIX:
  - STICKY NOTES:
    when cycling through tonics too quickly, some note-press animations don't complete properly...
 - PLAYBACK TIMEOUT:
-   when audio is triggered after not having been for some (surprisingly short) period, there's a delay before it kicks back in again (@__drewface [fixed this](https://gist.github.com/ajroberts0417/4381eddf9bf88ab49c5a92fcc88e8d5f#file-tone-html-L65-L72) but i havent been able to implement it for some reason...
-(actually, i just tried again and (at least in my browser) the problem still remains even in drew's fix...))
+   when audio is triggered after not having been for some (surprisingly short) period, there's a delay before it kicks back in again (@__drewface [fixed this](https://gist.github.com/ajroberts0417/4381eddf9bf88ab49c5a92fcc88e8d5f#file-tone-html-L65-L72) but i havent been able to implement it for some reason... (actually, i just tried again and (at least in my browser) the problem still remains even in drew's fix...))
  - MULTI-OCTAVE HANDLING:
    various bugs occur when a pattern is chosen that extends beyond a single octave
    (pattern shifting breaks, and playback gets piercingly high for larger patterns, also the final note is still only 1oct above the tonic bc we trigger it manually)
@@ -35,9 +34,14 @@ FEATURES TO ADD ASAP:
    extra circle/line denoting octave AND/OR numbers incl. in note labels
  - DOUBLE BRACKET / CONJOINED TONIC+PATTERN LABEL
    move pattern picker next to tonic label so you get "C Harmonic Minor" in one space (allows room for 2oct bracket above keys too, maybe toggleable?)
+ - MULTI-PATTERN SELECTION
+   allow overlaying of up to 3 patterns at once
 
 
 *BIG* FEATURES TO WORK TOWARDS ADDING:
+
+ - #PATTERN BREAKDOWNS#
+   ability to split patterns into smaller components of other patterns, e.g: Major Scale = Whole-Tone + Whole-Tone, Altered Scale = Diminished + Whole-Tone etc.
 
  - #ARTICLES/WIKI#
    for each pattern, an article on its construction, historical usage & cultural significance. w/ links to songs that use it + exercises to practice it (could initially just link to wikipedia if an article exists...)
@@ -56,7 +60,13 @@ FEATURES TO ADD ASAP:
 
 
 
-And then of course, there's the far-future dreams of an all-in one music education app that builds your knowledge from the ground up...
+
+...
+
+
+
+
+And then, there's the far-future dreams of an all-in one music education app that builds knowledge from the ground up...
 With everything from:
 
  1. Sound waves/basic physics
