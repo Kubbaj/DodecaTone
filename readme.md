@@ -1,6 +1,9 @@
 BUGS TO FIX:
  - STICKY NOTES:
    when cycling through tonics too quickly, some note-press animations don't complete properly...
+- PLAYBACK TIMEOUT:
+   when audio is triggered after not having been for some (surprisingly short) period, there's a delay before it kicks back in again (@__drewface [fixed this](https://gist.github.com/ajroberts0417/4381eddf9bf88ab49c5a92fcc88e8d5f#file-tone-html-L65-L72) but i havent been able to implement it for some reason...
+(actually, i just tried again and (at least in my browser) the problem still remains even in drew's fix...))
  - MULTI-OCTAVE HANDLING:
    various bugs occur when a pattern is chosen that extends beyond a single octave
    (pattern shifting breaks, and playback gets piercingly high for larger patterns, also the final note is still only 1oct above the tonic bc we trigger it manually)
