@@ -368,7 +368,6 @@ function updateArrowTooltips() {
     arrows.forEach(arrow => {
         const arrowType = arrow.dataset.arrowType;
         const title = arrow.querySelector('title');
-        console.log("Arrow:", arrowType, "Title element:", title);
         if (title) {
             let newText;
             if (reverseArrowDirection) {
@@ -389,16 +388,19 @@ function updateArrowTooltips() {
             } else {
                 switch (arrowType) {
                     case 'tonic-left':
+                        newText = `Shift TONIC Left`;
+                        break;
                     case 'pattern-left':
                         newText = `Shift START-POINT Left`;
                         break;
                     case 'tonic-right':
+                        newText = `Shift TONIC Right`;
+                        break;
                     case 'pattern-right':
                         newText = `Shift START-POINT Right`;
                         break;
                 }
             }
-            console.log("Setting new text:", newText);
             title.textContent = newText;
         } else {
             console.log("No title element found for this arrow");
@@ -456,7 +458,6 @@ async function playNote(toneNote) {
     }
     await Tone.context.resume();
     synth.triggerAttack(toneNote);
-    console.log("starting", toneNote);
     updateNoteState(toneNote, true, currentOctave);
 }
 
@@ -466,7 +467,6 @@ async function stopNote(toneNote) {
     }
     await Tone.context.resume();
     synth.triggerRelease(toneNote);
-    console.log("stopping", toneNote);
     updateNoteState(toneNote, false, currentOctave);
 }
 

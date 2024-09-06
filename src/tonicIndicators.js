@@ -4,7 +4,7 @@ export class TonicIndicators {
     constructor(wheelContainer, keyboardWindow) {
         this.wheelContainer = wheelContainer;
         this.keyboardWindow = keyboardWindow;
-        this.indicatorColor = useColors ? 'white' : '#E25A5A';
+        this.indicatorColor = useColors ? 'white' : 'white';
         
         this.wheelIndicator = this.createWheelIndicator();
         this.keyboardIndicator = this.createKeyboardIndicator();
@@ -65,7 +65,7 @@ export class TonicIndicators {
     }
 
     updateIndicatorColor() {
-        this.indicatorColor = useColors ? 'white' : '#E54444';
+        this.indicatorColor = useColors ? 'white' : 'white';
         this.wheelIndicator.style.borderColor = this.indicatorColor;
         this.keyboardIndicator.style.borderTopColor = this.indicatorColor;
         this.keyboardIndicator.style.borderLeftColor = this.indicatorColor;

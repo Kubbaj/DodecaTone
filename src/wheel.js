@@ -15,7 +15,8 @@ export class Wheel {
         this.patternGroup = null;
         this.radius = 118;
         this.noteElements = new Map(); // Store note elements with their ids
-        this.notePositions = new Map(); // Map note IDs to their current positions
+        this.notePositions = new Map();
+        this.animationCounter = 0;
 
         this.animationParams = {
             scale: 1.05,
@@ -127,6 +128,7 @@ export class Wheel {
     updateNoteState(noteId, state, useColors, animate, octave) {
         const noteElement = this.noteElements.get(noteId);
         if (noteElement) {
+            console.log(`Updating state for Note ${noteId}: active=${state.active}, animate=${animate}`);
             const noteCircle = noteElement.querySelector('circle');
             const noteText = noteElement.querySelector('text');
             const note = this.config.notes[noteId];
@@ -276,14 +278,20 @@ async switchLayout(newLayout) {
 
 // ANIMATIONS (Press, Tonic, Layout, Fourths)
     animateNotePress(noteElement, isActive) {
+        const noteId = noteElement.dataset.noteId;
+        const animationId = ++this.animationCounter;
+        
+        console.log(`Animation ${animationId} started: Note ${noteId} ${isActive ? 'pressing down' : 'releasing'}`);
+
         const noteCircle = noteElement.querySelector('circle');
         const { scale, brightness, originalRadius, duration } = this.animationParams;
-    
+
         // Get the current transform (which should be the translation)
         const currentTransform = noteElement.getAttribute('transform') || '';
-    
+
+        let animation;
         if (isActive) {
-            noteElement.animate([
+            animation = noteElement.animate([
                 { transform: `${currentTransform} scale(1)`, filter: 'brightness(1)' },
                 { transform: `${currentTransform} scale(${scale})`, filter: `brightness(${brightness})` }
             ], { duration, fill: 'forwards' });
@@ -292,7 +300,7 @@ async switchLayout(newLayout) {
                 { r: originalRadius * scale }
             ], { duration, fill: 'forwards' });
         } else {
-            noteElement.animate([
+            animation = noteElement.animate([
                 { transform: `${currentTransform} scale(${scale})`, filter: `brightness(${brightness})` },
                 { transform: `${currentTransform} scale(1)`, filter: 'brightness(1)' }
             ], { duration, fill: 'forwards' });
@@ -301,6 +309,14 @@ async switchLayout(newLayout) {
                 { r: originalRadius }
             ], { duration, fill: 'forwards' });
         }
+
+        animation.onfinish = () => {
+            console.log(`Animation ${animationId} finished: Note ${noteId} ${isActive ? 'pressed down' : 'released'}`);
+        };
+
+        animation.oncancel = () => {
+            console.log(`Animation ${animationId} cancelled: Note ${noteId}`);
+        };
     }
 
     createTemporaryElements() {
