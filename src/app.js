@@ -17,17 +17,20 @@ Tone.start().then(() => {
 let currentLayout = 'chromatic';
 let currentPattern = 'none';
 let currentTonic = 'C';
+let currentOctave = 4;
 let useSharps = false;
 let useColors = true;
 let animate = false;
-let currentlyPlayingNote = null;
-let currentTonicDisplay = 'C';
 let autoplayTonic = true;
-let currentOctave = 4;
-let isMouseDown = false;
-let lastPlayedNote = null;
 let reverseArrowDirection = true;
 
+let isMouseDown = false;
+let lastPlayedNote = null;
+
+// probably better data structure
+// const layouts = ["chromatic", "fifths", "fourths"]
+// maybe different for icons
+// const layoutIcons = ["chromatic", "fifths", "fourths"]
 const layoutTransitions = {
     chromatic: { next: 'fifths', prev: 'fourths' },
     fifths: { next: 'fourths', prev: 'chromatic' },
@@ -43,8 +46,8 @@ const layoutIcons = {
 // Initialize components
 const wheelContainer = document.getElementById('wheel-container');
 const keyboardWindow = document.getElementById('keyboard-window');
-const tonicIndicators = new TonicIndicators(wheelContainer, keyboardWindow, useColors);
-tonicIndicators.toggleVisibility(true);
+const tonicIndicators = new TonicIndicators(wheelContainer, keyboardWindow);
+tonicIndicators.toggleVisibility();
 
 const wheel = new Wheel(wheelContainer, animate);
 const keyboardContainer = document.getElementById('keyboard-container');
@@ -341,7 +344,6 @@ function toggleIndicators() {
 function toggleColors() {
     useColors = !useColors;
     updateAllNoteStates();
-    tonicIndicators.updateIndicatorColor();
 }
 
 function toggleAnimation() {

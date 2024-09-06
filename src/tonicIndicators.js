@@ -1,10 +1,10 @@
-import { useColors } from './app.js';
+
 
 export class TonicIndicators {
     constructor(wheelContainer, keyboardWindow) {
         this.wheelContainer = wheelContainer;
         this.keyboardWindow = keyboardWindow;
-        this.indicatorColor = useColors ? 'white' : 'white';
+        this.indicatorColor = 'white';
         
         this.wheelIndicator = this.createWheelIndicator();
         this.keyboardIndicator = this.createKeyboardIndicator();
@@ -64,21 +64,10 @@ export class TonicIndicators {
         this.keyboardIndicator.style.top = `${this.keyboardYOffset}px`;
     }
 
-    updateIndicatorColor() {
-        this.indicatorColor = useColors ? 'white' : 'white';
-        this.wheelIndicator.style.borderColor = this.indicatorColor;
-        this.keyboardIndicator.style.borderTopColor = this.indicatorColor;
-        this.keyboardIndicator.style.borderLeftColor = this.indicatorColor;
-        this.keyboardIndicator.style.borderRightColor = this.indicatorColor;
-    }
-
     toggleVisibility() {
         this.visible = !this.visible;
         const display = this.visible ? 'none' : 'block';
         this.wheelIndicator.style.display = display;
         this.keyboardIndicator.style.display = display;
-        if (this.visible) {
-            this.updateIndicatorColor();
-        }
     }
 }
