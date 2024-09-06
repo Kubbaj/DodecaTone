@@ -14,7 +14,7 @@ FEATURES TO ADD ASAP:
  - MOBILE OPTIMISATION:
    implement dynamic layout for small screens, and allow touch inputs (w/o mouse hovering)
  - UPGRADED PATTERN PICKER:
-   a fully visual grid of patterns, with various layout options and advanced toggles (based on PatternCalc)
+   a fully visual grid of patterns, with various layout options and advanced toggles (based on (PatternCalc)[https://github.com/Kubbaj/PatternCalc])
  - EXPANDED COLOURING CHOICES
    choose between colour-coded NOTES, INTERVALS or PATTERNS (perhaps multiple??)
    (also potentially set a custom pallette for each)
