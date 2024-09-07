@@ -164,17 +164,17 @@ const noteColors = {
 };
 
 const intColors = {
-  1: '#A34A3D',  // Minor 2nd - red
-  2: '#AA703A',  // Major 2nd - orange
-  3: '#AEAD3E',  // Minor 3rd - yellow
-  4: '#489D52',  // Major 3rd - green
-  5: '#37738C',  // Perfect 4th - blue
-  6: '#54487D',  // Tritone - purple
-  7: '#37738C',  // Perfect 5th - blue
-  8: '#489D52',  // Minor 6th - green
-  9: '#AEAD3E',  // Major 6th - yellow
-  10: '#AA703A', // Minor 7th - orange
-  11: '#A34A3D'  // Major 7th - red
+  1: '#ED7676',  // Minor 2nd - red
+  2: '#EDB176',  // Major 2nd - orange
+  3: '#EDED76',  // Minor 3rd - yellow
+  4: '#76ED76',  // Major 3rd - green
+  5: '#76B5ED',  // Perfect 4th - blue
+  6: '#B176ED',  // Tritone - purple
+  7: '#76B5ED',  // Perfect 5th - blue
+  8: '#76ED76',  // Minor 6th - green
+  9: '#EDED76',  // Major 6th - yellow
+  10: '#EDB176', // Minor 7th - orange
+  11: '#ED7676'  // Major 7th - red
 };
 
 const regColors = ['#EA6A58','#F3A153','#F9F85A','#67E176','#4FA5C9','#7868B4'];
