@@ -1,5 +1,6 @@
 // pattern.js
 import { playNoteForDuration, reverseArrowDirection } from './app.js';
+import { intColors } from './config.js';  // Make sure this import is at the top of the file
 
 export class Pattern {
     constructor(keyboard, wheel, animate) {
@@ -11,6 +12,7 @@ export class Pattern {
         this.bracketVisualization = new BracketVisualization(this.bracketContainer);
         this.currentRotation = 0;
         this.currentTranslation = 0;
+        this.useIntervalColors = false; // Initialize useIntervalColors to false
     }
 
     initialize() {
@@ -153,19 +155,44 @@ interpolatePoints(startPoints, endPoints, progress) {
             const angle = (notePosition * 30) * (Math.PI / 180) - Math.PI / 2;
             const x = Math.cos(angle) * polygonRadius;
             const y = Math.sin(angle) * polygonRadius;
-            return `${x},${y}`;
-        }).join(' ');
+            return { x, y };
+        });
 
-        // Draw the pattern polygon
-        const polygon = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
-        polygon.setAttribute("points", points);
-        polygon.setAttribute("fill", "#222222");
-        polygon.setAttribute("stroke", "white");
-        polygon.setAttribute("stroke-width", "4");
-        this.patternSvg.appendChild(polygon);
+        // Create a group for the polygon lines
+        const polygonGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+
+        // Draw individual lines
+        for (let i = 0; i < points.length; i++) {
+            const start = points[i];
+            const end = points[(i + 1) % points.length];
+
+            const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            line.setAttribute("x1", start.x);
+            line.setAttribute("y1", start.y);
+            line.setAttribute("x2", end.x);
+            line.setAttribute("y2", end.y);
+
+            // Calculate the interval and set the stroke color
+            const startIndex = this.currentPattern[i];
+            const endIndex = this.currentPattern[(i + 1) % this.currentPattern.length];
+            const interval = (endIndex - startIndex + 12) % 12;
+            const strokeColor = this.useIntervalColors ? (intColors[interval] || "white") : "white";
+
+            line.setAttribute("stroke", strokeColor);
+            line.setAttribute("stroke-width", "4");
+
+            polygonGroup.appendChild(line);
+        }
+
+        this.patternSvg.appendChild(polygonGroup);
     }
 
-    async shiftPattern(direction) {
+    updateIntervalColors(useIntervalColors) {
+        this.useIntervalColors = useIntervalColors;
+        this.drawPatternPolygon();
+    }
+
+    shiftPattern(direction) {
         if (this.currentPattern.length < 2) {
             console.log("Pattern is too short to shift");
             return;
@@ -174,7 +201,7 @@ interpolatePoints(startPoints, endPoints, progress) {
         let shiftAmount;
         // Reverse the direction if reverseArrowDirection is true
         const effectiveDirection = reverseArrowDirection ? (direction === 'right' ? 'left' : 'right') : direction;
-
+    
         if (effectiveDirection === 'right') {
             shiftAmount = this.currentPattern[1] - this.currentPattern[0];
         } else {
@@ -197,22 +224,26 @@ interpolatePoints(startPoints, endPoints, progress) {
         console.log("Original pattern:", this.currentPattern);
         console.log("New pattern:", newPattern);
     
-        console.log("PATTERNNN ANIMATE:", this.animate)
         // Animate the changes
         if (this.animate) {
             console.log("ANIMATING TRANSITION")
-            await Promise.all([
+            Promise.all([
                 this.animatePolygon(effectiveDirection, shiftAmount),
                 this.bracketVisualization.animateBracket(effectiveDirection, shiftAmount)
-            ]);
+            ]).then(() => {
+                // Update the current pattern after animation
+                this.currentPattern = newPattern;
+                // Update visuals
+                this.updatePattern(this.currentPattern);
+                this.updateKeyboardHighlight();
+            });
+        } else {
+            // Update the current pattern immediately if not animating
+            this.currentPattern = newPattern;
+            // Update visuals
+            this.updatePattern(this.currentPattern);
+            this.updateKeyboardHighlight();
         }
-    
-        // Update the current pattern
-        this.currentPattern = newPattern;
-    
-        // Update visuals
-        this.updatePattern(this.currentPattern);
-        this.updateKeyboardHighlight();
     }
 
     getCurrentPattern() {
@@ -246,27 +277,32 @@ interpolatePoints(startPoints, endPoints, progress) {
     }
     
     async animatePolygon(direction, shiftAmount) {
-    const tempPolygon = this.patternSvg.querySelector('polygon').cloneNode(true);
-    this.patternSvg.appendChild(tempPolygon);
-
-    const originalPolygon = this.patternSvg.querySelector('polygon');
-    originalPolygon.style.opacity = '0';
-
-    const duration = 450; // milliseconds
-    const steps = 60; // For smoother animation
-    const rotationPerStep = this.getRotationAngleForLayout();
-    const totalRotation = (shiftAmount * rotationPerStep) % 360;
-
-    for (let i = 0; i <= steps; i++) {
-        const rotation = i * (totalRotation / steps) * (direction === 'right' ? -1 : 1);
-        tempPolygon.setAttribute('transform', `rotate(${rotation})`);
-        await new Promise(resolve => setTimeout(resolve, duration / steps));
+        const originalGroup = this.patternSvg.querySelector('g');
+        if (!originalGroup) return;  // Exit if there's no group (i.e., no pattern)
+    
+        originalGroup.style.display = 'none';  // Hide the original group
+    
+        const tempGroup = originalGroup.cloneNode(true);
+        tempGroup.style.display = ''; // Ensure the cloned group is visible
+        this.patternSvg.appendChild(tempGroup);
+    
+        const duration = 450; // milliseconds
+        const steps = 60; // For smoother animation
+        const rotationPerStep = this.getRotationAngleForLayout();
+        const totalRotation = (shiftAmount * rotationPerStep) % 360;
+    
+        for (let i = 0; i <= steps; i++) {
+            const rotation = i * (totalRotation / steps) * (direction === 'right' ? -1 : 1);
+            tempGroup.setAttribute('transform', `rotate(${rotation})`);
+            await new Promise(resolve => setTimeout(resolve, duration / steps));
+        }
+    
+        this.patternSvg.removeChild(tempGroup);
+        originalGroup.style.display = '';  // Show the original group again
+    
+        // Redraw the polygon with the new pattern
+        this.drawPatternPolygon();
     }
-
-    this.patternSvg.removeChild(tempPolygon);
-    originalPolygon.style.opacity = '1';
-}
-
 // PLAYBACK FUNCTIONS
 
 createPlayButton() {

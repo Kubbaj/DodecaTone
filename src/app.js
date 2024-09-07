@@ -20,6 +20,7 @@ let currentTonic = 'C';
 let currentOctave = 4;
 let useSharps = false;
 let useColors = true;
+let useIntervalColors = false;
 let animate = false;
 let autoplayTonic = true;
 let reverseArrowDirection = true;
@@ -346,6 +347,12 @@ function toggleColors() {
     updateAllNoteStates();
 }
 
+function toggleIntervalColors() {
+    useIntervalColors = !useIntervalColors;
+    pattern.updateIntervalColors(useIntervalColors);
+    console.log('interval colors:', useIntervalColors)
+}
+
 function toggleAnimation() {
     animate = !animate;
     wheel.animate = animate;
@@ -518,6 +525,8 @@ document.addEventListener('DOMContentLoaded', () => {
     updateTonicDisplay();
     updateLayoutButtons();
     populatePatternMenu();
+
+    document.getElementById('toggle-interval-colors').addEventListener('change', toggleIntervalColors);
 
     document.getElementById('toggle-arrow-direction').checked = reverseArrowDirection;
     updateArrowTooltips();
