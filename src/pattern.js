@@ -190,6 +190,8 @@ interpolatePoints(startPoints, endPoints, progress) {
     updateIntervalColors(useIntervalColors) {
         this.useIntervalColors = useIntervalColors;
         this.drawPatternPolygon();
+        this.bracketVisualization.updateIntervalColors(useIntervalColors);
+        console.log("Pattern updated interval colors:", useIntervalColors); // Add this for debugging
     }
 
     shiftPattern(direction) {
@@ -410,10 +412,8 @@ class BracketVisualization {
         }
         this.container = container;
         this.svg = this.createSVG();
-        if (this.svg) {
-            this.patternGroup = this.createPatternGroup();
-            this.horizontalLine = this.createHorizontalLine();
-        }
+        this.patternGroup = this.createPatternGroup();
+        this.useIntervalColors = false;
     }
 
     createSVG() {
@@ -430,47 +430,101 @@ class BracketVisualization {
         return group;
     }
 
-    createHorizontalLine() {
-        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-        line.setAttribute("x1", "10.5");
-        line.setAttribute("y1", "15");
-        line.setAttribute("x2", "314.5");
-        line.setAttribute("y2", "15");
-        line.setAttribute("stroke", "white");
-        line.setAttribute("stroke-width", "4");
-        line.setAttribute("class", "horizontal-line");
-        line.setAttribute("display", "none"); // Initially hidden
-        this.patternGroup.appendChild(line);
-        return line;
-    }
-
     updatePattern(pattern) {
         this.patternGroup.innerHTML = '';
-        this.patternGroup.appendChild(this.horizontalLine);
+        this.currentPattern = pattern;
         
         if (pattern.length > 0) {
-            this.horizontalLine.setAttribute("display", "inline"); // Show horizontal line
-            
-            pattern.forEach(noteIndex => {
-                this.createVerticalLine(noteIndex);
-            });
-            
-            // Add extra line for the octave
-            this.createVerticalLine(12);
-        } else {
-            this.horizontalLine.setAttribute("display", "none"); // Hide horizontal line
+            this.drawVerticalLines(pattern);
+            this.drawHorizontalLines(pattern);
         }
     }
 
-    createVerticalLine(noteIndex) {
-        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-        line.setAttribute("x1", 12.5 + noteIndex * 25);
-        line.setAttribute("y1", 15);
-        line.setAttribute("x2", 12.5 + noteIndex * 25);
-        line.setAttribute("y2", 35);
-        line.setAttribute("stroke", "white");
-        line.setAttribute("stroke-width", "4");
-        this.patternGroup.appendChild(line);
+    drawHorizontalLines(pattern) {
+        for (let i = 0; i < pattern.length; i++) {
+            const start = pattern[i];
+            let end, interval;
+            
+            if (i === pattern.length - 1) {
+                // For the last segment, we want to draw to the end of the bracket
+                end = 12;
+                interval = (end - start + 12) % 12;
+            } else {
+                end = pattern[i + 1];
+                interval = (end - start + 12) % 12;
+            }
+            
+            const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            if (this.useIntervalColors) {
+                line.setAttribute("x1", 12.5 + start * 25);
+                line.setAttribute("x2", 12.5 + end * 25);
+            } else {
+                // Extend the line by 2px on each end when colors are off
+                line.setAttribute("x1", 12.5 + start * 25 - 2);
+                line.setAttribute("x2", 12.5 + end * 25 + 2);
+            }
+            line.setAttribute("y1", "14");
+            line.setAttribute("y2", "14");
+            line.setAttribute("stroke", this.useIntervalColors ? intColors[interval] : "white");
+            line.setAttribute("stroke-width", "4");
+            this.patternGroup.appendChild(line);
+        }
+    }
+
+    drawVerticalLines(pattern) {
+        for (let i = 0; i <= pattern.length; i++) {
+            const noteIndex = i < pattern.length ? pattern[i] : 12; // Use 12 for the last line
+            let prevInterval, nextInterval;
+    
+            if (i === 0) {
+                // First vertical line
+                nextInterval = (pattern[1] - pattern[0] + 12) % 12; // And this line
+            } else if (i === pattern.length) {
+                // Last vertical line
+                prevInterval = (12 - pattern[pattern.length - 1] + 12) % 12;
+            } else {
+                // Middle vertical lines
+                prevInterval = (pattern[i] - pattern[i-1] + 12) % 12;
+                nextInterval = (pattern[(i+1) % pattern.length] - pattern[i] + 12) % 12;
+            }
+    
+            if (this.useIntervalColors) {
+                // Left half of the vertical line when colors are on
+                const leftLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                leftLine.setAttribute("x1", 12.5 + noteIndex * 25 - 2);
+                leftLine.setAttribute("y1", "15");
+                leftLine.setAttribute("x2", 12.5 + noteIndex * 25 - 2);
+                leftLine.setAttribute("y2", "35");
+                leftLine.setAttribute("stroke", intColors[prevInterval]);
+                leftLine.setAttribute("stroke-width", "4");
+                this.patternGroup.appendChild(leftLine);
+    
+                // Right half of the vertical line when colors are on
+                const rightLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                rightLine.setAttribute("x1", 12.5 + noteIndex * 25 + 2);
+                rightLine.setAttribute("y1", "15");
+                rightLine.setAttribute("x2", 12.5 + noteIndex * 25 + 2);
+                rightLine.setAttribute("y2", "35");
+                rightLine.setAttribute("stroke", intColors[nextInterval]);
+                rightLine.setAttribute("stroke-width", "4");
+                this.patternGroup.appendChild(rightLine);
+            } else {
+                // Single vertical line when colors are off
+                const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                line.setAttribute("x1", 12.5 + noteIndex * 25);
+                line.setAttribute("y1", "15");
+                line.setAttribute("x2", 12.5 + noteIndex * 25);
+                line.setAttribute("y2", "35");
+                line.setAttribute("stroke", "white");
+                line.setAttribute("stroke-width", "4");
+                this.patternGroup.appendChild(line);
+            }
+        }
+    }
+
+    updateIntervalColors(useIntervalColors) {
+        this.useIntervalColors = useIntervalColors;
+        this.updatePattern(this.currentPattern);
     }
 
     async animateBracket(direction, shiftAmount) {
