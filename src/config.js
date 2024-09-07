@@ -43,7 +43,7 @@ const layouts = {
 
 // Scales
 const scales = {
-  "Major Scale": [0, 2, 4, 5, 7, 9, 11, 12],
+  "Major Scale": [0, 2, 4, 5, 7, 9, 11],
   // "Major Scale": {
   //   main: [0, 2, 4, 5, 7, 9, 11],
   //   addition: 12
@@ -163,6 +163,22 @@ const noteColors = {
   'B': '#5AE29E'
 };
 
+const intColors = {
+  1: '#A34A3D',  // Minor 2nd - red
+  2: '#AA703A',  // Major 2nd - orange
+  3: '#AEAD3E',  // Minor 3rd - yellow
+  4: '#489D52',  // Major 3rd - green
+  5: '#37738C',  // Perfect 4th - blue
+  6: '#54487D',  // Tritone - purple
+  7: '#37738C',  // Perfect 5th - blue
+  8: '#489D52',  // Minor 6th - green
+  9: '#AEAD3E',  // Major 6th - yellow
+  10: '#AA703A', // Minor 7th - orange
+  11: '#A34A3D'  // Major 7th - red
+};
+
+const regColors = ['#EA6A58','#F3A153','#F9F85A','#67E176','#4FA5C9','#7868B4'];
+
 export { 
   notes, 
   keyboardNotes,
@@ -176,5 +192,7 @@ export {
   extendeds,
   exotics,
   noteColors, 
+  intColors,
+  regColors,
   getNoteDisplay,  
 };
