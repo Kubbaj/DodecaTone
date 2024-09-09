@@ -79,41 +79,40 @@ async animatePatternTransition(oldLayout, newLayout) {
     if (!this.currentPattern.length) return;
 
     if (!this.animate) {
-        // Instantly update the polygon without animation
         this.drawPatternPolygon();
         return;
     }
 
-    const originalPolygon = this.patternSvg.querySelector('polygon');
-    originalPolygon.style.display = 'none';  // Hide the original polygon
+    const originalGroup = this.patternSvg.querySelector('g');
+    originalGroup.style.display = 'none';
 
-    const startPoints = this.calculatePolygonPoints(oldLayout);
-    const endPoints = this.calculatePolygonPoints(newLayout);
+    const startSegments = this.calculatePolygonSegments(oldLayout);
+    const endSegments = this.calculatePolygonSegments(newLayout);
 
-    const tempPolygon = originalPolygon.cloneNode(true);
-    tempPolygon.style.display = ''; // Ensure the cloned polygon is visible
-    this.patternSvg.appendChild(tempPolygon);
+    const tempGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    const tempLines = this.createTemporaryLines(startSegments);
+    tempLines.forEach(line => tempGroup.appendChild(line));
+    this.patternSvg.appendChild(tempGroup);
 
-    const duration = 750; // milliseconds
-    const steps = 60; // For smoother animation
+    const duration = 750;
+    const steps = 60;
 
     for (let i = 0; i <= steps; i++) {
         const progress = i / steps;
-        const currentPoints = this.interpolatePoints(startPoints, endPoints, progress);
-        tempPolygon.setAttribute('points', currentPoints.join(' '));
+        const currentSegments = this.interpolateSegments(startSegments, endSegments, progress);
+        this.updateLines(tempLines, currentSegments);
         await new Promise(resolve => setTimeout(resolve, duration / steps));
     }
 
-    this.patternSvg.removeChild(tempPolygon);
-    await this.drawPatternPolygon(); // Update with the final position
-    originalPolygon.style.display = ''; // Show the original polygon again
+    this.patternSvg.removeChild(tempGroup);
+    await this.drawPatternPolygon();
+    originalGroup.style.display = '';
 }
 
-calculatePolygonPoints(layout) {
+calculatePolygonSegments(layout) {
     const tonicIndex = this.wheel.config.notes.indexOf(this.wheel.currentTonic);
     const polygonRadius = this.wheel.radius * 0.8;
 
-    // Calculate points for all 12 positions
     const allPoints = Array(12).fill().map((_, i) => {
         const notePosition = layout[i];
         const angle = (notePosition * 30) * (Math.PI / 180) - Math.PI / 2;
@@ -122,18 +121,64 @@ calculatePolygonPoints(layout) {
         return { x, y, index: i };
     });
 
-    // Filter to only the points in our pattern
-    return this.currentPattern
-        .map(interval => allPoints.find(point => point.index === interval))
-        .filter(point => point !== undefined);
+    const segments = [];
+    for (let i = 0; i < this.currentPattern.length; i++) {
+        const startIndex = this.currentPattern[i];
+        const endIndex = this.currentPattern[(i + 1) % this.currentPattern.length];
+        const start = allPoints.find(point => point.index === startIndex);
+        const end = allPoints.find(point => point.index === endIndex);
+        if (start && end) {
+            segments.push({ start, end });
+        }
+    }
+    return segments;
 }
 
-interpolatePoints(startPoints, endPoints, progress) {
-    return startPoints.map((start, index) => {
-        const end = endPoints[index];
-        const x = start.x + (end.x - start.x) * progress;
-        const y = start.y + (end.y - start.y) * progress;
-        return `${x},${y}`;
+interpolateSegments(startSegments, endSegments, progress) {
+    return startSegments.map((startSeg, index) => {
+        const endSeg = endSegments[index];
+        return {
+            start: {
+                x: startSeg.start.x + (endSeg.start.x - startSeg.start.x) * progress,
+                y: startSeg.start.y + (endSeg.start.y - startSeg.start.y) * progress
+            },
+            end: {
+                x: startSeg.end.x + (endSeg.end.x - startSeg.end.x) * progress,
+                y: startSeg.end.y + (endSeg.end.y - startSeg.end.y) * progress
+            }
+        };
+    });
+}
+
+createTemporaryLines(segments) {
+    return segments.map((segment, index) => {
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        line.setAttribute("x1", segment.start.x);
+        line.setAttribute("y1", segment.start.y);
+        line.setAttribute("x2", segment.end.x);
+        line.setAttribute("y2", segment.end.y);
+        
+        if (this.useIntervalColors) {
+            const startIndex = this.currentPattern[index];
+            const endIndex = this.currentPattern[(index + 1) % this.currentPattern.length];
+            const interval = (endIndex - startIndex + 12) % 12;
+            line.setAttribute("stroke", intColors[interval] || "white");
+        } else {
+            line.setAttribute("stroke", "white");
+        }
+        
+        line.setAttribute("stroke-width", "4");
+        return line;
+    });
+}
+
+updateLines(lines, segments) {
+    lines.forEach((line, index) => {
+        const segment = segments[index];
+        line.setAttribute("x1", segment.start.x);
+        line.setAttribute("y1", segment.start.y);
+        line.setAttribute("x2", segment.end.x);
+        line.setAttribute("y2", segment.end.y);
     });
 }
 
@@ -162,28 +207,28 @@ interpolatePoints(startPoints, endPoints, progress) {
         const polygonGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
 
         // Draw individual lines
-    for (let i = 0; i < points.length; i++) {
-        const start = points[i];
-        const end = points[(i + 1) % points.length];
+        for (let i = 0; i < points.length; i++) {
+            const start = points[i];
+            const end = points[(i + 1) % points.length];
 
-        // Calculate the angle of the line
-        const angle = Math.atan2(end.y - start.y, end.x - start.x);
+            // Calculate the angle of the line
+            const angle = Math.atan2(end.y - start.y, end.x - start.x);
 
-        // Extend the line by 2 pixels on each end
-        const extendedStart = {
-            x: start.x - 2 * Math.cos(angle),
-            y: start.y - 2 * Math.sin(angle)
-        };
-        const extendedEnd = {
-            x: end.x + 2 * Math.cos(angle),
-            y: end.y + 2 * Math.sin(angle)
-        };
+            // Extend the line by 2 pixels on each end
+            const extendedStart = {
+                x: start.x - 2 * Math.cos(angle),
+                y: start.y - 2 * Math.sin(angle)
+            };
+            const extendedEnd = {
+                x: end.x + 2 * Math.cos(angle),
+                y: end.y + 2 * Math.sin(angle)
+            };
 
-        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-        line.setAttribute("x1", extendedStart.x);
-        line.setAttribute("y1", extendedStart.y);
-        line.setAttribute("x2", extendedEnd.x);
-        line.setAttribute("y2", extendedEnd.y);
+            const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            line.setAttribute("x1", extendedStart.x);
+            line.setAttribute("y1", extendedStart.y);
+            line.setAttribute("x2", extendedEnd.x);
+            line.setAttribute("y2", extendedEnd.y);
 
             // Calculate the interval and set the stroke color
             const startIndex = this.currentPattern[i];
@@ -213,19 +258,37 @@ interpolatePoints(startPoints, endPoints, progress) {
         // Reverse the direction if reverseArrowDirection is true
         const effectiveDirection = reverseArrowDirection ? (direction === 'right' ? 'left' : 'right') : direction;
     
-        if (effectiveDirection === 'right') {
-            shiftAmount = this.currentPattern[1] - this.currentPattern[0];
+        if (this.wheel.currentLayout === 'chromatic') {
+            if (effectiveDirection === 'right') {
+                shiftAmount = this.currentPattern[1] - this.currentPattern[0];
+            } else {
+                shiftAmount = 12 - (this.currentPattern[this.currentPattern.length - 1] - this.currentPattern[0]);
+            }
         } else {
-            shiftAmount = 12 - (this.currentPattern[this.currentPattern.length - 1] - this.currentPattern[0]);
+            // For fifths and fourths layouts
+            shiftAmount = 1; // Always shift by 1 step in these layouts
         }
     
         console.log(`Shifting pattern ${effectiveDirection} by ${shiftAmount} steps`);
     
         // Calculate the new pattern
         const newPattern = this.currentPattern.map(interval => {
-            let newInterval = effectiveDirection === 'right' 
-                ? (interval - shiftAmount + 12) % 12
-                : (interval + shiftAmount) % 12;
+            let newInterval;
+            if (this.wheel.currentLayout === 'chromatic') {
+                newInterval = effectiveDirection === 'right' 
+                    ? (interval - shiftAmount + 12) % 12
+                    : (interval + shiftAmount) % 12;
+            } else {
+                // For fifths and fourths layouts
+                const notePositions = Array.from(this.wheel.notePositions.entries())
+                    .sort((a, b) => a[1] - b[1])
+                    .map(entry => entry[0]);
+                const currentIndex = notePositions.indexOf(interval);
+                const newIndex = effectiveDirection === 'right'
+                    ? (currentIndex - 1 + 12) % 12
+                    : (currentIndex + 1) % 12;
+                newInterval = notePositions[newIndex];
+            }
             return newInterval;
         });
     
@@ -300,10 +363,10 @@ interpolatePoints(startPoints, endPoints, progress) {
         const duration = 450; // milliseconds
         const steps = 60; // For smoother animation
         const rotationPerStep = this.getRotationAngleForLayout();
-        const totalRotation = (shiftAmount * rotationPerStep) % 360;
+        const totalRotation = (shiftAmount * Math.abs(rotationPerStep)) % 360;
     
         for (let i = 0; i <= steps; i++) {
-            const rotation = i * (totalRotation / steps) * (direction === 'right' ? -1 : 1);
+            const rotation = i * (totalRotation / steps) * (direction === 'right' ? -1 : 1) * Math.sign(rotationPerStep);
             tempGroup.setAttribute('transform', `rotate(${rotation})`);
             await new Promise(resolve => setTimeout(resolve, duration / steps));
         }
