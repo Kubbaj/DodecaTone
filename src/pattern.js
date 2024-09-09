@@ -162,15 +162,28 @@ interpolatePoints(startPoints, endPoints, progress) {
         const polygonGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
 
         // Draw individual lines
-        for (let i = 0; i < points.length; i++) {
-            const start = points[i];
-            const end = points[(i + 1) % points.length];
+    for (let i = 0; i < points.length; i++) {
+        const start = points[i];
+        const end = points[(i + 1) % points.length];
 
-            const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-            line.setAttribute("x1", start.x);
-            line.setAttribute("y1", start.y);
-            line.setAttribute("x2", end.x);
-            line.setAttribute("y2", end.y);
+        // Calculate the angle of the line
+        const angle = Math.atan2(end.y - start.y, end.x - start.x);
+
+        // Extend the line by 2 pixels on each end
+        const extendedStart = {
+            x: start.x - 2 * Math.cos(angle),
+            y: start.y - 2 * Math.sin(angle)
+        };
+        const extendedEnd = {
+            x: end.x + 2 * Math.cos(angle),
+            y: end.y + 2 * Math.sin(angle)
+        };
+
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        line.setAttribute("x1", extendedStart.x);
+        line.setAttribute("y1", extendedStart.y);
+        line.setAttribute("x2", extendedEnd.x);
+        line.setAttribute("y2", extendedEnd.y);
 
             // Calculate the interval and set the stroke color
             const startIndex = this.currentPattern[i];
@@ -195,10 +208,6 @@ interpolatePoints(startPoints, endPoints, progress) {
     }
 
     shiftPattern(direction) {
-        if (this.currentPattern.length < 2) {
-            console.log("Pattern is too short to shift");
-            return;
-        }
     
         let shiftAmount;
         // Reverse the direction if reverseArrowDirection is true

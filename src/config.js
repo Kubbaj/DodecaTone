@@ -41,27 +41,31 @@ const layouts = {
   fourths:   [0, 5, 10, 3, 8, 1, 6, 11, 4, 9, 2, 7] // +5 semitones or -7 semitones
 };
 
-// Scales
-const scales = {
-  "Major Scale": [0, 2, 4, 5, 7, 9, 11],
-  // "Major Scale": {
+// "Major Scale": {
   //   main: [0, 2, 4, 5, 7, 9, 11],
   //   addition: 12
   // },
   // possible alterantive declaration
   // [1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1] "binary declaration"
   // [2, 2, 1, 2, 2, 2, 1] "intervals (jumping by number of semitones)"
+
+// Scales
+const scales = {
+  "Major Scale": [0, 2, 4, 5, 7, 9, 11],
+  "Mixolydian": [0, 2, 4, 5, 7, 9, 10],
+  "Dorian": [0, 2, 3, 5, 7, 9, 10],
   "Natural Minor": [0, 2, 3, 5, 7, 8, 10],
   "Harmonic Minor": [0, 2, 3, 5, 7, 8, 11],
   "Melodic Minor": [0, 2, 3, 5, 7, 9, 11],
-  "Major Pentatonic": [0, 2, 4, 7, 9],
-  "Minor Pentatonic": [0, 3, 5, 7, 10],
-  "Blues": [0, 3, 5, 6, 7, 10],
-  "Chromatic": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
-  "Whole Tone": [0, 2, 4, 6, 8, 10],
+  "Major": [0, 2, 4, 5, 7, 9, 11],
   "Harmonic Major": [0, 2, 4, 5, 7, 8, 11],
   "Double Harmonic": [0, 1, 4, 5, 7, 8, 11],
-  "Diminished (Whole-Half)": [0, 2, 3, 5, 6, 8, 9, 11],
+  "Maj": [0, 2, 4, 5, 7, 9, 11],
+  "Hexatonic?": [0, 2, 4, 7, 9, 11],
+  "Major Pentatonic": [0, 2, 4, 7, 9],
+  "Maj Blues": [0, 2, 3, 4, 7, 9],
+  "Minor Pentatonic": [0, 3, 5, 7, 10],
+  "Min Blues": [0, 3, 5, 6, 7, 10],
   "Diminished (Half-Whole)": [0, 1, 3, 4, 6, 7, 9, 10],
 };
 
@@ -135,8 +139,8 @@ const modes = {
 };
 
 const regulars = {
-  "1: Chromatic": scales["Chromatic"],
-  "2: Whole Tone": scales["Whole Tone"],
+  "1: Chromatic": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+  "2: Whole Tone": [0, 2, 4, 6, 8, 10],
   "3: Diminished": extendeds["Diminished 7th"],
   "4: Augmented": triads["Augmented Triad"],
   "5: Fourths": layouts.fourths,
