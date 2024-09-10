@@ -102,10 +102,10 @@ function setTonic(newTonic) {
 }
 
 function initTonicPicker() {
-    const decreaseButton = document.getElementById('decrease-tonic');
-    const increaseButton = document.getElementById('increase-tonic');
-    const decreaseTonic2Button = document.getElementById('decrease-tonic-2');
-    const increaseTonic2Button = document.getElementById('increase-tonic-2');
+    const decreaseButton = document.getElementById('wheel-tonicL');
+    const increaseButton = document.getElementById('wheel-tonicR');
+    const decreaseTonic2Button = document.getElementById('keys-tonicL');
+    const increaseTonic2Button = document.getElementById('keys-tonicR');
 
     decreaseButton.addEventListener('click', () => changeTonic('decrease'));
     increaseButton.addEventListener('click', () => changeTonic('increase'));
@@ -1251,7 +1251,7 @@ export {
             <div id="tonic-selector">
                 <label for="current-tonic"><b>TONIC:</b></label>
                 <div id="tonic-controls">
-                    <svg id="decrease-tonic" class="tonic-arrow curved-arrow" width="500" height="500"
+                    <svg id="wheel-tonicL" class="tonic-arrow curved-arrow" width="500" height="500"
                         viewBox="80 30 300 300" xmlns="http://www.w3.org/2000/svg">
                         <title>Shift TONIC Left</title>
                         <path class="arrow-fill"
@@ -1261,7 +1261,7 @@ export {
                     <div id="tonic-display-container">
                         <span id="current-tonic">C</span>
                     </div>
-                    <svg id="increase-tonic" class="tonic-arrow curved-arrow" width="500" height="500"
+                    <svg id="wheel-tonicR" class="tonic-arrow curved-arrow" width="500" height="500"
                         viewBox="80 30 300 300" xmlns="http://www.w3.org/2000/svg">
                         <title>Shift TONIC Right</title>
                         <path class="arrow-fill"
@@ -1273,7 +1273,7 @@ export {
         </div>
 
         <div id="keyboard-area">
-            <svg id="decrease-tonic-2" class="tonic-arrow straight-arrow" width="200" height="200"
+            <svg id="keys-tonicL" class="tonic-arrow straight-arrow" width="200" height="200"
                 viewBox="20 100 100 100" xmlns="http://www.w3.org/2000/svg">
                 <title>Shift TONIC Left</title>
                 <path class="arrow-fill"
@@ -1291,7 +1291,7 @@ export {
             <div id="keyboard-window">
                 
                 <div id="bracket-window">
-                    <svg id="shift-pattern-left" class="pattern-shift-arrow straight-arrow" width="200" height="100"
+                    <svg id="brac-patternL" class="pattern-arrow straight-arrow" width="200" height="100"
                         viewBox="113 125 50 50" xmlns="http://www.w3.org/2000/svg">
                         <title>Shift PATTERN Left</title>
                         <path class="arrow-fill"
@@ -1305,7 +1305,7 @@ export {
                         </svg>
                     </div>
                     <div id="bracket-svg-container"></div>
-                    <svg id="shift-pattern-right" class="pattern-shift-arrow straight-arrow" width="200" height="100"
+                    <svg id="brac-patternR" class="pattern-arrow straight-arrow" width="200" height="100"
                         viewBox="113 125 50 50" xmlns="http://www.w3.org/2000/svg">
                         <title>Shift PATTERN Right</title>
                         <path class="arrow-fill"
@@ -1319,7 +1319,7 @@ export {
                 </div>
             </div>
 
-            <svg id="increase-tonic-2" class="tonic-arrow straight-arrow" width="200" height="200"
+            <svg id="keys-tonicR" class="tonic-arrow straight-arrow" width="200" height="200"
                 viewBox="20 100 100 100" xmlns="http://www.w3.org/2000/svg">
                 <title>Shift TONIC Right</title>
                 <path class="arrow-fill"
@@ -1337,7 +1337,7 @@ export {
             </button>
             <div id="polygon-window">
                 <!-- Wheel will be inserted here by JavaScript -->
-                <svg id="shift-pattern-left-curved" class="pattern-shift-arrow" width="200" height="200"
+                <svg id="poly-patternL" class="pattern-arrow" width="200" height="200"
                 viewBox="107 120 70 70" xmlns="http://www.w3.org/2000/svg">
                 <title>Shift PATTERN Left</title>
                 <path class="arrow-fill"
@@ -1353,7 +1353,7 @@ export {
                 </svg>
             </div>
 
-            <svg id="shift-pattern-right-curved" class="pattern-shift-arrow" width="200" height="200"
+            <svg id="poly-patternR" class="pattern-arrow" width="200" height="200"
                 viewBox="107 120 70 70" xmlns="http://www.w3.org/2000/svg">
                 <title>Shift PATTERN Right</title>
                 <path class="arrow-fill"
@@ -1613,7 +1613,7 @@ export class Pattern {
         this.animate = animate;
         this.currentPattern = [];
         this.playButton = document.getElementById('play-pattern-button');
-        this.bracketVisualization = new BracketVisualization(this.bracketContainer);
+        this.patternBracket = new patternBracket(this.bracketContainer);
         this.currentRotation = 0;
         this.currentTranslation = 0;
     }
@@ -1625,20 +1625,20 @@ export class Pattern {
 
         this.bracketContainer = document.getElementById('bracket-svg-container');
         if (this.bracketContainer) {
-            this.bracketVisualization = new BracketVisualization(this.bracketContainer);
+            this.patternBracket = new patternBracket(this.bracketContainer);
         } else {
             console.error("Bracket container not found");
         }
-        document.getElementById('shift-pattern-left').addEventListener('click', () => this.shiftPattern('left'));
-        document.getElementById('shift-pattern-right').addEventListener('click', () => this.shiftPattern('right'));
-        document.getElementById('shift-pattern-left-curved').addEventListener('click', () => this.shiftPattern('left'));
-        document.getElementById('shift-pattern-right-curved').addEventListener('click', () => this.shiftPattern('right'));
+        document.getElementById('brac-patternL').addEventListener('click', () => this.shiftPattern('left'));
+        document.getElementById('brac-patternR').addEventListener('click', () => this.shiftPattern('right'));
+        document.getElementById('poly-patternL').addEventListener('click', () => this.shiftPattern('left'));
+        document.getElementById('poly-patternR').addEventListener('click', () => this.shiftPattern('right'));
     }
 
     updatePattern(patternNotes) {
         this.currentPattern = patternNotes;
         this.drawPatternPolygon();
-        this.bracketVisualization.updatePattern(patternNotes);
+        this.patternBracket.updatePattern(patternNotes);
     
         const tonicIndex = this.wheel.config.notes.indexOf(this.wheel.currentTonic);
         const updatedPatternNotes = patternNotes.map(interval => 
@@ -1653,8 +1653,8 @@ export class Pattern {
             console.log("play button INvisible");
         }
 
-        const shiftLeftButton = document.getElementById('shift-pattern-left');
-        const shiftRightButton = document.getElementById('shift-pattern-right');
+        const shiftLeftButton = document.getElementById('brac-patternL');
+        const shiftRightButton = document.getElementById('brac-patternR');
     
     if (this.currentPattern.length > 0) {
         shiftLeftButton.style.display = 'block';
@@ -1678,7 +1678,7 @@ createPatternSvg() {
     polygonWindow.appendChild(this.patternSvg);
 }
     
-async animatePatternTransition(oldLayout, newLayout) {
+async animatePolygonTransition(oldLayout, newLayout) {
     if (!this.animate || this.currentPattern.length === 0) return;
 
     const originalPolygon = this.patternSvg.querySelector('polygon');
@@ -1803,7 +1803,7 @@ interpolatePoints(startPoints, endPoints, progress) {
             console.log("ANIMATING TRANSITION")
             await Promise.all([
                 this.animatePolygon(direction, shiftAmount),
-                this.bracketVisualization.animateBracket(direction, shiftAmount)
+                this.patternBracket.animateBracket(direction, shiftAmount)
             ]);
         }
     
@@ -1955,10 +1955,10 @@ playToneNotes(toneNotes) {
 
 }
 
-class BracketVisualization {
+class patternBracket {
     constructor(container) {
         if (!container) {
-            console.error("No container provided for BracketVisualization");
+            console.error("No container provided for patternBracket");
             return;
         }
         this.container = container;
@@ -2395,32 +2395,32 @@ wheel .note {
     height: 115px;
 }
 
-#decrease-tonic {
+#wheel-tonicL {
     position: absolute;
     left: -170px;
     transform: translateY(-20%);
 }
 
-#decrease-tonic:hover {
+#wheel-tonicL:hover {
     filter: drop-shadow(0 4px 4px rgba(0,0,0,0.3));
     transform: translateY(-23%);
 }
 
-#decrease-tonic:active {
+#wheel-tonicL:active {
     transform: translateY(-19%);
 }
 
-#increase-tonic {
+#wheel-tonicR {
     right: -170px;
     transform: translateY(-20%) scaleX(-1);
 }
 
-#increase-tonic:hover {
+#wheel-tonicR:hover {
     filter: drop-shadow(0 4px 4px rgba(0,0,0,0.3));
     transform: translateY(-23%) scaleX(-1);
 }
 
-#increase-tonic:active {
+#wheel-tonicR:active {
     transform: translateY(-19%) scaleX(-1);
 }
 
@@ -2440,8 +2440,8 @@ wheel .note {
 
 
 
-#decrease-tonic-2,
-#increase-tonic-2 {
+#keys-tonicL,
+#keys-tonicR {
     position: absolute;
     top: 75px;
     fill: var(--svg-fill-color);
@@ -2449,40 +2449,40 @@ wheel .note {
     cursor: pointer;
 }
 
-#decrease-tonic-2 {
+#keys-tonicL {
     left: -50px;
     transform: translateY(0);
 }
 
-#increase-tonic-2 {
+#keys-tonicR {
     right: -50px;
     transform: scaleX(-1) translateY(0);
 }
 
-#decrease-tonic-2:hover,
-#increase-tonic-2:hover {
+#keys-tonicL:hover,
+#keys-tonicR:hover {
     filter: drop-shadow(0 4px 4px rgba(0,0,0,0.3));
     fill: var(--svg-hover-color);
 }
 
-#decrease-tonic-2:hover {
+#keys-tonicL:hover {
     transform: translateY(-3%);
 }
 
-#increase-tonic-2:hover {
+#keys-tonicR:hover {
     transform: scaleX(-1) translateY(-3%);
 }
 
-#decrease-tonic-2:active,
-#increase-tonic-2:active {
+#keys-tonicL:active,
+#keys-tonicR:active {
     fill: var(--svg-active-color);
 }
 
-#decrease-tonic-2:active {
+#keys-tonicL:active {
     transform: translateY(1%);
 }
 
-#increase-tonic-2:active {
+#keys-tonicR:active {
     transform: scaleX(-1) translateY(1%);
 }
 
@@ -2524,7 +2524,7 @@ input[type="checkbox"] {
     max-width: 800px;
 }
   
-  .pattern-shift-arrow {
+  .pattern-arrow {
     width: 20px; /* Adjust based on your image size */
     height: 12px; /* Adjust based on your image size */
 }
@@ -2542,7 +2542,7 @@ input[type="checkbox"] {
     position: relative;
   }
   
-  .pattern-shift-arrow {
+  .pattern-arrow {
     position: absolute;
     cursor: pointer;
     transition: opacity 0.3s ease, transform 0.3s ease;
@@ -2551,33 +2551,33 @@ input[type="checkbox"] {
     z-index: 6;
   }
   
-  .pattern-active .pattern-shift-arrow {
+  .pattern-active .pattern-arrow {
     opacity: 0;
     pointer-events: auto;
   }
   
-  .pattern-active #bracket-window:hover .pattern-shift-arrow,
-  .pattern-active #polygon-window:hover .pattern-shift-arrow {
+  .pattern-active #bracket-window:hover .pattern-arrow,
+  .pattern-active #polygon-window:hover .pattern-arrow {
     opacity: 0.8;
   }
   
-  #shift-pattern-left, #shift-pattern-right {
+  #brac-patternL, #brac-patternR {
     top: 5px; /* Adjust as needed */
     width: 40px;
     height: 30px;
   }
   
-  #shift-pattern-left {
+  #brac-patternL {
     left: 10px;
   }
   
-  #shift-pattern-right {
+  #brac-patternR {
     right: 10px;
     transform: scaleX(-1);
   }
   
    
-  #shift-pattern-left-curved {
+  #poly-patternL {
     top: 40%;
     left: 30px;
     transform: translateY(-50%);
@@ -2585,7 +2585,7 @@ input[type="checkbox"] {
     height: 50px;
   }
   
-  #shift-pattern-right-curved {
+  #poly-patternR {
     top: 40%;
     right: 30px;
     transform: translateY(-50%) scaleX(-1);
@@ -2594,19 +2594,19 @@ input[type="checkbox"] {
   }
   
   /* Hover effects */
-  #shift-pattern-left:hover {
+  #brac-patternL:hover {
     transform: scale(1.1);
   } 
   
-  #shift-pattern-left-curved:hover {
+  #poly-patternL:hover {
     transform: translateY(-50%) scale(1.1);
   }
   
-  #shift-pattern-right:hover {
+  #brac-patternR:hover {
     transform: scaleX(-1) scale(1.1);
   }
   
-  #shift-pattern-right-curved:hover {
+  #poly-patternR:hover {
     transform: translateY(-50%) scaleX(-1) scale(1.1);
   }
   
@@ -3260,7 +3260,7 @@ async switchLayout(newLayout) {
 
     await Promise.all([
         this.animateLayoutSwitch(oldPositions, newPositions),
-        this.pattern ? this.pattern.animatePatternTransition(this.config.layouts[this.currentLayout], this.config.layouts[newLayout]) : Promise.resolve()
+        this.pattern ? this.pattern.animatePolygonTransition(this.config.layouts[this.currentLayout], this.config.layouts[newLayout]) : Promise.resolve()
     ]);
 
     this.currentLayout = newLayout;

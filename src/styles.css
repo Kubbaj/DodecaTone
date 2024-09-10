@@ -343,32 +343,32 @@ wheel .note {
     height: 115px;
 }
 
-#decrease-tonic {
+#wheel-tonicL {
     position: absolute;
     left: -170px;
     transform: translateY(-20%);
 }
 
-#decrease-tonic:hover {
+#wheel-tonicL:hover {
     filter: drop-shadow(0 4px 4px rgba(0,0,0,0.3));
     transform: translateY(-23%);
 }
 
-#decrease-tonic:active {
+#wheel-tonicL:active {
     transform: translateY(-19%);
 }
 
-#increase-tonic {
+#wheel-tonicR {
     right: -170px;
     transform: translateY(-20%) scaleX(-1);
 }
 
-#increase-tonic:hover {
+#wheel-tonicR:hover {
     filter: drop-shadow(0 4px 4px rgba(0,0,0,0.3));
     transform: translateY(-23%) scaleX(-1);
 }
 
-#increase-tonic:active {
+#wheel-tonicR:active {
     transform: translateY(-19%) scaleX(-1);
 }
 
@@ -388,8 +388,8 @@ wheel .note {
 
 
 
-#decrease-tonic-2,
-#increase-tonic-2 {
+#keys-tonicL,
+#keys-tonicR {
     position: absolute;
     top: 75px;
     fill: var(--svg-fill-color);
@@ -397,40 +397,40 @@ wheel .note {
     cursor: pointer;
 }
 
-#decrease-tonic-2 {
+#keys-tonicL {
     left: -50px;
     transform: translateY(0);
 }
 
-#increase-tonic-2 {
+#keys-tonicR {
     right: -50px;
     transform: scaleX(-1) translateY(0);
 }
 
-#decrease-tonic-2:hover,
-#increase-tonic-2:hover {
+#keys-tonicL:hover,
+#keys-tonicR:hover {
     filter: drop-shadow(0 4px 4px rgba(0,0,0,0.3));
     fill: var(--svg-hover-color);
 }
 
-#decrease-tonic-2:hover {
+#keys-tonicL:hover {
     transform: translateY(-3%);
 }
 
-#increase-tonic-2:hover {
+#keys-tonicR:hover {
     transform: scaleX(-1) translateY(-3%);
 }
 
-#decrease-tonic-2:active,
-#increase-tonic-2:active {
+#keys-tonicL:active,
+#keys-tonicR:active {
     fill: var(--svg-active-color);
 }
 
-#decrease-tonic-2:active {
+#keys-tonicL:active {
     transform: translateY(1%);
 }
 
-#increase-tonic-2:active {
+#keys-tonicR:active {
     transform: scaleX(-1) translateY(1%);
 }
 
@@ -472,7 +472,7 @@ input[type="checkbox"] {
     max-width: 800px;
 }
   
-  .pattern-shift-arrow {
+  .pattern-arrow {
     width: 20px; /* Adjust based on your image size */
     height: 12px; /* Adjust based on your image size */
 }
@@ -490,7 +490,7 @@ input[type="checkbox"] {
     position: relative;
   }
   
-  .pattern-shift-arrow {
+  .pattern-arrow {
     position: absolute;
     cursor: pointer;
     transition: opacity 0.3s ease, transform 0.3s ease;
@@ -499,33 +499,33 @@ input[type="checkbox"] {
     z-index: 6;
   }
   
-  .pattern-active .pattern-shift-arrow {
+  .pattern-active .pattern-arrow {
     opacity: 0;
     pointer-events: auto;
   }
   
-  .pattern-active #bracket-window:hover .pattern-shift-arrow,
-  .pattern-active #polygon-window:hover .pattern-shift-arrow {
+  .pattern-active #bracket-window:hover .pattern-arrow,
+  .pattern-active #polygon-window:hover .pattern-arrow {
     opacity: 0.8;
   }
   
-  #shift-pattern-left, #shift-pattern-right {
+  #brac-patternL, #brac-patternR {
     top: 5px; /* Adjust as needed */
     width: 40px;
     height: 30px;
   }
   
-  #shift-pattern-left {
+  #brac-patternL {
     left: 10px;
   }
   
-  #shift-pattern-right {
+  #brac-patternR {
     right: 10px;
     transform: scaleX(-1);
   }
   
    
-  #shift-pattern-left-curved {
+  #poly-patternL {
     top: 40%;
     left: 30px;
     transform: translateY(-50%);
@@ -533,7 +533,7 @@ input[type="checkbox"] {
     height: 50px;
   }
   
-  #shift-pattern-right-curved {
+  #poly-patternR {
     top: 40%;
     right: 30px;
     transform: translateY(-50%) scaleX(-1);
@@ -542,19 +542,19 @@ input[type="checkbox"] {
   }
   
   /* Hover effects */
-  #shift-pattern-left:hover {
+  #brac-patternL:hover {
     transform: scale(1.1);
   } 
   
-  #shift-pattern-left-curved:hover {
+  #poly-patternL:hover {
     transform: translateY(-50%) scale(1.1);
   }
   
-  #shift-pattern-right:hover {
+  #brac-patternR:hover {
     transform: scaleX(-1) scale(1.1);
   }
   
-  #shift-pattern-right-curved:hover {
+  #poly-patternR:hover {
     transform: translateY(-50%) scaleX(-1) scale(1.1);
   }
   

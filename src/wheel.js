@@ -255,7 +255,7 @@ async switchLayout(newLayout) {
 
     await Promise.all([
         this.animateLayoutSwitch(oldPositions, newPositions),
-        this.pattern ? this.pattern.animatePatternTransition(this.config.layouts[this.currentLayout], this.config.layouts[newLayout]) : Promise.resolve()
+        this.pattern ? this.pattern.animatePolygonTransition(this.config.layouts[this.currentLayout], this.config.layouts[newLayout]) : Promise.resolve()
     ]);
 
     this.currentLayout = newLayout;

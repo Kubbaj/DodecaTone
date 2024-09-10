@@ -9,33 +9,33 @@ export class Pattern {
         this.animate = animate;
         this.currentPattern = [];
         this.playButton = document.getElementById('play-pattern-button');
-        this.bracketVisualization = new BracketVisualization(this.bracketContainer);
+        this.patternBracket = new PatternBracket(this.bracketContainer);
         this.currentRotation = 0;
         this.currentTranslation = 0;
-        this.useIntervalColors = false; // Initialize useIntervalColors to false
+        this.useIntervalColors = false;
     }
 
     initialize() {
         
-        this.createPatternSvg();
+        this.createPolygonSVG();
         this.playButton.addEventListener('click', () => this.playPattern());
 
         this.bracketContainer = document.getElementById('bracket-svg-container');
         if (this.bracketContainer) {
-            this.bracketVisualization = new BracketVisualization(this.bracketContainer);
+            this.patternBracket = new PatternBracket(this.bracketContainer);
         } else {
             console.error("Bracket container not found");
         }
-        document.getElementById('shift-pattern-left').addEventListener('click', () => this.shiftPattern('left'));
-        document.getElementById('shift-pattern-right').addEventListener('click', () => this.shiftPattern('right'));
-        document.getElementById('shift-pattern-left-curved').addEventListener('click', () => this.shiftPattern('left'));
-        document.getElementById('shift-pattern-right-curved').addEventListener('click', () => this.shiftPattern('right'));
+        document.getElementById('brac-patternL').addEventListener('click', () => this.shiftPattern('left'));
+        document.getElementById('brac-patternR').addEventListener('click', () => this.shiftPattern('right'));
+        document.getElementById('poly-patternL').addEventListener('click', () => this.shiftPattern('left'));
+        document.getElementById('poly-patternR').addEventListener('click', () => this.shiftPattern('right'));
     }
 
     updatePattern(patternNotes) {
         this.currentPattern = patternNotes;
         this.drawPatternPolygon();
-        this.bracketVisualization.updatePattern(patternNotes);
+        this.patternBracket.updateBracket(patternNotes);
     
         const tonicIndex = this.wheel.config.notes.indexOf(this.wheel.currentTonic);
         const updatedPatternNotes = patternNotes.map(interval => 
@@ -50,8 +50,8 @@ export class Pattern {
             console.log("play button INvisible");
         }
 
-        const shiftLeftButton = document.getElementById('shift-pattern-left');
-        const shiftRightButton = document.getElementById('shift-pattern-right');
+        const shiftLeftButton = document.getElementById('brac-patternL');
+        const shiftRightButton = document.getElementById('brac-patternR');
     
     if (this.currentPattern.length > 0) {
         shiftLeftButton.style.display = 'block';
@@ -62,20 +62,20 @@ export class Pattern {
     }
 }
 
-createPatternSvg() {
-    this.patternSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    this.patternSvg.setAttribute("width", "100%");
-    this.patternSvg.setAttribute("height", "100%");
-    this.patternSvg.setAttribute("viewBox", "-95 -95 190 190"); // Adjust these values as needed
-    this.patternSvg.style.position = "absolute";
-    this.patternSvg.style.top = "0";
-    this.patternSvg.style.left = "0";
+createPolygonSVG() {
+    this.polygonSVG = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    this.polygonSVG.setAttribute("width", "100%");
+    this.polygonSVG.setAttribute("height", "100%");
+    this.polygonSVG.setAttribute("viewBox", "-95 -95 190 190"); // Adjust these values as needed
+    this.polygonSVG.style.position = "absolute";
+    this.polygonSVG.style.top = "0";
+    this.polygonSVG.style.left = "0";
     
     const polygonWindow = document.getElementById('polygon-window');
-    polygonWindow.appendChild(this.patternSvg);
+    polygonWindow.appendChild(this.polygonSVG);
 }
     
-async animatePatternTransition(oldLayout, newLayout) {
+async animatePolygonTransition(oldLayout, newLayout) {
     if (!this.currentPattern.length) return;
 
     if (!this.animate) {
@@ -83,7 +83,7 @@ async animatePatternTransition(oldLayout, newLayout) {
         return;
     }
 
-    const originalGroup = this.patternSvg.querySelector('g');
+    const originalGroup = this.polygonSVG.querySelector('g');
     originalGroup.style.display = 'none';
 
     const startSegments = this.calculatePolygonSegments(oldLayout);
@@ -92,7 +92,7 @@ async animatePatternTransition(oldLayout, newLayout) {
     const tempGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
     const tempLines = this.createTemporaryLines(startSegments);
     tempLines.forEach(line => tempGroup.appendChild(line));
-    this.patternSvg.appendChild(tempGroup);
+    this.polygonSVG.appendChild(tempGroup);
 
     const duration = 750;
     const steps = 60;
@@ -104,7 +104,7 @@ async animatePatternTransition(oldLayout, newLayout) {
         await new Promise(resolve => setTimeout(resolve, duration / steps));
     }
 
-    this.patternSvg.removeChild(tempGroup);
+    this.polygonSVG.removeChild(tempGroup);
     await this.drawPatternPolygon();
     originalGroup.style.display = '';
 }
@@ -183,7 +183,7 @@ updateLines(lines, segments) {
 }
 
     drawPatternPolygon() {
-        this.patternSvg.innerHTML = ''; // Clear previous content
+        this.polygonSVG.innerHTML = ''; // Clear previous content
 
         if (!this.currentPattern || this.currentPattern.length === 0) return;
 
@@ -242,31 +242,25 @@ updateLines(lines, segments) {
             polygonGroup.appendChild(line);
         }
 
-        this.patternSvg.appendChild(polygonGroup);
+        this.polygonSVG.appendChild(polygonGroup);
     }
 
     updateIntervalColors(useIntervalColors) {
         this.useIntervalColors = useIntervalColors;
         this.drawPatternPolygon();
-        this.bracketVisualization.updateIntervalColors(useIntervalColors);
+        this.patternBracket.updateBracketColors(useIntervalColors);
         console.log("Pattern updated interval colors:", useIntervalColors); // Add this for debugging
     }
 
     shiftPattern(direction) {
-    
         let shiftAmount;
         // Reverse the direction if reverseArrowDirection is true
         const effectiveDirection = reverseArrowDirection ? (direction === 'right' ? 'left' : 'right') : direction;
     
-        if (this.wheel.currentLayout === 'chromatic') {
-            if (effectiveDirection === 'right') {
-                shiftAmount = this.currentPattern[1] - this.currentPattern[0];
-            } else {
-                shiftAmount = 12 - (this.currentPattern[this.currentPattern.length - 1] - this.currentPattern[0]);
-            }
+        if (effectiveDirection === 'right') {
+            shiftAmount = this.currentPattern[1] - this.currentPattern[0];
         } else {
-            // For fifths and fourths layouts
-            shiftAmount = 1; // Always shift by 1 step in these layouts
+            shiftAmount = 12 - (this.currentPattern[this.currentPattern.length - 1] - this.currentPattern[0]);
         }
     
         console.log(`Shifting pattern ${effectiveDirection} by ${shiftAmount} steps`);
@@ -276,18 +270,15 @@ updateLines(lines, segments) {
             let newInterval;
             if (this.wheel.currentLayout === 'chromatic') {
                 newInterval = effectiveDirection === 'right' 
-                    ? (interval - shiftAmount + 12) % 12
+                    ? (interval - shiftAmount) % 12
                     : (interval + shiftAmount) % 12;
             } else {
                 // For fifths and fourths layouts
-                const notePositions = Array.from(this.wheel.notePositions.entries())
-                    .sort((a, b) => a[1] - b[1])
-                    .map(entry => entry[0]);
-                const currentIndex = notePositions.indexOf(interval);
-                const newIndex = effectiveDirection === 'right'
-                    ? (currentIndex - 1 + 12) % 12
-                    : (currentIndex + 1) % 12;
-                newInterval = notePositions[newIndex];
+                let multiplier = this.wheel.currentLayout === 'fifths' ? 7 : 5;
+                let adjustedShiftAmount = (shiftAmount * multiplier) % 12;
+                newInterval = effectiveDirection === 'right'
+                    ? (interval - adjustedShiftAmount + 12) % 12
+                    : (interval + adjustedShiftAmount) % 12;
             }
             return newInterval;
         });
@@ -302,8 +293,8 @@ updateLines(lines, segments) {
         if (this.animate) {
             console.log("ANIMATING TRANSITION")
             Promise.all([
-                this.animatePolygon(effectiveDirection, shiftAmount),
-                this.bracketVisualization.animateBracket(effectiveDirection, shiftAmount)
+                this.animatePolygonShift(effectiveDirection, shiftAmount),
+                this.patternBracket.animateBracketShift(effectiveDirection, shiftAmount)
             ]).then(() => {
                 // Update the current pattern after animation
                 this.currentPattern = newPattern;
@@ -339,30 +330,30 @@ updateLines(lines, segments) {
     this.keyboard.updatePatternHighlight(playableToneNotes);
     }
 
-    getRotationAngleForLayout() {
+    getRotationAngle() {
         switch (this.wheel.currentLayout) {
             case 'fifths':
-                return -150;
-            case 'fourths':
                 return 150;
+            case 'fourths':
+                return -210;
             default: // chromatic
                 return 30;
         }
     }
     
-    async animatePolygon(direction, shiftAmount) {
-        const originalGroup = this.patternSvg.querySelector('g');
+    async animatePolygonShift(direction, shiftAmount) {
+        const originalGroup = this.polygonSVG.querySelector('g');
         if (!originalGroup) return;  // Exit if there's no group (i.e., no pattern)
     
         originalGroup.style.display = 'none';  // Hide the original group
     
         const tempGroup = originalGroup.cloneNode(true);
         tempGroup.style.display = ''; // Ensure the cloned group is visible
-        this.patternSvg.appendChild(tempGroup);
+        this.polygonSVG.appendChild(tempGroup);
     
         const duration = 450; // milliseconds
         const steps = 60; // For smoother animation
-        const rotationPerStep = this.getRotationAngleForLayout();
+        const rotationPerStep = this.getRotationAngle();
         const totalRotation = (shiftAmount * Math.abs(rotationPerStep)) % 360;
     
         for (let i = 0; i <= steps; i++) {
@@ -371,7 +362,7 @@ updateLines(lines, segments) {
             await new Promise(resolve => setTimeout(resolve, duration / steps));
         }
     
-        this.patternSvg.removeChild(tempGroup);
+        this.polygonSVG.removeChild(tempGroup);
         originalGroup.style.display = '';  // Show the original group again
     
         // Redraw the polygon with the new pattern
@@ -398,7 +389,7 @@ createPlayButton() {
 
     buttonGroup.addEventListener("click", () => this.playPattern());
 
-    this.patternSvg.appendChild(buttonGroup);
+    this.polygonSVG.appendChild(buttonGroup);
     this.playButtonGroup = buttonGroup;
     console.log("play button created")
 }
@@ -476,19 +467,19 @@ playToneNotes(toneNotes) {
 
 }
 
-class BracketVisualization {
+class PatternBracket {
     constructor(container) {
         if (!container) {
-            console.error("No container provided for BracketVisualization");
+            console.error("No container provided for patternBracket");
             return;
         }
         this.container = container;
-        this.svg = this.createSVG();
-        this.patternGroup = this.createPatternGroup();
+        this.svg = this.createBracketSVG();
+        this.bracketGroup = this.createBracketGroup();
         this.useIntervalColors = false;
     }
 
-    createSVG() {
+    createBracketSVG() {
         const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
         svg.setAttribute("width", "325");
         svg.setAttribute("height", "40");
@@ -496,14 +487,14 @@ class BracketVisualization {
         return svg;
     }
 
-    createPatternGroup() {
+    createBracketGroup() {
         const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
         this.svg.appendChild(group);
         return group;
     }
 
-    updatePattern(pattern) {
-        this.patternGroup.innerHTML = '';
+    updateBracket(pattern) {
+        this.bracketGroup.innerHTML = '';
         this.currentPattern = pattern;
         
         if (pattern.length > 0) {
@@ -539,7 +530,7 @@ class BracketVisualization {
             line.setAttribute("y2", "14");
             line.setAttribute("stroke", this.useIntervalColors ? intColors[interval] : "white");
             line.setAttribute("stroke-width", "4");
-            this.patternGroup.appendChild(line);
+            this.bracketGroup.appendChild(line);
         }
     }
 
@@ -569,7 +560,7 @@ class BracketVisualization {
                 leftLine.setAttribute("y2", "35");
                 leftLine.setAttribute("stroke", intColors[prevInterval]);
                 leftLine.setAttribute("stroke-width", "4");
-                this.patternGroup.appendChild(leftLine);
+                this.bracketGroup.appendChild(leftLine);
     
                 // Right half of the vertical line when colors are on
                 const rightLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
@@ -579,7 +570,7 @@ class BracketVisualization {
                 rightLine.setAttribute("y2", "35");
                 rightLine.setAttribute("stroke", intColors[nextInterval]);
                 rightLine.setAttribute("stroke-width", "4");
-                this.patternGroup.appendChild(rightLine);
+                this.bracketGroup.appendChild(rightLine);
             } else {
                 // Single vertical line when colors are off
                 const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
@@ -589,25 +580,25 @@ class BracketVisualization {
                 line.setAttribute("y2", "35");
                 line.setAttribute("stroke", "white");
                 line.setAttribute("stroke-width", "4");
-                this.patternGroup.appendChild(line);
+                this.bracketGroup.appendChild(line);
             }
         }
     }
 
-    updateIntervalColors(useIntervalColors) {
+    updateBracketColors(useIntervalColors) {
         this.useIntervalColors = useIntervalColors;
-        this.updatePattern(this.currentPattern);
+        this.updateBracket(this.currentPattern);
     }
 
-    async animateBracket(direction, shiftAmount) {
+    async animateBracketShift(direction, shiftAmount) {
         const duration = 450; // milliseconds
         const steps = 60; // For smoother animation
         const totalShift = shiftAmount * 25; // 25 pixels per step
         const shiftPerStep = totalShift / steps;
 
-        const tempGroup = this.patternGroup.cloneNode(true);
+        const tempGroup = this.bracketGroup.cloneNode(true);
         this.svg.appendChild(tempGroup);
-        this.patternGroup.style.opacity = '0';
+        this.bracketGroup.style.opacity = '0';
 
         for (let i = 0; i <= steps; i++) {
             const shift = i * shiftPerStep * (direction === 'right' ? -1 : 1);
@@ -617,6 +608,6 @@ class BracketVisualization {
         }
 
         this.svg.removeChild(tempGroup);
-        this.patternGroup.style.opacity = '1';
+        this.bracketGroup.style.opacity = '1';
     }
 }

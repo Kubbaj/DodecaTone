@@ -23,7 +23,7 @@ let useColors = true;
 let useIntervalColors = false;
 let animate = false;
 let autoplayTonic = true;
-let reverseArrowDirection = true;
+let reverseArrowDirection = false;
 
 let isMouseDown = false;
 let lastPlayedNote = null;
@@ -103,10 +103,10 @@ function setTonic(newTonic) {
 }
 
 function initTonicPicker() {
-    const decreaseButton = document.getElementById('decrease-tonic');
-    const increaseButton = document.getElementById('increase-tonic');
-    const decreaseTonic2Button = document.getElementById('decrease-tonic-2');
-    const increaseTonic2Button = document.getElementById('increase-tonic-2');
+    const decreaseButton = document.getElementById('wheel-tonicL');
+    const increaseButton = document.getElementById('wheel-tonicR');
+    const decreaseTonic2Button = document.getElementById('keys-tonicL');
+    const increaseTonic2Button = document.getElementById('keys-tonicR');
 
     decreaseButton.addEventListener('click', () => changeTonic('decrease'));
     increaseButton.addEventListener('click', () => changeTonic('increase'));
@@ -372,7 +372,7 @@ function toggleArrowDirection() {
 
 function updateArrowTooltips() {
     console.log("Updating arrow tooltips. reverseArrowDirection:", reverseArrowDirection);
-    const arrows = document.querySelectorAll('.tonic-arrow, .pattern-shift-arrow');
+    const arrows = document.querySelectorAll('.tonic-arrow, .pattern-arrow');
     console.log("Found arrows:", arrows.length);
     arrows.forEach(arrow => {
         const arrowType = arrow.dataset.arrowType;
