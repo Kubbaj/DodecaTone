@@ -103,15 +103,15 @@ function setTonic(newTonic) {
 }
 
 function initTonicPicker() {
-    const decreaseButton = document.getElementById('wheel-tonicL');
-    const increaseButton = document.getElementById('wheel-tonicR');
-    const decreaseTonic2Button = document.getElementById('keys-tonicL');
-    const increaseTonic2Button = document.getElementById('keys-tonicR');
+    const wheelTonicLEFT = document.getElementById('wheel-tonicL');
+    const wheelTonicRIGHT = document.getElementById('wheel-tonicR');
+    const keysTonicLEFT = document.getElementById('keys-tonicL');
+    const keysTonicRIGHT = document.getElementById('keys-tonicR');
 
-    decreaseButton.addEventListener('click', () => changeTonic('decrease'));
-    increaseButton.addEventListener('click', () => changeTonic('increase'));
-    decreaseTonic2Button.addEventListener('click', () => changeTonic('decrease'));
-    increaseTonic2Button.addEventListener('click', () => changeTonic('increase'));
+    wheelTonicLEFT.addEventListener('click', () => changeTonic(-1));
+    wheelTonicRIGHT.addEventListener('click', () => changeTonic(1));
+    keysTonicLEFT.addEventListener('click', () => changeTonic(-1));
+    keysTonicRIGHT.addEventListener('click', () => changeTonic(1));
 
     // Initialize display
     updateTonicDisplay();
@@ -120,7 +120,7 @@ function initTonicPicker() {
 function changeTonic(direction) {
     const currentIndex = config.notes.indexOf(currentTonic);
     let newIndex;
-    if ((!reverseArrowDirection && direction === 'increase') || (reverseArrowDirection && direction === 'decrease')) {
+    if ((!reverseArrowDirection && direction === 1) || (reverseArrowDirection && direction === -1)) {
         newIndex = (currentIndex + 1) % config.notes.length;
     } else {
         newIndex = (currentIndex - 1 + config.notes.length) % config.notes.length;
@@ -366,14 +366,18 @@ function toggleAutoplay() {
 
 function toggleArrowDirection() {
     reverseArrowDirection = document.getElementById('toggle-arrow-direction').checked;
+    
+    const arrows = document.querySelectorAll('.tonic-arrow, .pattern-arrow');
+    arrows.forEach(arrow => {
+        const currentDirection = parseInt(arrow.dataset.direction);
+        arrow.dataset.direction = (-currentDirection).toString();
+    });
+
     updateArrowTooltips();
-    // Any other necessary updates
 }
 
 function updateArrowTooltips() {
-    console.log("Updating arrow tooltips. reverseArrowDirection:", reverseArrowDirection);
     const arrows = document.querySelectorAll('.tonic-arrow, .pattern-arrow');
-    console.log("Found arrows:", arrows.length);
     arrows.forEach(arrow => {
         const arrowType = arrow.dataset.arrowType;
         const title = arrow.querySelector('title');
@@ -671,6 +675,9 @@ function resetToDefaults() {
     }
 }
 
+
+
+
 function handleKeyboardShortcuts(event) {
     // Prevent default behavior for some keys
     if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', ' '].includes(event.key)) {
@@ -682,16 +689,16 @@ function handleKeyboardShortcuts(event) {
     switch (event.key) {
         case 'ArrowLeft':
             if (isShiftPressed) {
-                pattern.shiftPattern('left');
+                pattern.shiftPattern(-1);
             } else {
-                changeTonic('decrease');
+                changeTonic(-1);
             }
             break;
         case 'ArrowRight':
             if (isShiftPressed) {
-                pattern.shiftPattern('right');
+                pattern.shiftPattern(1);
             } else {
-                changeTonic('increase');
+                changeTonic(1);
             }
             break;
             case 'ArrowUp':

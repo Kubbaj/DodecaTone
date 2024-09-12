@@ -128,7 +128,6 @@ export class Wheel {
     updateNoteState(noteId, state, useColors, animate, octave) {
         const noteElement = this.noteElements.get(noteId);
         if (noteElement) {
-            console.log(`Updating state for Note ${noteId}: active=${state.active}, animate=${animate}`);
             const noteCircle = noteElement.querySelector('circle');
             const noteText = noteElement.querySelector('text');
             const note = this.config.notes[noteId];
@@ -272,7 +271,6 @@ async switchLayout(newLayout) {
             const inPattern = hasPattern && patternNotes.includes(noteId);
             noteElement.classList.toggle('in-pattern', inPattern);
             noteElement.style.pointerEvents = hasPattern ? (inPattern ? 'auto' : 'none') : 'auto';
-            console.log(`Note ${noteId}: ${inPattern ? 'in pattern' : 'not in pattern'}`);
         });
     }
 
@@ -280,8 +278,6 @@ async switchLayout(newLayout) {
     animateNotePress(noteElement, isActive) {
         const noteId = noteElement.dataset.noteId;
         const animationId = ++this.animationCounter;
-        
-        console.log(`Animation ${animationId} started: Note ${noteId} ${isActive ? 'pressing down' : 'releasing'}`);
 
         const noteCircle = noteElement.querySelector('circle');
         const { scale, brightness, originalRadius, duration } = this.animationParams;
@@ -309,14 +305,6 @@ async switchLayout(newLayout) {
                 { r: originalRadius }
             ], { duration, fill: 'forwards' });
         }
-
-        animation.onfinish = () => {
-            console.log(`Animation ${animationId} finished: Note ${noteId} ${isActive ? 'pressed down' : 'released'}`);
-        };
-
-        animation.oncancel = () => {
-            console.log(`Animation ${animationId} cancelled: Note ${noteId}`);
-        };
     }
 
     createTemporaryElements() {

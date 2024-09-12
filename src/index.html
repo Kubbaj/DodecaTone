@@ -21,7 +21,7 @@
                 <label for="current-tonic"><b>TONIC:</b></label>
                 <div id="tonic-controls">
                     <svg id="wheel-tonicL" class="tonic-arrow curved-arrow" width="500" height="500"
-                        viewBox="80 30 300 300" xmlns="http://www.w3.org/2000/svg" data-arrow-type="tonic-left">
+                        viewBox="80 30 300 300" xmlns="http://www.w3.org/2000/svg" data-arrow-type="tonic-left" data-direction="-1">
                         <title>Shift TONIC Left</title>
                         <path class="arrow-fill"
                             d="M330.67 58.883A472.5 472.5 0 0 0 127.665 209.1l-23.64 -18.47 11.632 94.75 94.75 -11.635 -23.643 -18.47a397.5 397.5 0 0 1 170.782 -126.375Z"
@@ -31,7 +31,7 @@
                         <span id="current-tonic">C</span>
                     </div>
                     <svg id="wheel-tonicR" class="tonic-arrow curved-arrow" width="500" height="500"
-                        viewBox="80 30 300 300" xmlns="http://www.w3.org/2000/svg" data-arrow-type="tonic-right">
+                        viewBox="80 30 300 300" xmlns="http://www.w3.org/2000/svg" data-arrow-type="tonic-right" data-direction="1">
                         <title>Shift TONIC Right</title>
                         <path class="arrow-fill"
                             d="M330.67 58.883A472.5 472.5 0 0 0 127.665 209.1l-23.64 -18.47 11.632 94.75 94.75 -11.635 -23.643 -18.47a397.5 397.5 0 0 1 170.782 -126.375Z"
@@ -43,7 +43,7 @@
 
         <div id="keyboard-area">
             <svg id="keys-tonicL" class="tonic-arrow straight-arrow" width="200" height="200"
-                viewBox="20 100 100 100" xmlns="http://www.w3.org/2000/svg" data-arrow-type="tonic-left">
+                viewBox="20 100 100 100" xmlns="http://www.w3.org/2000/svg" data-arrow-type="tonic-left" data-direction="-1">
                 <title>Shift TONIC Left</title>
                 <path class="arrow-fill"
                     d="M 95.28418597154361 135 L 62.88612887243036 135 L 62.88612887243036 123 L 35.88612887243036 150 L 62.88612887243036 177 L 62.88612887243036 165 L 95.28418597154361 165Z"
@@ -61,7 +61,7 @@
                 
                 <div id="bracket-window">
                     <svg id="brac-patternL" class="pattern-arrow straight-arrow" width="200" height="100"
-                        viewBox="113 125 50 50" xmlns="http://www.w3.org/2000/svg" data-arrow-type="pattern-left">
+                        viewBox="113 125 50 50" xmlns="http://www.w3.org/2000/svg" data-arrow-type="pattern-left" data-direction="-1">
                         <title>Shift PATTERN Left</title>
                         <path class="arrow-fill"
                             d="M 161.5 145 L 133.31604390859823 145 L 133.31604390859823 141 L 108.11604390859823 150 L 133.31604390859823 159 L 133.31604390859823 155 L 161.5 155 Z"
@@ -75,7 +75,7 @@
                     </div>
                     <div id="bracket-svg-container"></div>
                     <svg id="brac-patternR" class="pattern-arrow straight-arrow" width="200" height="100"
-                        viewBox="113 125 50 50" xmlns="http://www.w3.org/2000/svg" data-arrow-type="pattern-right">
+                        viewBox="113 125 50 50" xmlns="http://www.w3.org/2000/svg" data-arrow-type="pattern-right" data-direction="1">
                         <title>Shift PATTERN Right</title>
                         <path class="arrow-fill"
                             d="M 161.5 145 L 133.31604390859823 145 L 133.31604390859823 141 L 108.11604390859823 150 L 133.31604390859823 159 L 133.31604390859823 155 L 161.5 155 Z"
@@ -89,7 +89,7 @@
             </div>
 
             <svg id="keys-tonicR" class="tonic-arrow straight-arrow" width="200" height="200"
-                viewBox="20 100 100 100" xmlns="http://www.w3.org/2000/svg" data-arrow-type="tonic-right">
+                viewBox="20 100 100 100" xmlns="http://www.w3.org/2000/svg" data-arrow-type="tonic-right" data-direction="1">
                 <title>Shift TONIC Right</title>
                 <path class="arrow-fill"
                     d="M 95.28418597154361 135 L 62.88612887243036 135 L 62.88612887243036 123 L 35.88612887243036 150 L 62.88612887243036 177 L 62.88612887243036 165 L 95.28418597154361 165Z"
@@ -107,7 +107,7 @@
             <div id="polygon-window">
                 <!-- Wheel will be inserted here by JavaScript -->
                 <svg id="poly-patternL" class="pattern-arrow curved-arrow" width="200" height="200"
-                viewBox="107 120 70 70" xmlns="http://www.w3.org/2000/svg" data-arrow-type="pattern-left">
+                viewBox="107 120 70 70" xmlns="http://www.w3.org/2000/svg" data-arrow-type="pattern-left" data-direction="-1">
                 <title>Shift PATTERN Left</title>
                 <path class="arrow-fill"
                     d="M 159.00000000000003 128.98591688967602 A 82 82 0 0 0 128.98591688967602 159 L 125.52181527453827 157 L 120.71604390859821 183.32384017536782 L 141.11027254265815 166 L 137.64617092752042 164 A 72 72 0 0 1 164 137.64617092752042 Z"
@@ -123,7 +123,7 @@
             </div>
 
             <svg id="poly-patternR" class="pattern-arrow curved-arrow" width="200" height="200"
-                viewBox="107 120 70 70" xmlns="http://www.w3.org/2000/svg" data-arrow-type="pattern-right">
+                viewBox="107 120 70 70" xmlns="http://www.w3.org/2000/svg" data-arrow-type="pattern-right" data-direction="1">
                 <title>Shift PATTERN Right</title>
                 <path class="arrow-fill"
                     d="M 159.00000000000003 128.98591688967602 A 82 82 0 0 0 128.98591688967602 159 L 125.52181527453827 157 L 120.71604390859821 183.32384017536782 L 141.11027254265815 166 L 137.64617092752042 164 A 72 72 0 0 1 164 137.64617092752042 Z"

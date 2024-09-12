@@ -14,6 +14,14 @@ const NOTE_DFlat = 'Db'
 // Basic note array
 const notes = ['C', 'C♯/D♭', 'D', 'D♯/E♭', 'E', 'F', 'F♯/G♭', 'G', 'G♯/A♭', 'A', 'A♯/B♭', 'B'];
 
+// Potential note displays:
+const notesSharp = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+const notesFlat = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
+const notesIndex = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+const notesBase12 = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, "X", "L"];
+const notesRoman = ["I", "♭ii", "ii", "♭iii", "iii", "IV", "♭V", "V", "♭vi", "vi", "♭vii", "vii"];
+const notesArabic = ["1", "♭2", "2", "♭3", "3", "4", "♭5", "5", "♭6", "6", "♭7", "7"]
+
 const extendedNotes = [
   'C3', 'C♯3/D♭3', 'D3', 'D♯3/E♭3', 'E3', 'F3', 'F♯3/G♭3', 'G3', 'G♯3/A♭3', 'A3', 'A♯3/B♭3', 'B3',
   'C4', 'C♯4/D♭4', 'D4', 'D♯4/E♭4', 'E4', 'F4', 'F♯4/G♭4', 'G4', 'G♯4/A♭4', 'A4', 'A♯4/B♭4', 'B4'

@@ -26,10 +26,10 @@ export class Pattern {
         } else {
             console.error("Bracket container not found");
         }
-        document.getElementById('brac-patternL').addEventListener('click', () => this.shiftPattern('left'));
-        document.getElementById('brac-patternR').addEventListener('click', () => this.shiftPattern('right'));
-        document.getElementById('poly-patternL').addEventListener('click', () => this.shiftPattern('left'));
-        document.getElementById('poly-patternR').addEventListener('click', () => this.shiftPattern('right'));
+        document.getElementById('brac-patternL').addEventListener('click', () => this.shiftPattern(-1));
+        document.getElementById('brac-patternR').addEventListener('click', () => this.shiftPattern(1));
+        document.getElementById('poly-patternL').addEventListener('click', () => this.shiftPattern(-1));
+        document.getElementById('poly-patternR').addEventListener('click', () => this.shiftPattern(1));
     }
 
     updatePattern(patternNotes) {
@@ -195,7 +195,6 @@ updateLines(lines, segments) {
         const points = this.currentPattern.map(noteIndex => {
             const actualNoteIndex = (noteIndex + this.wheel.config.notes.indexOf(this.wheel.currentTonic)) % 12;
             const notePosition = this.wheel.notePositions.get(actualNoteIndex);
-            console.log(`Note ${actualNoteIndex}: Position ${notePosition}`);
 
             const angle = (notePosition * 30) * (Math.PI / 180) - Math.PI / 2;
             const x = Math.cos(angle) * polygonRadius;
@@ -253,62 +252,94 @@ updateLines(lines, segments) {
     }
 
     shiftPattern(direction) {
-        let shiftAmount;
-        // Reverse the direction if reverseArrowDirection is true
-        const effectiveDirection = reverseArrowDirection ? (direction === 'right' ? 'left' : 'right') : direction;
-    
-        if (effectiveDirection === 'right') {
-            shiftAmount = this.currentPattern[1] - this.currentPattern[0];
+        const effectiveDirection = reverseArrowDirection ? -direction : direction;
+        const currentLayout = this.wheel.currentLayout;
+        
+        // Calculate shiftSteps based on the pattern's intervals
+        let shiftSteps;
+        if (effectiveDirection === 1) {
+            // Clockwise: use the last interval
+            shiftSteps = (this.currentPattern[0] - this.currentPattern[this.currentPattern.length - 1] + 12) % 12;
         } else {
-            shiftAmount = 12 - (this.currentPattern[this.currentPattern.length - 1] - this.currentPattern[0]);
+            // Counterclockwise: use the first interval
+            shiftSteps = (this.currentPattern[1] - this.currentPattern[0] + 12) % 12;
         }
     
-        console.log(`Shifting pattern ${effectiveDirection} by ${shiftAmount} steps`);
+        // Adjust shiftAmount based on the layout
+        let shiftAmount;
+        switch (currentLayout) {
+            case 'fourths':
+                shiftAmount = (shiftSteps * 5) % 12;
+                break;
+            case 'fifths':
+                shiftAmount = (shiftSteps * 7) % 12;
+                break;
+            default: // chromatic
+                shiftAmount = shiftSteps;
+        }
     
-        // Calculate the new pattern
-        const newPattern = this.currentPattern.map(interval => {
-            let newInterval;
-            if (this.wheel.currentLayout === 'chromatic') {
-                newInterval = effectiveDirection === 'right' 
-                    ? (interval - shiftAmount) % 12
-                    : (interval + shiftAmount) % 12;
-            } else {
-                // For fifths and fourths layouts
-                let multiplier = this.wheel.currentLayout === 'fifths' ? 7 : 5;
-                let adjustedShiftAmount = (shiftAmount * multiplier) % 12;
-                newInterval = effectiveDirection === 'right'
-                    ? (interval - adjustedShiftAmount + 12) % 12
-                    : (interval + adjustedShiftAmount) % 12;
-            }
-            return newInterval;
-        });
+        // Calculate new pattern
+        const newPattern = this.currentPattern.map(note => (note + shiftAmount * effectiveDirection + 12) % 12);
     
-        // Sort the new pattern
-        newPattern.sort((a, b) => a - b);
+       // Shift the pattern cyclically
+if (effectiveDirection === 1) {
+    // Clockwise: move the first element to the end
+    newPattern.push(newPattern.shift());
+} else {
+    // Counterclockwise: move the last element to the beginning
+    newPattern.unshift(newPattern.pop());
+}
+
+        // Calculate rotation angle
+        const rotationAngle = shiftSteps * 30 * effectiveDirection;
     
-        console.log("Original pattern:", this.currentPattern);
-        console.log("New pattern:", newPattern);
-    
-        // Animate the changes
+        // Animate and update
         if (this.animate) {
-            console.log("ANIMATING TRANSITION")
             Promise.all([
-                this.animatePolygonShift(effectiveDirection, shiftAmount),
+                this.animatePolygonShift(effectiveDirection, rotationAngle),
                 this.patternBracket.animateBracketShift(effectiveDirection, shiftAmount)
             ]).then(() => {
-                // Update the current pattern after animation
                 this.currentPattern = newPattern;
-                // Update visuals
                 this.updatePattern(this.currentPattern);
                 this.updateKeyboardHighlight();
             });
         } else {
-            // Update the current pattern immediately if not animating
             this.currentPattern = newPattern;
-            // Update visuals
             this.updatePattern(this.currentPattern);
             this.updateKeyboardHighlight();
         }
+    
+        // Log for debugging
+        console.log("Shift direction:", effectiveDirection);
+        console.log("Shift steps:", shiftSteps);
+        console.log("Shift amount:", shiftAmount);
+        console.log("Original pattern:", this.currentPattern);
+        console.log("New pattern:", newPattern);
+        console.log("Rotation angle:", rotationAngle);
+    }
+    
+    async animatePolygonShift(direction, rotationAngle) {
+        const originalGroup = this.polygonSVG.querySelector('g');
+        if (!originalGroup) return;  // Exit if there's no group (i.e., no pattern)
+    
+        originalGroup.style.display = 'none';  // Hide the original group
+    
+        const tempGroup = originalGroup.cloneNode(true);
+        tempGroup.style.display = ''; // Ensure the cloned group is visible
+        this.polygonSVG.appendChild(tempGroup);
+    
+        const duration = 450; // milliseconds
+        const steps = 60; // For smoother animation
+    
+        for (let i = 0; i <= steps; i++) {
+            const rotation = i * (rotationAngle / steps);
+            tempGroup.setAttribute('transform', `rotate(${rotation})`);
+            await new Promise(resolve => setTimeout(resolve, duration / steps));
+        }
+    
+        this.polygonSVG.removeChild(tempGroup);
+        originalGroup.style.display = '';  // Show the original group again
+    
     }
 
     getCurrentPattern() {
@@ -328,45 +359,6 @@ updateLines(lines, segments) {
     playableToneNotes.push(topNote);
 
     this.keyboard.updatePatternHighlight(playableToneNotes);
-    }
-
-    getRotationAngle() {
-        switch (this.wheel.currentLayout) {
-            case 'fifths':
-                return 150;
-            case 'fourths':
-                return -210;
-            default: // chromatic
-                return 30;
-        }
-    }
-    
-    async animatePolygonShift(direction, shiftAmount) {
-        const originalGroup = this.polygonSVG.querySelector('g');
-        if (!originalGroup) return;  // Exit if there's no group (i.e., no pattern)
-    
-        originalGroup.style.display = 'none';  // Hide the original group
-    
-        const tempGroup = originalGroup.cloneNode(true);
-        tempGroup.style.display = ''; // Ensure the cloned group is visible
-        this.polygonSVG.appendChild(tempGroup);
-    
-        const duration = 450; // milliseconds
-        const steps = 60; // For smoother animation
-        const rotationPerStep = this.getRotationAngle();
-        const totalRotation = (shiftAmount * Math.abs(rotationPerStep)) % 360;
-    
-        for (let i = 0; i <= steps; i++) {
-            const rotation = i * (totalRotation / steps) * (direction === 'right' ? -1 : 1) * Math.sign(rotationPerStep);
-            tempGroup.setAttribute('transform', `rotate(${rotation})`);
-            await new Promise(resolve => setTimeout(resolve, duration / steps));
-        }
-    
-        this.polygonSVG.removeChild(tempGroup);
-        originalGroup.style.display = '';  // Show the original group again
-    
-        // Redraw the polygon with the new pattern
-        this.drawPatternPolygon();
     }
 // PLAYBACK FUNCTIONS
 
@@ -601,7 +593,7 @@ class PatternBracket {
         this.bracketGroup.style.opacity = '0';
 
         for (let i = 0; i <= steps; i++) {
-            const shift = i * shiftPerStep * (direction === 'right' ? -1 : 1);
+            const shift = i * shiftPerStep * direction;
             tempGroup.setAttribute('transform', `translate(${shift} 0)`);
             tempGroup.setAttribute('easing', `ease-in-out`);
             await new Promise(resolve => setTimeout(resolve, duration / steps));
