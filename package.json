@@ -1,0 +1,14 @@
+{
+  "name": "dodecatone",
+  "version": "1.0.0",
+  "description": "BUGS TO FIX:\r  - STICKY NOTES:\r    when cycling through tonics too quickly, some note-press animations don't complete properly...\r  - PLAYBACK TIMEOUT:\r    when audio is triggered after not having been for some (surprisingly short) period, there's a delay before it kicks back in again (@__drewface fixed this but i havent been able to implement it for some reason...)\r  - MULTI-OCTAVE HANDLING:\r    various bugs occur when a pattern is chosen that extends beyond a single octave\r    (pattern shifting breaks, and playback gets piercingly high for larger patterns, also the final note is still only 1oct above the tonic bc we trigger it manually)\r  - LAYOUT CHANGE DE-SYNC\r    when a pattern is selected and the layout is changed, both the notes and the polygon smoothly animate between them, but are occasionally out-of-sync with each other...",
+  "main": "index.js",
+  "scripts": {},
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@playwright/test": "^1.47.0",
+    "@types/node": "^22.5.4"
+  }
+}
