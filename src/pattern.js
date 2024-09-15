@@ -197,7 +197,7 @@ interpolatePoints(startPoints, endPoints, progress) {
         console.log("Original pattern:", this.currentPattern);
         console.log("New pattern:", newPattern);
     
-        console.log("PATTERNNN ANIMATE:", this.animate)
+        console.log("PATTERN ANIMATE:", this.animate)
         // Animate the changes
         if (this.animate) {
             console.log("ANIMATING TRANSITION")
@@ -237,9 +237,9 @@ interpolatePoints(startPoints, endPoints, progress) {
     getRotationAngleForLayout() {
         switch (this.wheel.currentLayout) {
             case 'fifths':
-                return -150;
+                return 210;
             case 'fourths':
-                return 150;
+                return -210;
             default: // chromatic
                 return 30;
         }
@@ -252,7 +252,7 @@ interpolatePoints(startPoints, endPoints, progress) {
     const originalPolygon = this.patternSvg.querySelector('polygon');
     originalPolygon.style.opacity = '0';
 
-    const duration = 450; // milliseconds
+    const duration = 200 * shiftAmount; // milliseconds
     const steps = 60; // For smoother animation
     const rotationPerStep = this.getRotationAngleForLayout();
     const totalRotation = (shiftAmount * rotationPerStep) % 360;
@@ -260,7 +260,7 @@ interpolatePoints(startPoints, endPoints, progress) {
     for (let i = 0; i <= steps; i++) {
         const rotation = i * (totalRotation / steps) * (direction === 'right' ? -1 : 1);
         tempPolygon.setAttribute('transform', `rotate(${rotation})`);
-        await new Promise(resolve => setTimeout(resolve, duration / steps));
+        await new Promise(resolve => setTimeout(resolve, (duration / steps)));
     }
 
     this.patternSvg.removeChild(tempPolygon);
