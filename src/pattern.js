@@ -213,6 +213,8 @@ interpolatePoints(startPoints, endPoints, progress) {
     
         // Update visuals
         this.updatePattern(this.currentPattern);
+        this.patternSvg.removeChild(tempPolygon);
+        originalPolygon.style.opacity = '1';
         this.updateKeyboardHighlight();
     }
 
@@ -223,21 +225,20 @@ interpolatePoints(startPoints, endPoints, progress) {
         const originalPolygon = this.patternSvg.querySelector('polygon');
         originalPolygon.style.opacity = '0';
 
-        const duration = 450; // milliseconds
         const steps = 60; // For smoother animation
         const rotationPerStep = getRotationAngleForLayout(this.wheel.currentLayout);
         const totalRotation = (shiftAmount * rotationPerStep) % 360;
+        const rotationSpeed = 0.2; // Adjust this value to change the speed
+        const duration = totalRotation / rotationSpeed;
 
         for (let i = 0; i <= steps; i++) {
-            const rotation = i * (totalRotation / steps) * (direction === 'right' ? -1 : 1);
+            const progress = i / steps;
+            const rotation = progress * totalRotation * (direction === 'right' ? -1 : 1);
             tempPolygon.setAttribute('transform', `rotate(${rotation})`);
             await new Promise(resolve => setTimeout(resolve, duration / steps));
         }
-
-        this.patternSvg.removeChild(tempPolygon);
-        originalPolygon.style.opacity = '1';
     }
-
+       
     getCurrentPattern() {
         return this.currentPattern;
     }
