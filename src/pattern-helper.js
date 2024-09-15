@@ -3,7 +3,7 @@ export function getRotationAngleForLayout(wheelCurrentLayout) {
         case 'fifths':
             return 210;
         case 'fourths':
-            return 150; // 360-210
+            return -210; // 360-210
         default: // chromatic
             return 30;
     }

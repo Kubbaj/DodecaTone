@@ -168,6 +168,10 @@ interpolatePoints(startPoints, endPoints, progress) {
 
     async shiftPattern(direction) {
     
+        if (this.wheel.currentLayout === 'fourths') {
+            direction = direction === 'right' ? 'left' : 'right';
+        }
+
         let shiftAmount;
         if (direction === 'right') {
             shiftAmount = this.currentPattern[1];
@@ -253,43 +257,6 @@ interpolatePoints(startPoints, endPoints, progress) {
 
         this.keyboard.updatePatternHighlight(playableToneNotes);
     }
-<<<<<<< HEAD
-
-    getRotationAngleForLayout() {
-        switch (this.wheel.currentLayout) {
-            case 'fifths':
-                return 210;
-            case 'fourths':
-                return -210;
-            default: // chromatic
-                return 30;
-        }
-    }
-    
-    async animatePolygon(direction, shiftAmount) {
-    const tempPolygon = this.patternSvg.querySelector('polygon').cloneNode(true);
-    this.patternSvg.appendChild(tempPolygon);
-
-    const originalPolygon = this.patternSvg.querySelector('polygon');
-    originalPolygon.style.opacity = '0';
-
-    const duration = 200 * shiftAmount; // milliseconds
-    const steps = 60; // For smoother animation
-    const rotationPerStep = this.getRotationAngleForLayout();
-    const totalRotation = (shiftAmount * rotationPerStep) % 360;
-
-    for (let i = 0; i <= steps; i++) {
-        const rotation = i * (totalRotation / steps) * (direction === 'right' ? -1 : 1);
-        tempPolygon.setAttribute('transform', `rotate(${rotation})`);
-        await new Promise(resolve => setTimeout(resolve, (duration / steps)));
-    }
-
-    this.patternSvg.removeChild(tempPolygon);
-    originalPolygon.style.opacity = '1';
-}
-
-=======
->>>>>>> 07686e3e5563a5f435032a7ef2bffc69d3473288
 // PLAYBACK FUNCTIONS
 
 createPlayButton() {
