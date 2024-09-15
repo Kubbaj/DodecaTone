@@ -1,5 +1,6 @@
 // pattern.js
 import { playNoteForDuration } from './app.js';
+import { getRotationAngleForLayout } from './pattern-helper.js';
 
 export class Pattern {
     constructor(keyboard, wheel, animate) {
@@ -166,16 +167,12 @@ interpolatePoints(startPoints, endPoints, progress) {
     }
 
     async shiftPattern(direction) {
-        if (this.currentPattern.length < 2) {
-            console.log("Pattern is too short to shift");
-            return;
-        }
     
         let shiftAmount;
         if (direction === 'right') {
-            shiftAmount = this.currentPattern[1] - this.currentPattern[0];
+            shiftAmount = this.currentPattern[1];
         } else if (direction === 'left') {
-            shiftAmount = 12 - (this.currentPattern[this.currentPattern.length - 1] - this.currentPattern[0]);
+            shiftAmount = 12 - this.currentPattern[this.currentPattern.length - 1];
         } else {
             console.error("Invalid shift direction");
             return;
@@ -184,11 +181,11 @@ interpolatePoints(startPoints, endPoints, progress) {
         console.log(`Shifting pattern ${direction} by ${shiftAmount} steps`);
     
         // Calculate the new pattern
-        const newPattern = this.currentPattern.map(interval => {
-            let newInterval = direction === 'right' 
-                ? (interval - shiftAmount + 12) % 12
-                : (interval + shiftAmount) % 12;
-            return newInterval;
+        const newPattern = this.currentPattern.map(note => {
+            let newNote = direction === 'right' 
+                ? (note - shiftAmount + 12) % 12
+                : (note + shiftAmount) % 12;
+            return newNote;
         });
     
         // Sort the new pattern
@@ -215,10 +212,32 @@ interpolatePoints(startPoints, endPoints, progress) {
         this.updateKeyboardHighlight();
     }
 
+    async animatePolygon(direction, shiftAmount) {
+        const tempPolygon = this.patternSvg.querySelector('polygon').cloneNode(true);
+        this.patternSvg.appendChild(tempPolygon);
+
+        const originalPolygon = this.patternSvg.querySelector('polygon');
+        originalPolygon.style.opacity = '0';
+
+        const duration = 450; // milliseconds
+        const steps = 60; // For smoother animation
+        const rotationPerStep = getRotationAngleForLayout(this.wheel.currentLayout);
+        const totalRotation = (shiftAmount * rotationPerStep) % 360;
+
+        for (let i = 0; i <= steps; i++) {
+            const rotation = i * (totalRotation / steps) * (direction === 'right' ? -1 : 1);
+            tempPolygon.setAttribute('transform', `rotate(${rotation})`);
+            await new Promise(resolve => setTimeout(resolve, duration / steps));
+        }
+
+        this.patternSvg.removeChild(tempPolygon);
+        originalPolygon.style.opacity = '1';
+    }
+
     getCurrentPattern() {
         return this.currentPattern;
     }
-    
+
     updateKeyboardHighlight() {
         const tonicIndex = this.wheel.config.notes.indexOf(this.wheel.currentTonic);
         const playableToneNotes = this.currentPattern.map(interval => {
@@ -227,12 +246,14 @@ interpolatePoints(startPoints, endPoints, progress) {
             const octave = this.wheel.currentOctave + (noteIndex < tonicIndex ? 1 : 0);
             return this.wheel.formatToneNote(note, octave);
         });
-         // Add the top note (one octave above the tonic)
-    const topNote = this.wheel.formatToneNote(this.wheel.currentTonic, this.wheel.currentOctave + 1);
-    playableToneNotes.push(topNote);
 
-    this.keyboard.updatePatternHighlight(playableToneNotes);
+        // Add the top note (one octave above the tonic)
+        const topNote = this.wheel.formatToneNote(this.wheel.currentTonic, this.wheel.currentOctave + 1);
+        playableToneNotes.push(topNote);
+
+        this.keyboard.updatePatternHighlight(playableToneNotes);
     }
+<<<<<<< HEAD
 
     getRotationAngleForLayout() {
         switch (this.wheel.currentLayout) {
@@ -267,6 +288,8 @@ interpolatePoints(startPoints, endPoints, progress) {
     originalPolygon.style.opacity = '1';
 }
 
+=======
+>>>>>>> 07686e3e5563a5f435032a7ef2bffc69d3473288
 // PLAYBACK FUNCTIONS
 
 createPlayButton() {
